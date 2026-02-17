@@ -5,9 +5,17 @@ export interface Point {
   id: string;
   team: Team;
   type: PointType;
-  x: number; // 0-1 relative to court
-  y: number; // 0-1 relative to court
+  x: number;
+  y: number;
   timestamp: number;
+}
+
+export interface SetData {
+  id: string;
+  number: number;
+  points: Point[];
+  score: { blue: number; red: number };
+  winner: Team | null;
 }
 
 export interface MatchState {

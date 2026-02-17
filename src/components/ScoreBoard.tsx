@@ -1,14 +1,16 @@
-import { Undo2, RotateCcw } from 'lucide-react';
+import { Undo2, RotateCcw, Flag } from 'lucide-react';
 import { Team, PointType } from '@/types/volleyball';
 
 interface ScoreBoardProps {
   score: { blue: number; red: number };
   selectedTeam: Team | null;
   selectedPointType: PointType;
+  currentSetNumber: number;
   onSelectTeam: (team: Team) => void;
   onSelectPointType: (type: PointType) => void;
   onUndo: () => void;
   onReset: () => void;
+  onEndSet: () => void;
   canUndo: boolean;
 }
 
@@ -20,10 +22,15 @@ export function ScoreBoard({
   onSelectPointType,
   onUndo,
   onReset,
+  onEndSet,
   canUndo,
+  currentSetNumber,
 }: ScoreBoardProps) {
   return (
     <div className="space-y-4">
+      {/* Current set label */}
+      <p className="text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Set {currentSetNumber}</p>
+
       {/* Score display */}
       <div className="flex items-center justify-center gap-4">
         <div className="flex-1 text-center">
@@ -93,13 +100,20 @@ export function ScoreBoard({
       )}
 
       {/* Action buttons */}
-      <div className="flex gap-2 justify-center">
+      <div className="flex gap-2 justify-center flex-wrap">
         <button
           onClick={onUndo}
           disabled={!canUndo}
           className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all"
         >
           <Undo2 size={16} /> Annuler
+        </button>
+        <button
+          onClick={onEndSet}
+          disabled={!canUndo}
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 disabled:opacity-30 transition-all"
+        >
+          <Flag size={16} /> Fin du Set
         </button>
         <button
           onClick={onReset}
