@@ -18,7 +18,10 @@ const COURT_TOP = 20;
 const COURT_BOTTOM = 380;
 const NET_X = 300;
 
-type ZoneType = 'left_court' | 'right_court' | 'outside_left' | 'outside_right' | 'net_left' | 'net_right' | 'none';
+type ZoneType = 'left_court' | 'right_court' | 'outside_left' | 'outside_right' | 'net_left' | 'net_right' | 'back_left' | 'back_right' | 'none';
+
+// Back court = service zone (behind the attack line, near the baseline)
+const BACK_DEPTH = 80; // pixels from baseline inward
 
 function getClickZone(svgX: number, svgY: number): ZoneType {
   const isInsideCourt = svgX >= COURT_LEFT && svgX <= COURT_RIGHT && svgY >= COURT_TOP && svgY <= COURT_BOTTOM;
@@ -26,9 +29,11 @@ function getClickZone(svgX: number, svgY: number): ZoneType {
   if (isInsideCourt) {
     // Net zone: within 15px of center line
     if (Math.abs(svgX - NET_X) < 15) {
-      // Distinguish left-net vs right-net
       return svgX <= NET_X ? 'net_left' : 'net_right';
     }
+    // Back court zones (near baselines)
+    if (svgX < COURT_LEFT + BACK_DEPTH) return 'back_left';
+    if (svgX > COURT_RIGHT - BACK_DEPTH) return 'back_right';
     if (svgX < NET_X) return 'left_court';
     return 'right_court';
   }
@@ -54,16 +59,20 @@ function isZoneAllowed(
   const opponentCourt = opponentSide === 'left' ? 'left_court' : 'right_court';
 
   if (isOffensiveAction(action)) {
-    // Offensive: scoring team hits INTO opponent court
-    return zone === opponentCourt;
+    // Offensive: scoring team hits INTO opponent court (back_* zones count as court)
+    const allowedZones: ZoneType[] = opponentSide === 'left'
+      ? ['left_court', 'back_left']
+      : ['right_court', 'back_right'];
+    return allowedZones.includes(zone);
   }
 
   // Faults: the OPPONENT committed the fault, so zones relate to opponent's side
   switch (action) {
     case 'service_miss':
+      // Opponent missed their serve from the back of THEIR court
+      return zone === (opponentSide === 'left' ? 'back_left' : 'back_right');
     case 'out':
-      // Ball went out around the SCORING team's court (opponent hit it out of scoring team's side)
-      // i.e. outside the team's own court area
+      // Ball went out around the SCORING team's court
       return zone === (teamSide === 'left' ? 'outside_left' : 'outside_right');
     case 'net_fault':
       // Opponent touched the net on THEIR side of the net
@@ -97,7 +106,13 @@ function getZoneHighlights(
   }
 
   switch (action) {
-    case 'service_miss':
+    case 'service_miss': {
+      // Back of opponent's court (where they served from)
+      if (opponentSide === 'left') {
+        return { allowed: [{ x: COURT_LEFT, y: COURT_TOP, w: BACK_DEPTH, h: COURT_BOTTOM - COURT_TOP }] };
+      }
+      return { allowed: [{ x: COURT_RIGHT - BACK_DEPTH, y: COURT_TOP, w: BACK_DEPTH, h: COURT_BOTTOM - COURT_TOP }] };
+    }
     case 'out': {
       // Outside scoring team's court (ball went out on their side)
       if (teamSide === 'left') {
