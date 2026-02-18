@@ -80,22 +80,26 @@ export function VolleyballCourt({ points, selectedTeam, sidesSwapped = false, te
           const cy = point.y * 400;
           const color = point.team === 'blue' ? 'hsl(217, 91%, 60%)' : 'hsl(0, 84%, 60%)';
           const isFault = point.type === 'fault';
+          const actionLetter = point.action === 'service' ? 'S' : point.action === 'attack' ? 'A' : point.action === 'block_out' ? 'B' : null;
           return (
             <g key={point.id} className="animate-point-drop">
               <circle
                 cx={cx}
                 cy={cy}
-                r={isFault ? 7 : 9}
+                r={9}
                 fill={color}
                 opacity={0.85}
                 stroke="white"
                 strokeWidth={isFault ? 1 : 1.5}
               />
-              {isFault && (
+              {isFault && !actionLetter && (
                 <>
                   <line x1={cx - 3.5} y1={cy - 3.5} x2={cx + 3.5} y2={cy + 3.5} stroke="white" strokeWidth="1.5" />
                   <line x1={cx + 3.5} y1={cy - 3.5} x2={cx - 3.5} y2={cy + 3.5} stroke="white" strokeWidth="1.5" />
                 </>
+              )}
+              {actionLetter && (
+                <text x={cx} y={cy + 4} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">{actionLetter}</text>
               )}
             </g>
           );

@@ -53,6 +53,8 @@ export function useMatchState() {
     };
     setPoints(prev => [...prev, point]);
     setSelectedTeam(null);
+    setSelectedPointType('scored');
+    setSelectedAction('other');
   }, [selectedTeam, selectedPointType, selectedAction, chronoRunning, points.length]);
 
   const undo = useCallback(() => {
