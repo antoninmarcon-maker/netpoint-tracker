@@ -148,10 +148,14 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
 
   return (
     <div className="space-y-4">
-      <div ref={statsRef} className="space-y-4 bg-background p-1">
-        <p className="text-center text-sm font-bold text-foreground">
-          {teamNames.blue} vs {teamNames.red}
-        </p>
+      <div ref={statsRef} className="space-y-4 bg-background rounded-2xl p-4">
+        {/* Header */}
+        <div className="text-center space-y-1">
+          <p className="text-base font-black text-foreground">
+            🏐 {teamNames.blue} vs {teamNames.red}
+          </p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Statistiques du match</p>
+        </div>
 
         <div className="flex gap-1.5 justify-center flex-wrap">
           {setOptions.map(o => (
@@ -172,92 +176,77 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         {/* Stats detail */}
         <div className="grid grid-cols-2 gap-3">
           {(['blue', 'red'] as const).map(team => (
-            <div key={team} className="bg-card rounded-xl p-4 border border-border">
+            <div key={team} className="bg-card rounded-xl p-3 border border-border">
               <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${team === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>
                 {teamNames[team]}
               </p>
-              <div className="space-y-1 text-sm">
-                {/* Points gagnés */}
+              <div className="space-y-0.5 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground font-semibold">⚡ Points Gagnés</span>
-                  <span className="font-bold text-foreground">{ds[team].scored}</span>
+                  <span className="text-muted-foreground font-semibold text-xs">⚡ Gagnés</span>
+                  <span className="font-bold text-foreground text-xs">{ds[team].scored}</span>
                 </div>
-                <div className="flex justify-between pl-2">
-                  <span className="text-muted-foreground text-xs">Attaques</span>
-                  <span className="font-bold text-foreground text-xs">{ds[team].attacks}</span>
-                </div>
-                <div className="flex justify-between pl-2">
-                  <span className="text-muted-foreground text-xs">Aces</span>
-                  <span className="font-bold text-foreground text-xs">{ds[team].aces}</span>
-                </div>
-                <div className="flex justify-between pl-2">
-                  <span className="text-muted-foreground text-xs">Blocks</span>
-                  <span className="font-bold text-foreground text-xs">{ds[team].blocks}</span>
-                </div>
-                <div className="flex justify-between pl-2">
-                  <span className="text-muted-foreground text-xs">Bidouilles</span>
-                  <span className="font-bold text-foreground text-xs">{ds[team].bidouilles}</span>
-                </div>
-                <div className="flex justify-between pl-2">
-                  <span className="text-muted-foreground text-xs">Secondes mains</span>
-                  <span className="font-bold text-foreground text-xs">{ds[team].secondeMains}</span>
-                </div>
-                <div className="flex justify-between pl-2">
-                  <span className="text-muted-foreground text-xs">Autres</span>
-                  <span className="font-bold text-foreground text-xs">{ds[team].otherOffensive}</span>
-                </div>
-
-                {/* Fautes */}
-                <div className="flex justify-between border-t border-border pt-1 mt-1">
-                  <span className="text-muted-foreground font-semibold">❌ Fautes</span>
-                  <span className="font-bold text-destructive">{ds[team].faults}</span>
-                </div>
-                <div className="flex justify-between pl-2">
-                  <span className="text-muted-foreground text-xs">Out</span>
-                  <span className="font-bold text-foreground text-xs">{ds[team].outs}</span>
-                </div>
-                <div className="flex justify-between pl-2">
-                  <span className="text-muted-foreground text-xs">Filet</span>
-                  <span className="font-bold text-foreground text-xs">{ds[team].netFaults}</span>
-                </div>
-                <div className="flex justify-between pl-2">
-                  <span className="text-muted-foreground text-xs">Services loupés</span>
-                  <span className="font-bold text-foreground text-xs">{ds[team].serviceMisses}</span>
-                </div>
-                <div className="flex justify-between pl-2">
-                  <span className="text-muted-foreground text-xs">Block Out</span>
-                  <span className="font-bold text-foreground text-xs">{ds[team].blockOuts}</span>
-                </div>
+                {[
+                  ['Attaques', ds[team].attacks],
+                  ['Aces', ds[team].aces],
+                  ['Blocks', ds[team].blocks],
+                  ['Bidouilles', ds[team].bidouilles],
+                  ['2ndes mains', ds[team].secondeMains],
+                  ['Autres', ds[team].otherOffensive],
+                ].map(([label, val]) => (
+                  <div key={label as string} className="flex justify-between pl-2">
+                    <span className="text-muted-foreground text-[11px]">{label}</span>
+                    <span className="font-bold text-foreground text-[11px]">{val as number}</span>
+                  </div>
+                ))}
 
                 <div className="flex justify-between border-t border-border pt-1 mt-1">
-                  <span className="text-muted-foreground">Total</span>
-                  <span className="font-bold text-foreground">{ds[team].scored + ds[team].faults}</span>
+                  <span className="text-muted-foreground font-semibold text-xs">❌ Fautes</span>
+                  <span className="font-bold text-destructive text-xs">{ds[team].faults}</span>
+                </div>
+                {[
+                  ['Out', ds[team].outs],
+                  ['Filet', ds[team].netFaults],
+                  ['Srv loupés', ds[team].serviceMisses],
+                  ['Block Out', ds[team].blockOuts],
+                ].map(([label, val]) => (
+                  <div key={label as string} className="flex justify-between pl-2">
+                    <span className="text-muted-foreground text-[11px]">{label}</span>
+                    <span className="font-bold text-foreground text-[11px]">{val as number}</span>
+                  </div>
+                ))}
+
+                <div className="flex justify-between border-t border-border pt-1 mt-1">
+                  <span className="text-muted-foreground text-xs">Total</span>
+                  <span className="font-bold text-foreground text-xs">{ds[team].scored + ds[team].faults}</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="bg-card rounded-xl p-4 border border-border text-center">
+        <div className="bg-card rounded-xl p-3 border border-border text-center">
           <p className="text-2xl font-black text-foreground">{ds.total}</p>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Points totaux</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Points totaux</p>
         </div>
 
         {showHeatmap && (
           <div>
-            <p className="text-xs text-center text-muted-foreground mb-1">Heatmap — Actions Offensives uniquement</p>
+            <p className="text-[10px] text-center text-muted-foreground mb-1">Heatmap — Actions Offensives</p>
             <div className="rounded-xl overflow-hidden">
               <canvas ref={canvasRef} width={600} height={400} className="w-full h-auto" />
             </div>
           </div>
         )}
+
+        {/* Watermark for export */}
+        <p className="text-[8px] text-muted-foreground/50 text-center">Volley Tracker · Capbreton</p>
       </div>
 
-
-      {/* Point Timeline */}
+      {/* Point Timeline - outside export ref */}
       <PointTimeline points={filteredPoints} teamNames={teamNames} />
 
       <button
+        onClick={() => setShowHeatmap(prev => !prev)}
         className="w-full py-2.5 text-sm font-semibold rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
       >
         {showHeatmap ? 'Masquer la Heatmap' : 'Afficher la Heatmap'}
