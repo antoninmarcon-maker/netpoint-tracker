@@ -1,8 +1,11 @@
-import { useRef, useEffect, useState } from 'react';
-import { Point } from '@/types/volleyball';
+import { useRef, useEffect, useState, useMemo } from 'react';
+import { Point, SetData } from '@/types/volleyball';
 
 interface HeatmapViewProps {
   points: Point[];
+  completedSets: SetData[];
+  currentSetPoints: Point[];
+  currentSetNumber: number;
   stats: {
     blue: { scored: number; faults: number };
     red: { scored: number; faults: number };
@@ -12,40 +15,72 @@ interface HeatmapViewProps {
 }
 
 type Filter = 'all' | 'blue' | 'red';
+type SetFilter = 'all' | number;
 
-export function HeatmapView({ points, stats, teamNames }: HeatmapViewProps) {
+function computeStats(pts: Point[]) {
+  return {
+    blue: {
+      scored: pts.filter(p => p.team === 'blue' && p.type === 'scored').length,
+      faults: pts.filter(p => p.team === 'blue' && p.type === 'fault').length,
+      services: pts.filter(p => p.team === 'blue' && p.action === 'service').length,
+      attacks: pts.filter(p => p.team === 'blue' && p.action === 'attack').length,
+      blocks: pts.filter(p => p.team === 'blue' && p.action === 'block_out').length,
+    },
+    red: {
+      scored: pts.filter(p => p.team === 'red' && p.type === 'scored').length,
+      faults: pts.filter(p => p.team === 'red' && p.type === 'fault').length,
+      services: pts.filter(p => p.team === 'red' && p.action === 'service').length,
+      attacks: pts.filter(p => p.team === 'red' && p.action === 'attack').length,
+      blocks: pts.filter(p => p.team === 'red' && p.action === 'block_out').length,
+    },
+    total: pts.length,
+  };
+}
+
+export function HeatmapView({ points, completedSets, currentSetPoints, currentSetNumber, stats, teamNames }: HeatmapViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [filter, setFilter] = useState<Filter>('all');
+  const [setFilter_, setSetFilter] = useState<SetFilter>('all');
 
-  const filteredPoints = points.filter(p => {
-    if (filter === 'all') return true;
-    return p.team === filter;
-  });
+  const displayPoints = useMemo(() => {
+    let pts: Point[];
+    if (setFilter_ === 'all') {
+      pts = points;
+    } else if (setFilter_ === currentSetNumber) {
+      pts = currentSetPoints;
+    } else {
+      const set = completedSets.find(s => s.number === setFilter_);
+      pts = set ? set.points : [];
+    }
+    if (filter === 'all') return pts;
+    return pts.filter(p => p.team === filter);
+  }, [points, completedSets, currentSetPoints, currentSetNumber, setFilter_, filter]);
+
+  const displayStats = useMemo(() => {
+    if (setFilter_ === 'all') return computeStats(points);
+    if (setFilter_ === currentSetNumber) return computeStats(currentSetPoints);
+    const set = completedSets.find(s => s.number === setFilter_);
+    return computeStats(set ? set.points : []);
+  }, [points, completedSets, currentSetPoints, currentSetNumber, setFilter_]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
     const width = canvas.width;
     const height = canvas.height;
 
     ctx.clearRect(0, 0, width, height);
-
-    // Court background (horizontal)
     ctx.fillStyle = 'hsl(142, 40%, 28%)';
     ctx.beginPath();
     ctx.roundRect(0, 0, width, height, 8);
     ctx.fill();
 
-    // Court lines
     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     ctx.lineWidth = 2;
     ctx.strokeRect(10, 10, width - 20, height - 20);
 
-    // Net (vertical center)
     ctx.strokeStyle = 'rgba(255,255,255,0.5)';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -53,7 +88,6 @@ export function HeatmapView({ points, stats, teamNames }: HeatmapViewProps) {
     ctx.lineTo(width / 2, height - 10);
     ctx.stroke();
 
-    // Attack lines
     ctx.strokeStyle = 'rgba(255,255,255,0.2)';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -63,29 +97,52 @@ export function HeatmapView({ points, stats, teamNames }: HeatmapViewProps) {
     ctx.lineTo(width * 0.667, height - 10);
     ctx.stroke();
 
-    if (filteredPoints.length === 0) return;
+    if (displayPoints.length === 0) return;
 
     const radius = 40;
-    filteredPoints.forEach(point => {
+    displayPoints.forEach(point => {
       const x = point.x * width;
       const y = point.y * height;
-
       const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
       const hue = point.team === 'blue' ? '217, 91%, 60%' : '0, 84%, 60%';
       gradient.addColorStop(0, `hsla(${hue}, 0.6)`);
       gradient.addColorStop(0.5, `hsla(${hue}, 0.2)`);
       gradient.addColorStop(1, `hsla(${hue}, 0)`);
-
       ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
       ctx.fill();
     });
-  }, [filteredPoints]);
+  }, [displayPoints]);
+
+  const setOptions: { key: SetFilter; label: string }[] = [
+    { key: 'all', label: 'Tous les sets' },
+    ...completedSets.map(s => ({ key: s.number as SetFilter, label: `Set ${s.number}` })),
+    ...(currentSetNumber > 0 ? [{ key: currentSetNumber as SetFilter, label: `Set ${currentSetNumber} (en cours)` }] : []),
+  ];
+
+  const ds = displayStats;
 
   return (
     <div className="space-y-4">
-      {/* Filter buttons */}
+      {/* Set filter */}
+      <div className="flex gap-1.5 justify-center flex-wrap">
+        {setOptions.map(o => (
+          <button
+            key={o.key}
+            onClick={() => setSetFilter(o.key)}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+              setFilter_ === o.key
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Team filter */}
       <div className="flex gap-2 justify-center">
         {([
           { key: 'all' as Filter, label: 'Tous' },
@@ -110,56 +167,50 @@ export function HeatmapView({ points, stats, teamNames }: HeatmapViewProps) {
         ))}
       </div>
 
-      {/* Heatmap canvas - horizontal */}
+      {/* Heatmap */}
       <div className="rounded-xl overflow-hidden">
-        <canvas
-          ref={canvasRef}
-          width={600}
-          height={400}
-          className="w-full h-auto"
-        />
+        <canvas ref={canvasRef} width={600} height={400} className="w-full h-auto" />
       </div>
 
-      {/* Stats summary */}
+      {/* Stats detail */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-card rounded-xl p-4 border border-border">
-          <p className="text-xs font-semibold uppercase tracking-wider text-team-blue mb-2">{teamNames.blue}</p>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Points marqués</span>
-              <span className="font-bold text-foreground">{stats.blue.scored}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Fautes</span>
-              <span className="font-bold text-destructive">{stats.blue.faults}</span>
-            </div>
-            <div className="flex justify-between border-t border-border pt-1 mt-1">
-              <span className="text-muted-foreground">Total</span>
-              <span className="font-bold text-foreground">{stats.blue.scored + stats.blue.faults}</span>
+        {(['blue', 'red'] as const).map(team => (
+          <div key={team} className="bg-card rounded-xl p-4 border border-border">
+            <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${team === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>
+              {teamNames[team]}
+            </p>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Points marqués</span>
+                <span className="font-bold text-foreground">{ds[team].scored}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Fautes</span>
+                <span className="font-bold text-destructive">{ds[team].faults}</span>
+              </div>
+              <div className="flex justify-between border-t border-border pt-1 mt-1">
+                <span className="text-muted-foreground">Services</span>
+                <span className="font-bold text-foreground">{ds[team].services}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Attaques</span>
+                <span className="font-bold text-foreground">{ds[team].attacks}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Blocks Out</span>
+                <span className="font-bold text-foreground">{ds[team].blocks}</span>
+              </div>
+              <div className="flex justify-between border-t border-border pt-1 mt-1">
+                <span className="text-muted-foreground">Total</span>
+                <span className="font-bold text-foreground">{ds[team].scored + ds[team].faults}</span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="bg-card rounded-xl p-4 border border-border">
-          <p className="text-xs font-semibold uppercase tracking-wider text-team-red mb-2">{teamNames.red}</p>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Points marqués</span>
-              <span className="font-bold text-foreground">{stats.red.scored}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Fautes</span>
-              <span className="font-bold text-destructive">{stats.red.faults}</span>
-            </div>
-            <div className="flex justify-between border-t border-border pt-1 mt-1">
-              <span className="text-muted-foreground">Total</span>
-              <span className="font-bold text-foreground">{stats.red.scored + stats.red.faults}</span>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       <div className="bg-card rounded-xl p-4 border border-border text-center">
-        <p className="text-2xl font-black text-foreground">{stats.total}</p>
+        <p className="text-2xl font-black text-foreground">{ds.total}</p>
         <p className="text-xs text-muted-foreground uppercase tracking-wider">Points totaux</p>
       </div>
     </div>

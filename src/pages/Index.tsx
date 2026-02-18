@@ -105,7 +105,7 @@ const Index = () => {
             />
           </div>
         ) : (
-          <HeatmapView points={allPoints} stats={stats} teamNames={teamNames} />
+          <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} />
         )}
       </main>
     </div>
