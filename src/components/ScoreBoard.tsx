@@ -23,6 +23,8 @@ interface ScoreBoardProps {
   onSetTeamNames: (names: { blue: string; red: string }) => void;
   canUndo: boolean;
   isFinished?: boolean;
+  waitingForNewSet?: boolean;
+  onStartNewSet?: () => void;
 }
 
 function formatTime(seconds: number) {
@@ -53,6 +55,8 @@ export function ScoreBoard({
   chronoRunning,
   chronoSeconds,
   isFinished = false,
+  waitingForNewSet = false,
+  onStartNewSet,
 }: ScoreBoardProps) {
   const [editingNames, setEditingNames] = useState(false);
   const [nameInputs, setNameInputs] = useState(teamNames);
@@ -141,7 +145,7 @@ export function ScoreBoard({
           <p className={`text-5xl font-black tabular-nums ${left === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{score[left]}</p>
           <button
             onClick={() => openMenu(left)}
-            disabled={!!selectedTeam || isFinished}
+            disabled={!!selectedTeam || isFinished || waitingForNewSet}
             className={`mt-2 w-full py-3 rounded-xl font-bold text-lg transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${
               left === 'blue'
                 ? 'bg-team-blue/20 text-team-blue border-2 border-team-blue/30 hover:bg-team-blue/30'
@@ -157,7 +161,7 @@ export function ScoreBoard({
           <p className={`text-5xl font-black tabular-nums ${right === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{score[right]}</p>
           <button
             onClick={() => openMenu(right)}
-            disabled={!!selectedTeam || isFinished}
+            disabled={!!selectedTeam || isFinished || waitingForNewSet}
             className={`mt-2 w-full py-3 rounded-xl font-bold text-lg transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${
               right === 'blue'
                 ? 'bg-team-blue/20 text-team-blue border-2 border-team-blue/30 hover:bg-team-blue/30'
@@ -239,6 +243,18 @@ export function ScoreBoard({
       {isFinished ? (
         <div className="bg-muted/50 rounded-lg p-3 text-center">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">✅ Match terminé</p>
+        </div>
+      ) : waitingForNewSet ? (
+        <div className="space-y-2">
+          <div className="bg-primary/10 rounded-lg p-3 text-center border border-primary/20">
+            <p className="text-xs font-semibold text-primary">Set terminé ! Prêt pour le suivant ?</p>
+          </div>
+          <button
+            onClick={onStartNewSet}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm transition-all active:scale-[0.98] hover:opacity-90"
+          >
+            <Play size={16} /> Nouveau Set
+          </button>
         </div>
       ) : (
         <div className="flex gap-2 justify-center flex-wrap">
