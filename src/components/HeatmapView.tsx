@@ -203,7 +203,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
   const setOptions: { key: SetFilter; label: string }[] = [
     { key: 'all', label: 'Tous les sets' },
     ...completedSets.map(s => ({ key: s.number as SetFilter, label: `Set ${s.number}` })),
-    ...(currentSetNumber > 0 ? [{ key: currentSetNumber as SetFilter, label: `Set ${currentSetNumber} (en cours)` }] : []),
+    ...(currentSetNumber > 0 && currentSetPoints.length > 0 ? [{ key: currentSetNumber as SetFilter, label: `Set ${currentSetNumber} (en cours)` }] : []),
   ];
 
   const ds = displayStats;
