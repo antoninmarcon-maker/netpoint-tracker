@@ -46,30 +46,83 @@ function computeStats(pts: Point[]) {
 
 export function HeatmapView({ points, completedSets, currentSetPoints, currentSetNumber, stats, teamNames }: HeatmapViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const statsRef = useRef<HTMLDivElement>(null);
   const [setFilter_, setSetFilter] = useState<SetFilter>('all');
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   const handleExport = useCallback(async () => {
-    if (!statsRef.current) return;
     setExporting(true);
     try {
-      const canvas = await html2canvas(statsRef.current, {
-        backgroundColor: '#1a1a2e',
-        scale: 2,
+      // Build list of exports: all sets + each individual set
+      const exports: { label: string; filename: string; pts: Point[] }[] = [
+        { label: 'Tous les sets', filename: `stats-${teamNames.blue}-vs-${teamNames.red}-global`, pts: points },
+      ];
+      completedSets.forEach(s => {
+        exports.push({
+          label: `Set ${s.number}`,
+          filename: `stats-${teamNames.blue}-vs-${teamNames.red}-set${s.number}`,
+          pts: s.points,
+        });
       });
-      const link = document.createElement('a');
-      link.download = `stats-${teamNames.blue}-vs-${teamNames.red}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      if (currentSetPoints.length > 0) {
+        exports.push({
+          label: `Set ${currentSetNumber} (en cours)`,
+          filename: `stats-${teamNames.blue}-vs-${teamNames.red}-set${currentSetNumber}`,
+          pts: currentSetPoints,
+        });
+      }
+
+      for (const exp of exports) {
+        const ds = computeStats(exp.pts);
+        const container = document.createElement('div');
+        container.style.cssText = 'position:absolute;left:-9999px;top:0;width:400px;';
+        container.className = 'bg-background rounded-2xl p-4 space-y-3';
+        container.innerHTML = `
+          <div style="text-align:center;">
+            <p style="font-size:16px;font-weight:900;color:hsl(var(--foreground))">🏐 ${teamNames.blue} vs ${teamNames.red}</p>
+            <p style="font-size:10px;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.1em">${exp.label}</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            ${(['blue', 'red'] as const).map(team => `
+              <div style="background:hsl(var(--card));border-radius:12px;padding:12px;border:1px solid hsl(var(--border))">
+                <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;color:${team === 'blue' ? 'hsl(217,91%,60%)' : 'hsl(0,84%,60%)'}">${teamNames[team]}</p>
+                <div style="font-size:11px;color:hsl(var(--foreground))">
+                  <div style="display:flex;justify-content:space-between;font-weight:700;color:hsl(var(--muted-foreground))"><span>⚡ Gagnés</span><span style="color:hsl(var(--foreground))">${ds[team].scored}</span></div>
+                  ${[['Attaques', ds[team].attacks], ['Aces', ds[team].aces], ['Blocks', ds[team].blocks], ['Bidouilles', ds[team].bidouilles], ['2ndes mains', ds[team].secondeMains], ['Autres', ds[team].otherOffensive]].map(([l, v]) =>
+                    `<div style="display:flex;justify-content:space-between;padding-left:8px;color:hsl(var(--muted-foreground))"><span>${l}</span><span style="font-weight:700;color:hsl(var(--foreground))">${v}</span></div>`
+                  ).join('')}
+                  <div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid hsl(var(--border));padding-top:4px;margin-top:4px;color:hsl(var(--muted-foreground))"><span>❌ Fautes</span><span style="color:hsl(var(--destructive))">${ds[team].faults}</span></div>
+                  ${[['Out', ds[team].outs], ['Filet', ds[team].netFaults], ['Srv loupés', ds[team].serviceMisses], ['Block Out', ds[team].blockOuts]].map(([l, v]) =>
+                    `<div style="display:flex;justify-content:space-between;padding-left:8px;color:hsl(var(--muted-foreground))"><span>${l}</span><span style="font-weight:700;color:hsl(var(--foreground))">${v}</span></div>`
+                  ).join('')}
+                  <div style="display:flex;justify-content:space-between;border-top:1px solid hsl(var(--border));padding-top:4px;margin-top:4px;color:hsl(var(--muted-foreground))"><span>Total</span><span style="font-weight:700;color:hsl(var(--foreground))">${ds[team].scored + ds[team].faults}</span></div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div style="text-align:center;background:hsl(var(--card));border-radius:12px;padding:12px;border:1px solid hsl(var(--border))">
+            <p style="font-size:24px;font-weight:900;color:hsl(var(--foreground))">${ds.total}</p>
+            <p style="font-size:10px;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.1em">Points totaux</p>
+          </div>
+          <p style="font-size:8px;text-align:center;color:hsl(var(--muted-foreground));opacity:0.5">Volley Tracker · Capbreton</p>
+        `;
+        document.body.appendChild(container);
+        const canvas = await html2canvas(container, { backgroundColor: '#1a1a2e', scale: 2 });
+        document.body.removeChild(container);
+        const link = document.createElement('a');
+        link.download = `${exp.filename}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        // Small delay between downloads
+        await new Promise(r => setTimeout(r, 300));
+      }
     } catch (err) {
       console.error('Export failed:', err);
     } finally {
       setExporting(false);
     }
-  }, [teamNames]);
+  }, [teamNames, points, completedSets, currentSetPoints, currentSetNumber]);
 
   const filteredPoints = useMemo(() => {
     if (setFilter_ === 'all') return points;
@@ -149,7 +202,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
 
   return (
     <div className="space-y-4">
-      <div ref={statsRef} className="space-y-4 bg-background rounded-2xl p-4">
+      <div className="space-y-4 bg-background rounded-2xl p-4">
         {/* Header */}
         <div className="text-center space-y-1">
           <p className="text-base font-black text-foreground">
@@ -270,7 +323,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-all"
       >
         <Download size={16} />
-        {exporting ? 'Export en cours...' : 'Exporter en image'}
+        {exporting ? 'Export en cours...' : 'Exporter toutes les stats'}
       </button>
     </div>
   );
