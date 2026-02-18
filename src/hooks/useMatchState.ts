@@ -66,8 +66,11 @@ export function useMatchState(matchId: string) {
       y,
       timestamp: Date.now(),
     };
-    // If we have players, show player selector before finalizing
-    if (players.length > 0) {
+    // Show player selector only for blue team actions:
+    // - Blue scored (point gagné par notre équipe)
+    // - Red scored via fault (faute commise par notre équipe)
+    const isBlueAction = (point.team === 'blue' && point.type === 'scored') || (point.team === 'red' && point.type === 'fault');
+    if (players.length > 0 && isBlueAction) {
       setPendingPoint(point);
     } else {
       setPoints(prev => [...prev, point]);
