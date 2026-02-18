@@ -4,6 +4,7 @@ import html2canvas from 'html2canvas';
 import { Point, SetData, Player, isOffensiveAction, OFFENSIVE_ACTIONS, FAULT_ACTIONS } from '@/types/volleyball';
 import { PointTimeline } from './PointTimeline';
 import { PlayerStats } from './PlayerStats';
+import { exportMatchToExcel } from '@/lib/excelExport';
 
 interface HeatmapViewProps {
   points: Point[];
@@ -340,7 +341,15 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-all"
       >
         <Download size={16} />
-        {exporting ? 'Export en cours...' : 'Exporter toutes les stats'}
+        {exporting ? 'Export en cours...' : 'Exporter stats (PNG)'}
+      </button>
+
+      <button
+        onClick={() => exportMatchToExcel(completedSets, currentSetPoints, currentSetNumber, teamNames, players)}
+        className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg bg-accent text-accent-foreground hover:opacity-90 transition-all"
+      >
+        <Download size={16} />
+        Exporter en Excel (.xlsx)
       </button>
     </div>
   );
