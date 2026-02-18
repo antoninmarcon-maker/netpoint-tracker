@@ -103,6 +103,8 @@ export function useMatchState(matchId: string) {
     red: completedSets.filter(s => s.winner === 'red').length,
   };
 
+  const [waitingForNewSet, setWaitingForNewSet] = useState(false);
+
   const endSet = useCallback(() => {
     if (points.length === 0) return;
     const winner: Team = score.blue >= score.red ? 'blue' : 'red';
@@ -119,10 +121,15 @@ export function useMatchState(matchId: string) {
     setSelectedTeam(null);
     setSelectedPointType(null);
     setSelectedAction(null);
+    resetChrono();
+    setWaitingForNewSet(true);
+  }, [points, score, currentSetNumber, chronoSeconds, resetChrono]);
+
+  const startNewSet = useCallback(() => {
     setCurrentSetNumber(prev => prev + 1);
     setSidesSwapped(prev => !prev);
-    resetChrono();
-  }, [points, score, currentSetNumber, chronoSeconds, resetChrono]);
+    setWaitingForNewSet(false);
+  }, []);
 
   const finishMatch = useCallback(() => {
     // End current set if there are points
@@ -198,6 +205,8 @@ export function useMatchState(matchId: string) {
     addPoint,
     undo,
     endSet,
+    startNewSet,
+    waitingForNewSet,
     finishMatch,
     resetMatch,
     switchSides,

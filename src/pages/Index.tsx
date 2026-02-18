@@ -28,7 +28,7 @@ const Index = () => {
     score, stats, setsScore, currentSetNumber, completedSets,
     teamNames, sidesSwapped, chronoRunning, chronoSeconds,
     setTeamNames, selectAction, cancelSelection, addPoint, undo,
-    endSet, resetMatch, switchSides, startChrono, pauseChrono,
+    endSet, startNewSet, waitingForNewSet, resetMatch, switchSides, startChrono, pauseChrono,
   } = matchState;
 
   const matchData = getMatch(matchId);
@@ -104,6 +104,8 @@ const Index = () => {
               onSetTeamNames={setTeamNames}
               canUndo={points.length > 0}
               isFinished={isFinished}
+              waitingForNewSet={waitingForNewSet}
+              onStartNewSet={startNewSet}
             />
             <VolleyballCourt
               points={points}
