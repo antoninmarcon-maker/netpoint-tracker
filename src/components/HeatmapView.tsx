@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { Download } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { Point, SetData, isOffensiveAction, OFFENSIVE_ACTIONS, FAULT_ACTIONS } from '@/types/volleyball';
+import { PointTimeline } from './PointTimeline';
 
 interface HeatmapViewProps {
   points: Point[];
@@ -252,8 +253,11 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         )}
       </div>
 
+
+      {/* Point Timeline */}
+      <PointTimeline points={filteredPoints} teamNames={teamNames} />
+
       <button
-        onClick={() => setShowHeatmap(prev => !prev)}
         className="w-full py-2.5 text-sm font-semibold rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
       >
         {showHeatmap ? 'Masquer la Heatmap' : 'Afficher la Heatmap'}
