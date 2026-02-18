@@ -12,7 +12,7 @@ function playerSetStats(pts: Point[], players: Player[]) {
     const pp = pts.filter(p => p.playerId === player.id);
     const scored = pp.filter(p => p.team === 'blue' && p.type === 'scored');
     const faultWins = pp.filter(p => p.team === 'blue' && p.type === 'fault');
-    const faults = pp.filter(p => p.team === 'red' && p.type === 'fault');
+    const faults = pp.filter(p => p.team === 'red');
 
     const totalPositive = scored.length + faultWins.length;
     const totalNegative = faults.length;

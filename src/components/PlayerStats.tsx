@@ -14,8 +14,8 @@ export function PlayerStats({ points, players, teamName }: PlayerStatsProps) {
       const playerPoints = points.filter(p => p.playerId === player.id);
       // Scored = blue team scored, offensive action, this player did it
       const scored = playerPoints.filter(p => p.team === 'blue' && p.type === 'scored');
-      // Faults = red team scored via fault, this player was responsible
-      const faults = playerPoints.filter(p => p.team === 'red' && p.type === 'fault');
+      // Faults committed by this player = red team scored (any type), this player was responsible
+      const faults = playerPoints.filter(p => p.team === 'red');
       // Also count when this player scored for blue via opponent fault
       const faultWins = playerPoints.filter(p => p.team === 'blue' && p.type === 'fault');
 
