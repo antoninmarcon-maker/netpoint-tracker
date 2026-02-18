@@ -1,4 +1,6 @@
-import { useRef, useEffect, useState, useMemo } from 'react';
+import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import { Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import { Point, SetData } from '@/types/volleyball';
 
 interface HeatmapViewProps {
@@ -38,8 +40,29 @@ function computeStats(pts: Point[]) {
 
 export function HeatmapView({ points, completedSets, currentSetPoints, currentSetNumber, stats, teamNames }: HeatmapViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
   const [setFilter_, setSetFilter] = useState<SetFilter>('all');
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = useCallback(async () => {
+    if (!statsRef.current) return;
+    setExporting(true);
+    try {
+      const canvas = await html2canvas(statsRef.current, {
+        backgroundColor: '#1a1a2e',
+        scale: 2,
+      });
+      const link = document.createElement('a');
+      link.download = `stats-${teamNames.blue}-vs-${teamNames.red}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Export failed:', err);
+    } finally {
+      setExporting(false);
+    }
+  }, [teamNames]);
 
   const filteredPoints = useMemo(() => {
     if (setFilter_ === 'all') return points;
@@ -119,63 +142,78 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
 
   return (
     <div className="space-y-4">
-      {/* Set filter */}
-      <div className="flex gap-1.5 justify-center flex-wrap">
-        {setOptions.map(o => (
-          <button
-            key={o.key}
-            onClick={() => setSetFilter(o.key)}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
-              setFilter_ === o.key
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
+      {/* Exportable area */}
+      <div ref={statsRef} className="space-y-4 bg-background p-1">
+        {/* Title for export */}
+        <p className="text-center text-sm font-bold text-foreground">
+          {teamNames.blue} vs {teamNames.red}
+        </p>
 
-      {/* Stats detail */}
-      <div className="grid grid-cols-2 gap-3">
-        {(['blue', 'red'] as const).map(team => (
-          <div key={team} className="bg-card rounded-xl p-4 border border-border">
-            <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${team === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>
-              {teamNames[team]}
-            </p>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Points marqués</span>
-                <span className="font-bold text-foreground">{ds[team].scored}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Fautes</span>
-                <span className="font-bold text-destructive">{ds[team].faults}</span>
-              </div>
-              <div className="flex justify-between border-t border-border pt-1 mt-1">
-                <span className="text-muted-foreground">Services</span>
-                <span className="font-bold text-foreground">{ds[team].services}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Attaques</span>
-                <span className="font-bold text-foreground">{ds[team].attacks}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Blocks Out</span>
-                <span className="font-bold text-foreground">{ds[team].blocks}</span>
-              </div>
-              <div className="flex justify-between border-t border-border pt-1 mt-1">
-                <span className="text-muted-foreground">Total</span>
-                <span className="font-bold text-foreground">{ds[team].scored + ds[team].faults}</span>
+        {/* Set filter */}
+        <div className="flex gap-1.5 justify-center flex-wrap">
+          {setOptions.map(o => (
+            <button
+              key={o.key}
+              onClick={() => setSetFilter(o.key)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                setFilter_ === o.key
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Stats detail */}
+        <div className="grid grid-cols-2 gap-3">
+          {(['blue', 'red'] as const).map(team => (
+            <div key={team} className="bg-card rounded-xl p-4 border border-border">
+              <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${team === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>
+                {teamNames[team]}
+              </p>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Points marqués</span>
+                  <span className="font-bold text-foreground">{ds[team].scored}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Fautes</span>
+                  <span className="font-bold text-destructive">{ds[team].faults}</span>
+                </div>
+                <div className="flex justify-between border-t border-border pt-1 mt-1">
+                  <span className="text-muted-foreground">Services</span>
+                  <span className="font-bold text-foreground">{ds[team].services}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Attaques</span>
+                  <span className="font-bold text-foreground">{ds[team].attacks}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Blocks Out</span>
+                  <span className="font-bold text-foreground">{ds[team].blocks}</span>
+                </div>
+                <div className="flex justify-between border-t border-border pt-1 mt-1">
+                  <span className="text-muted-foreground">Total</span>
+                  <span className="font-bold text-foreground">{ds[team].scored + ds[team].faults}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <div className="bg-card rounded-xl p-4 border border-border text-center">
-        <p className="text-2xl font-black text-foreground">{ds.total}</p>
-        <p className="text-xs text-muted-foreground uppercase tracking-wider">Points totaux</p>
+        <div className="bg-card rounded-xl p-4 border border-border text-center">
+          <p className="text-2xl font-black text-foreground">{ds.total}</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">Points totaux</p>
+        </div>
+
+        {/* Heatmap inside exportable area */}
+        {showHeatmap && (
+          <div className="rounded-xl overflow-hidden">
+            <canvas ref={canvasRef} width={600} height={400} className="w-full h-auto" />
+          </div>
+        )}
       </div>
 
       {/* Toggle heatmap */}
@@ -186,11 +224,15 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         {showHeatmap ? 'Masquer la Heatmap' : 'Afficher la Heatmap'}
       </button>
 
-      {showHeatmap && (
-        <div className="rounded-xl overflow-hidden">
-          <canvas ref={canvasRef} width={600} height={400} className="w-full h-auto" />
-        </div>
-      )}
+      {/* Export button */}
+      <button
+        onClick={handleExport}
+        disabled={exporting}
+        className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-all"
+      >
+        <Download size={16} />
+        {exporting ? 'Export en cours...' : 'Exporter en image'}
+      </button>
     </div>
   );
 }
