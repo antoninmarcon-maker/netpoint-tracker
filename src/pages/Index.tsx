@@ -6,7 +6,10 @@ import { ScoreBoard } from '@/components/ScoreBoard';
 import { VolleyballCourt } from '@/components/VolleyballCourt';
 import { HeatmapView } from '@/components/HeatmapView';
 import { SetHistory } from '@/components/SetHistory';
+import { PlayerRoster } from '@/components/PlayerRoster';
+import { PlayerSelector } from '@/components/PlayerSelector';
 import { getMatch } from '@/lib/matchStorage';
+import { isOffensiveAction } from '@/types/volleyball';
 
 type Tab = 'match' | 'stats';
 
@@ -27,8 +30,10 @@ const Index = () => {
     points, allPoints, selectedTeam, selectedPointType, selectedAction,
     score, stats, setsScore, currentSetNumber, completedSets,
     teamNames, sidesSwapped, chronoRunning, chronoSeconds,
-    setTeamNames, selectAction, cancelSelection, addPoint, undo,
-    endSet, startNewSet, waitingForNewSet, resetMatch, switchSides, startChrono, pauseChrono,
+    players, pendingPoint,
+    setTeamNames, setPlayers, selectAction, cancelSelection, addPoint,
+    assignPlayer, skipPlayerAssignment,
+    undo, endSet, startNewSet, waitingForNewSet, resetMatch, switchSides, startChrono, pauseChrono,
   } = matchState;
 
   const matchData = getMatch(matchId);
@@ -84,6 +89,11 @@ const Index = () => {
               setsScore={setsScore}
               teamNames={teamNames}
             />
+            <PlayerRoster
+              players={players}
+              onSetPlayers={setPlayers}
+              teamName={teamNames.blue}
+            />
             <ScoreBoard
               score={score}
               selectedTeam={selectedTeam}
@@ -118,7 +128,23 @@ const Index = () => {
             />
           </div>
         ) : (
-          <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} />
+          <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} />
+        )}
+
+        {/* Player assignment modal */}
+        {pendingPoint && players.length > 0 && (
+          <PlayerSelector
+            players={players}
+            prompt={
+              pendingPoint.team === 'blue' && pendingPoint.type === 'scored'
+                ? 'Quel joueur a réalisé l\'action ?'
+                : pendingPoint.team === 'red' && pendingPoint.type === 'fault'
+                ? 'Quel joueur a fait la faute ?'
+                : 'Quel joueur était responsable ?'
+            }
+            onSelect={assignPlayer}
+            onSkip={skipPlayerAssignment}
+          />
         )}
 
       </main>

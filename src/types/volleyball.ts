@@ -28,6 +28,12 @@ export function isOffensiveAction(action: ActionType): boolean {
   return ['attack', 'ace', 'block', 'bidouille', 'seconde_main', 'other_offensive'].includes(action);
 }
 
+export interface Player {
+  id: string;
+  number: string;
+  name: string;
+}
+
 export interface Point {
   id: string;
   team: Team;
@@ -36,6 +42,7 @@ export interface Point {
   x: number;
   y: number;
   timestamp: number;
+  playerId?: string; // Blue team player involved
 }
 
 export interface SetData {
@@ -65,6 +72,7 @@ export interface MatchSummary {
   createdAt: number;
   updatedAt: number;
   finished: boolean;
+  players?: Player[];
 }
 
 // Zone constraint type for court clicking

@@ -1,8 +1,9 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { Download } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { Point, SetData, isOffensiveAction, OFFENSIVE_ACTIONS, FAULT_ACTIONS } from '@/types/volleyball';
+import { Point, SetData, Player, isOffensiveAction, OFFENSIVE_ACTIONS, FAULT_ACTIONS } from '@/types/volleyball';
 import { PointTimeline } from './PointTimeline';
+import { PlayerStats } from './PlayerStats';
 
 interface HeatmapViewProps {
   points: Point[];
@@ -15,6 +16,7 @@ interface HeatmapViewProps {
     total: number;
   };
   teamNames: { blue: string; red: string };
+  players?: Player[];
 }
 
 type SetFilter = 'all' | number;
@@ -51,7 +53,7 @@ function computeStats(pts: Point[]) {
   return { blue: byTeam('blue'), red: byTeam('red'), total: pts.length };
 }
 
-export function HeatmapView({ points, completedSets, currentSetPoints, currentSetNumber, stats, teamNames }: HeatmapViewProps) {
+export function HeatmapView({ points, completedSets, currentSetPoints, currentSetNumber, stats, teamNames, players = [] }: HeatmapViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [setFilter_, setSetFilter] = useState<SetFilter>('all');
   const [showHeatmap, setShowHeatmap] = useState(false);
@@ -293,6 +295,10 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
           <p className="text-2xl font-black text-foreground">{ds.total}</p>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Points totaux</p>
         </div>
+
+        {players.length > 0 && (
+          <PlayerStats points={filteredPoints} players={players} teamName={teamNames.blue} />
+        )}
 
         {showHeatmap && (
           <div>

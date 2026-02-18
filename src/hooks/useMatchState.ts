@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Team, Point, PointType, ActionType, SetData } from '@/types/volleyball';
+import { Team, Point, PointType, ActionType, SetData, Player } from '@/types/volleyball';
 import { getMatch, saveMatch } from '@/lib/matchStorage';
 
 export function useMatchState(matchId: string) {
@@ -12,6 +12,8 @@ export function useMatchState(matchId: string) {
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
   const [teamNames, setTeamNames] = useState(loaded?.teamNames ?? { blue: 'Bleue', red: 'Rouge' });
   const [sidesSwapped, setSidesSwapped] = useState(loaded?.sidesSwapped ?? false);
+  const [players, setPlayers] = useState<Player[]>(loaded?.players ?? []);
+  const [pendingPoint, setPendingPoint] = useState<Omit<Point, 'playerId'> | null>(null);
 
   // Chrono
   const [chronoRunning, setChronoRunning] = useState(false);
@@ -64,11 +66,28 @@ export function useMatchState(matchId: string) {
       y,
       timestamp: Date.now(),
     };
-    setPoints(prev => [...prev, point]);
+    // If we have players, show player selector before finalizing
+    if (players.length > 0) {
+      setPendingPoint(point);
+    } else {
+      setPoints(prev => [...prev, point]);
+    }
     setSelectedTeam(null);
     setSelectedPointType(null);
     setSelectedAction(null);
-  }, [selectedTeam, selectedPointType, selectedAction, chronoRunning, points.length]);
+  }, [selectedTeam, selectedPointType, selectedAction, chronoRunning, points.length, players.length]);
+
+  const assignPlayer = useCallback((playerId: string) => {
+    if (!pendingPoint) return;
+    setPoints(prev => [...prev, { ...pendingPoint, playerId }]);
+    setPendingPoint(null);
+  }, [pendingPoint]);
+
+  const skipPlayerAssignment = useCallback(() => {
+    if (!pendingPoint) return;
+    setPoints(prev => [...prev, pendingPoint]);
+    setPendingPoint(null);
+  }, [pendingPoint]);
 
   const undo = useCallback(() => {
     setPoints(prev => prev.slice(0, -1));
@@ -180,9 +199,10 @@ export function useMatchState(matchId: string) {
       teamNames,
       sidesSwapped,
       chronoSeconds,
+      players,
       updatedAt: Date.now(),
     });
-  }, [completedSets, currentSetNumber, points, teamNames, sidesSwapped, chronoSeconds, loaded]);
+  }, [completedSets, currentSetNumber, points, teamNames, sidesSwapped, chronoSeconds, players, loaded]);
 
   return {
     points,
@@ -199,10 +219,15 @@ export function useMatchState(matchId: string) {
     sidesSwapped,
     chronoRunning,
     chronoSeconds,
+    players,
+    pendingPoint,
     setTeamNames,
+    setPlayers,
     selectAction,
     cancelSelection,
     addPoint,
+    assignPlayer,
+    skipPlayerAssignment,
     undo,
     endSet,
     startNewSet,
