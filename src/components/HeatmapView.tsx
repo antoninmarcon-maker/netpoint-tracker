@@ -342,8 +342,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
           </div>
         )}
 
-        {/* Watermark for export */}
-        <p className="text-[8px] text-muted-foreground/50 text-center">Volley Tracker · Capbreton</p>
+
       </div>
 
       {setFilter_ !== 'all' && showTimeline && (
@@ -383,6 +382,8 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         <Download size={16} />
         Exporter en Excel (.xlsx)
       </button>
+
+      <p className="text-[8px] text-muted-foreground/50 text-center">Volley Tracker · Capbreton</p>
     </div>
   );
 }
