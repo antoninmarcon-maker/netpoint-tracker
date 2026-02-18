@@ -19,6 +19,12 @@ interface HeatmapViewProps {
 
 type SetFilter = 'all' | number;
 
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 function computeStats(pts: Point[]) {
   const byTeam = (team: 'blue' | 'red') => {
     const teamPts = pts.filter(p => p.team === team);
@@ -78,15 +84,17 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         const container = document.createElement('div');
         container.style.cssText = 'position:absolute;left:-9999px;top:0;width:400px;';
         container.className = 'bg-background rounded-2xl p-4 space-y-3';
+        const safeBlueName = escapeHtml(teamNames.blue);
+        const safeRedName = escapeHtml(teamNames.red);
         container.innerHTML = `
           <div style="text-align:center;">
-            <p style="font-size:16px;font-weight:900;color:hsl(var(--foreground))">🏐 ${teamNames.blue} vs ${teamNames.red}</p>
-            <p style="font-size:10px;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.1em">${exp.label}</p>
+            <p style="font-size:16px;font-weight:900;color:hsl(var(--foreground))">🏐 ${safeBlueName} vs ${safeRedName}</p>
+            <p style="font-size:10px;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.1em">${escapeHtml(exp.label)}</p>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             ${(['blue', 'red'] as const).map(team => `
               <div style="background:hsl(var(--card));border-radius:12px;padding:12px;border:1px solid hsl(var(--border))">
-                <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;color:${team === 'blue' ? 'hsl(217,91%,60%)' : 'hsl(0,84%,60%)'}">${teamNames[team]}</p>
+                <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;color:${team === 'blue' ? 'hsl(217,91%,60%)' : 'hsl(0,84%,60%)'}">${escapeHtml(teamNames[team])}</p>
                 <div style="font-size:11px;color:hsl(var(--foreground))">
                   <div style="display:flex;justify-content:space-between;font-weight:700;color:hsl(var(--muted-foreground))"><span>⚡ Gagnés</span><span style="color:hsl(var(--foreground))">${ds[team].scored}</span></div>
                   ${[['Attaques', ds[team].attacks], ['Aces', ds[team].aces], ['Blocks', ds[team].blocks], ['Bidouilles', ds[team].bidouilles], ['2ndes mains', ds[team].secondeMains], ['Autres', ds[team].otherOffensive]].map(([l, v]) =>
