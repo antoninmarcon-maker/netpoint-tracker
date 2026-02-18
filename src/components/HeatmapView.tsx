@@ -134,9 +134,11 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
 
   const filteredPoints = useMemo(() => {
     if (setFilter_ === 'all') return points;
-    if (setFilter_ === currentSetNumber) return currentSetPoints;
+    // Check completed sets first (avoids returning empty currentSetPoints for a finished set)
     const set = completedSets.find(s => s.number === setFilter_);
-    return set ? set.points : [];
+    if (set) return set.points;
+    if (setFilter_ === currentSetNumber) return currentSetPoints;
+    return [];
   }, [points, completedSets, currentSetPoints, currentSetNumber, setFilter_]);
 
   // Heatmap only shows offensive actions (points gagnés)
