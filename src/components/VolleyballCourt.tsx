@@ -199,6 +199,7 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
         className={`w-full h-auto ${hasSelection ? 'cursor-crosshair' : ''}`}
         onClick={handleClick}
         onTouchStart={handleTouch}
+        data-court="true"
       >
         {/* Court background */}
         <rect x="0" y="0" width="600" height="400" rx="8" fill="hsl(142, 40%, 28%)" />
