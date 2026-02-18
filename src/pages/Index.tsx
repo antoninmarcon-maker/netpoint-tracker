@@ -124,9 +124,9 @@ const Index = () => {
         {tab === 'match' && (
           <button
             onClick={() => setShowFinishConfirm(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-destructive/15 text-destructive font-semibold text-sm border border-destructive/20 hover:bg-destructive/25 transition-all"
+            className="flex items-center justify-center gap-1.5 px-4 py-2 mx-auto rounded-lg bg-destructive/10 text-destructive font-medium text-xs border border-destructive/15 hover:bg-destructive/20 transition-all"
           >
-            <CheckCircle2 size={18} /> Terminer le match
+            <CheckCircle2 size={14} /> Terminer le match
           </button>
         )}
       </main>
