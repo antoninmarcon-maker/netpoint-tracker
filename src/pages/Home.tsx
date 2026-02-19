@@ -77,6 +77,7 @@ export default function Home() {
     } else {
       all = getAllMatches();
     }
+    console.log('[DEBUG] loadMatches: user=', !!currentUser, 'total=', all.length, 'finished=', all.filter(m => m.finished).length, 'active=', all.filter(m => !m.finished).length);
     const active = all.filter(m => !m.finished).sort((a, b) => b.updatedAt - a.updatedAt);
     const finished = all.filter(m => m.finished).sort((a, b) => b.updatedAt - a.updatedAt);
     setMatches([...active, ...finished]);
