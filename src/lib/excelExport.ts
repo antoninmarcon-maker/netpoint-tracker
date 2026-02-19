@@ -19,7 +19,6 @@ function playerSetStatsVolley(pts: Point[], players: Player[]) {
     const total = totalPositive + totalNegative;
 
     return {
-      '#': player.number,
       'Joueur': player.name || '—',
       'Attaques': scored.filter(p => p.action === 'attack').length,
       'Aces': scored.filter(p => p.action === 'ace').length,
@@ -47,7 +46,6 @@ function playerSetStatsBasket(pts: Point[], players: Player[]) {
     const total = scored.length + negatives.length;
 
     return {
-      '#': player.number,
       'Joueur': player.name || '—',
       'LF (1pt)': scored.filter(p => p.action === 'free_throw').length,
       'Int. (2pts)': scored.filter(p => p.action === 'two_points').length,
@@ -207,8 +205,7 @@ export function exportMatchToExcel(
       const globalPlayerStats = playerSetStatsBasket(allPoints, players);
       globalPlayerStats.forEach(r => {
         summaryRows.push({
-          'Info': r['Joueur'] || r['#'],
-          'Valeur': r['Joueur'],
+          'Info': r['Joueur'],
           'Détail': `Pts: ${r['Total points']}`,
           'Extra1': `LF: ${r['LF (1pt)']}`,
           'Extra2': `2pt: ${r['Int. (2pts)']}`,
@@ -221,8 +218,7 @@ export function exportMatchToExcel(
       const globalPlayerStats = playerSetStatsVolley(allPoints, players);
       globalPlayerStats.forEach(r => {
         summaryRows.push({
-          'Info': r['Joueur'] || r['#'],
-          'Valeur': r['Joueur'],
+          'Info': r['Joueur'],
           'Détail': `Pts: ${r['Total pts gagnés']}`,
           'Extra1': `Att: ${r['Attaques']}`,
           'Extra2': `Ace: ${r['Aces']}`,

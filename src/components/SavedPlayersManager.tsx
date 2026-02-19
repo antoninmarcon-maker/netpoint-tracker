@@ -56,8 +56,7 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
         ];
 
         for (const mp of matchPlayers) {
-          // Find matching saved player by number+name
-          const sp = saved.find(s => s.number === mp.number && s.name === mp.name);
+          const sp = saved.find(s => s.name === mp.name);
           if (!sp) continue;
           
           if (!statsMap.has(sp.id)) {
@@ -157,7 +156,7 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
             {players.map(p => (
               <div key={p.id} className="bg-secondary/50 rounded-xl px-3 py-2.5 space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-team-blue">{p.name || p.number}</span>
+                  <span className="text-xs font-black text-team-blue">{p.name || '—'}</span>
                   {editingId === p.id ? (
                     <>
                       <input

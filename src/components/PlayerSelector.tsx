@@ -37,7 +37,7 @@ export function PlayerSelector({ players, prompt, onSelect, onSkip }: PlayerSele
               onClick={() => onSelect(p.id)}
               className="flex flex-col items-center gap-0.5 py-3 px-1 rounded-xl bg-team-blue/10 border border-team-blue/20 hover:bg-team-blue/20 active:scale-95 transition-all"
             >
-              <span className="text-lg font-black text-team-blue">{p.name || p.number}</span>
+              <span className="text-lg font-black text-team-blue">{p.name || '—'}</span>
             </button>
           ))}
         </div>

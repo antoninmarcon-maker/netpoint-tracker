@@ -136,7 +136,7 @@ export function createNewMatch(teamNames: { blue: string; red: string }, sport: 
     points: [],
     sidesSwapped: false,
     chronoSeconds: 0,
-    players: lastRoster.map(p => ({ ...p, id: crypto.randomUUID() })),
+    players: lastRoster.map(p => ({ ...p, id: crypto.randomUUID(), number: '' })),
     createdAt: Date.now(),
     updatedAt: Date.now(),
     finished: false,

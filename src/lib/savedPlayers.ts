@@ -35,12 +35,12 @@ function saveLocalSavedPlayers(players: SavedPlayer[]) {
 function mergeLocalPlayers(sport: SportType, matchPlayers: Player[]) {
   const existing = getLocalSavedPlayers(sport);
   const newOnes = matchPlayers.filter(mp =>
-    mp.number.trim() && !existing.some(e => e.number === mp.number && e.name === mp.name)
+    mp.name.trim() && !existing.some(e => e.name === mp.name)
   );
   if (newOnes.length > 0) {
     saveLocalSavedPlayers([
       ...existing,
-      ...newOnes.map(p => ({ id: crypto.randomUUID(), number: p.number, name: p.name, sport })),
+      ...newOnes.map(p => ({ id: crypto.randomUUID(), number: '', name: p.name, sport })),
     ]);
   }
 }
@@ -60,16 +60,16 @@ async function getCloudSavedPlayers(sport: SportType): Promise<SavedPlayer[]> {
 async function mergeCloudPlayers(userId: string, sport: SportType, matchPlayers: Player[]) {
   const existing = await getCloudSavedPlayers(sport);
   const newOnes = matchPlayers.filter(mp =>
-    mp.number.trim() && !existing.some(e => e.number === mp.number && e.name === mp.name)
+    mp.name.trim() && !existing.some(e => e.name === mp.name)
   );
   if (newOnes.length === 0) return;
   const rows = newOnes.map(p => ({
     user_id: userId,
     sport,
-    number: p.number,
+    number: '',
     name: p.name,
   }));
-  await supabase.from('saved_players').upsert(rows, { onConflict: 'user_id,sport,number,name' });
+  await supabase.from('saved_players').insert(rows);
 }
 
 async function deleteCloudSavedPlayer(id: string) {
