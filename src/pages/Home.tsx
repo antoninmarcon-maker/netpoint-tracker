@@ -5,6 +5,7 @@ import logoCapbreton from '@/assets/logo-capbreton.jpeg';
 import { Input } from '@/components/ui/input';
 import { getAllMatches, createNewMatch, saveMatch, setActiveMatchId, deleteMatch, getMatch } from '@/lib/matchStorage';
 import { MatchSummary, SetData, Team } from '@/types/volleyball';
+import { PwaInstallBanner } from '@/components/PwaInstallBanner';
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -102,6 +103,7 @@ export default function Home() {
       </header>
 
       <main className="flex-1 overflow-auto p-4 max-w-lg mx-auto w-full space-y-6">
+        <PwaInstallBanner />
         {/* New match */}
         {!showNew ? (
           <button
