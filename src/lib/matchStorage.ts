@@ -56,7 +56,17 @@ export function getAllMatches(): MatchSummary[] {
     const raw = localStorage.getItem(MATCHES_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return z.array(MatchSummarySchema).parse(parsed) as unknown as MatchSummary[];
+    if (!Array.isArray(parsed)) return [];
+    // Parse each match individually so one bad entry doesn't kill everything
+    return parsed.reduce<MatchSummary[]>((acc, item) => {
+      try {
+        acc.push(MatchSummarySchema.parse(item) as unknown as MatchSummary);
+      } catch {
+        // Skip invalid entries silently
+        console.warn('Skipping invalid match entry:', item?.id);
+      }
+      return acc;
+    }, []);
   } catch { return []; }
 }
 
