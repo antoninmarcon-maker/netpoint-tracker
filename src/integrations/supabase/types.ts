@@ -16,36 +16,191 @@ export type Database = {
     Tables: {
       matches: {
         Row: {
+          chrono_seconds: number
           created_at: string
+          current_set_number: number
           finished: boolean
           id: string
           match_data: Json
           share_token: string | null
+          sides_swapped: boolean
           sport: string
+          team_name_blue: string
+          team_name_red: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          chrono_seconds?: number
           created_at?: string
+          current_set_number?: number
           finished?: boolean
           id?: string
           match_data: Json
           share_token?: string | null
+          sides_swapped?: boolean
           sport?: string
+          team_name_blue?: string
+          team_name_red?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          chrono_seconds?: number
           created_at?: string
+          current_set_number?: number
           finished?: boolean
           id?: string
           match_data?: Json
           share_token?: string | null
+          sides_swapped?: boolean
           sport?: string
+          team_name_blue?: string
+          team_name_red?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      players: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string
+          name: string
+          number: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id: string
+          name?: string
+          number?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string
+          name?: string
+          number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      points: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          match_id: string
+          player_id: string | null
+          point_value: number | null
+          set_id: string | null
+          team: string
+          timestamp: number
+          type: string
+          x: number
+          y: number
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          match_id: string
+          player_id?: string | null
+          point_value?: number | null
+          set_id?: string | null
+          team: string
+          timestamp?: number
+          type: string
+          x?: number
+          y?: number
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          match_id?: string
+          player_id?: string | null
+          point_value?: number | null
+          set_id?: string | null
+          team?: string
+          timestamp?: number
+          type?: string
+          x?: number
+          y?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "points_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "points_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "points_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sets: {
+        Row: {
+          created_at: string
+          duration: number
+          id: string
+          match_id: string
+          number: number
+          score_blue: number
+          score_red: number
+          winner: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration?: number
+          id?: string
+          match_id: string
+          number: number
+          score_blue?: number
+          score_red?: number
+          winner?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration?: number
+          id?: string
+          match_id?: string
+          number?: number
+          score_blue?: number
+          score_red?: number
+          winner?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sets_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
