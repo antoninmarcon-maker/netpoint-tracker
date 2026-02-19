@@ -88,12 +88,18 @@ const Index = () => {
     }
   }, [isBasketball, selectedAction, selectedTeam, addFreeThrow]);
 
-  // Auto-skip player assignment for non-blue-scored points
+  // Auto-skip player assignment when not relevant
+  // In volleyball: ask for blue scored points AND red scored points (opponent faults)
+  // In basketball: always ask
   useEffect(() => {
-    if (pendingPoint && players.length > 0 && !(pendingPoint.team === 'blue' && pendingPoint.type === 'scored')) {
+    if (!pendingPoint || players.length === 0) return;
+    if (isBasketball) return; // basketball always asks
+    const isBlueScored = pendingPoint.team === 'blue' && pendingPoint.type === 'scored';
+    const isRedScored = pendingPoint.team === 'red' && pendingPoint.type === 'scored';
+    if (!isBlueScored && !isRedScored) {
       skipPlayerAssignment();
     }
-  }, [pendingPoint, players, skipPlayerAssignment]);
+  }, [pendingPoint, players, skipPlayerAssignment, isBasketball]);
 
   if (loading) {
     return (
@@ -235,14 +241,22 @@ const Index = () => {
           </div>
         )}
 
-        {/* Player assignment modal - only for blue team scored points */}
-        {pendingPoint && players.length > 0 && pendingPoint.team === 'blue' && pendingPoint.type === 'scored' && (
-          <PlayerSelector
-            players={players}
-            prompt="Quel joueur a marqué ?"
-            onSelect={assignPlayer}
-            onSkip={skipPlayerAssignment}
-          />
+        {/* Player assignment modal */}
+        {pendingPoint && players.length > 0 && (
+          (isBasketball || pendingPoint.type === 'scored') && (
+            (isBasketball || pendingPoint.team === 'blue' || pendingPoint.team === 'red') && (
+              <PlayerSelector
+                players={players}
+                prompt={
+                  pendingPoint.team === 'red' && !isBasketball
+                    ? "Quel joueur a commis la faute ?"
+                    : "Quel joueur a marqué ?"
+                }
+                onSelect={assignPlayer}
+                onSkip={skipPlayerAssignment}
+              />
+            )
+          )
         )}
 
       </main>
