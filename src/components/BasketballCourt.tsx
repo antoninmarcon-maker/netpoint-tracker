@@ -142,25 +142,49 @@ export function BasketballCourt({ points, selectedTeam, selectedAction, selected
             const bx = oppSide === 'left' ? BASKET_X_LEFT : BASKET_X_RIGHT;
             const color = selectedTeam === 'blue' ? 'hsl(217, 91%, 60%)' : 'hsl(0, 84%, 60%)';
 
-            // Build the highlight path based on zone type
-            let highlightPath: string;
-            if (zoneHighlights === 'inside_arc') {
-              // Circle inside the arc
-              highlightPath = `M ${bx} ${BASKET_Y - ARC_RADIUS} A ${ARC_RADIUS} ${ARC_RADIUS} 0 1 ${oppSide === 'left' ? '1' : '0'} ${bx} ${BASKET_Y + ARC_RADIUS} A ${ARC_RADIUS} ${ARC_RADIUS} 0 1 ${oppSide === 'left' ? '1' : '0'} ${bx} ${BASKET_Y - ARC_RADIUS} Z`;
-            } else if (zoneHighlights === 'outside_arc') {
-              // Full court minus the arc circle
-              highlightPath = `M ${COURT_L} ${COURT_T} h ${COURT_R - COURT_L} v ${COURT_B - COURT_T} h -${COURT_R - COURT_L} Z M ${bx} ${BASKET_Y - ARC_RADIUS} A ${ARC_RADIUS} ${ARC_RADIUS} 0 1 ${oppSide === 'left' ? '0' : '1'} ${bx} ${BASKET_Y + ARC_RADIUS} A ${ARC_RADIUS} ${ARC_RADIUS} 0 1 ${oppSide === 'left' ? '0' : '1'} ${bx} ${BASKET_Y - ARC_RADIUS} Z`;
-            } else {
-              highlightPath = `M ${COURT_L} ${COURT_T} h ${COURT_R - COURT_L} v ${COURT_B - COURT_T} h -${COURT_R - COURT_L} Z`;
-            }
-
             return (
               <>
                 <rect x="0" y="0" width="600" height="400" fill="black" opacity="0.5" />
-                <path d={highlightPath} fill="hsl(30, 50%, 35%)" fillRule="evenodd" />
-                <path d={highlightPath} fill={color} fillRule="evenodd" opacity="0.15">
-                  <animate attributeName="opacity" values="0.1;0.2;0.1" dur="1.5s" repeatCount="indefinite" />
-                </path>
+                <defs>
+                  {zoneHighlights === 'inside_arc' && (
+                    <clipPath id="bk-zone-clip">
+                      <circle cx={bx} cy={BASKET_Y} r={ARC_RADIUS} />
+                    </clipPath>
+                  )}
+                  {zoneHighlights === 'outside_arc' && (
+                    <clipPath id="bk-zone-clip">
+                      {/* Full court rect, then subtract circle via two rects around it */}
+                      <rect x={COURT_L} y={COURT_T} width={COURT_R - COURT_L} height={COURT_B - COURT_T} />
+                    </clipPath>
+                  )}
+                </defs>
+                {zoneHighlights === 'full' && (
+                  <>
+                    <rect x={COURT_L} y={COURT_T} width={COURT_R - COURT_L} height={COURT_B - COURT_T} fill="hsl(30, 50%, 35%)" />
+                    <rect x={COURT_L} y={COURT_T} width={COURT_R - COURT_L} height={COURT_B - COURT_T} fill={color} opacity="0.15">
+                      <animate attributeName="opacity" values="0.1;0.2;0.1" dur="1.5s" repeatCount="indefinite" />
+                    </rect>
+                  </>
+                )}
+                {zoneHighlights === 'inside_arc' && (
+                  <g clipPath="url(#bk-zone-clip)">
+                    <rect x={COURT_L} y={COURT_T} width={COURT_R - COURT_L} height={COURT_B - COURT_T} fill="hsl(30, 50%, 35%)" />
+                    <rect x={COURT_L} y={COURT_T} width={COURT_R - COURT_L} height={COURT_B - COURT_T} fill={color} opacity="0.15">
+                      <animate attributeName="opacity" values="0.1;0.2;0.1" dur="1.5s" repeatCount="indefinite" />
+                    </rect>
+                  </g>
+                )}
+                {zoneHighlights === 'outside_arc' && (
+                  <>
+                    {/* Full court highlight */}
+                    <rect x={COURT_L} y={COURT_T} width={COURT_R - COURT_L} height={COURT_B - COURT_T} fill="hsl(30, 50%, 35%)" />
+                    <rect x={COURT_L} y={COURT_T} width={COURT_R - COURT_L} height={COURT_B - COURT_T} fill={color} opacity="0.15">
+                      <animate attributeName="opacity" values="0.1;0.2;0.1" dur="1.5s" repeatCount="indefinite" />
+                    </rect>
+                    {/* Dark circle to "cut out" the inside of the arc */}
+                    <circle cx={bx} cy={BASKET_Y} r={ARC_RADIUS} fill="black" opacity="0.5" />
+                  </>
+                )}
               </>
             );
           })()
