@@ -95,7 +95,7 @@ function buildExportContainer(teamNames: { blue: string; red: string }, label: s
   container.appendChild(totalCard);
 
   // Watermark
-  container.appendChild(createStyledEl('p', { fontSize: '8px', textAlign: 'center', color: 'hsl(var(--muted-foreground))', opacity: '0.5' }, 'Volley Tracker · Capbreton'));
+  container.appendChild(createStyledEl('p', { fontSize: '8px', textAlign: 'center', color: 'hsl(var(--muted-foreground))', opacity: '0.5' }, 'My Volley · Capbreton'));
 
   return container;
 }
@@ -584,7 +584,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         </DropdownMenu>
       </div>
 
-      <p className="text-[8px] text-muted-foreground/50 text-center">Volley Tracker · Capbreton</p>
+      <p className="text-[8px] text-muted-foreground/50 text-center">My Volley · Capbreton</p>
     </div>
   );
 }

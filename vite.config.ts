@@ -24,8 +24,8 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,jpeg,jpg,woff,woff2}"],
       },
       manifest: {
-        name: "Volley Tracker",
-        short_name: "VolleyTracker",
+        name: "My Volley",
+        short_name: "MyVolley",
         description: "Suivi de matchs de volley-ball en temps réel",
         theme_color: "#0f172a",
         background_color: "#0f172a",
