@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, X, Loader2 } from 'lucide-react';
+import { Sparkles, X, Loader2, Copy, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -82,6 +82,7 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
   const [showDialog, setShowDialog] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleClick = () => {
     if (!isLoggedIn) {
@@ -142,12 +143,17 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">Aucune analyse disponible.</p>
             )}
-            {!loading && (
+            {!loading && analysis && (
               <button
-                onClick={fetchAnalysis}
-                className="w-full py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold hover:bg-secondary/80 transition-all"
+                onClick={() => {
+                  navigator.clipboard.writeText(analysis);
+                  setCopied(true);
+                  toast.success('Analyse copiée !');
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="w-full py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold hover:bg-secondary/80 transition-all flex items-center justify-center gap-1.5"
               >
-                🔄 Relancer l'analyse
+                {copied ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier l'analyse</>}
               </button>
             )}
           </div>
