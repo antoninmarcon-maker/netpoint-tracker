@@ -4,7 +4,7 @@
 
 > Conçue pour les clubs amateurs qui veulent des outils de niveau professionnel.
 
-[![Live App](https://img.shields.io/badge/Live-netpoint--tracker.lovable.app-blue)](https://netpoint-tracker.lovable.app)
+[![Live App](https://img.shields.io/badge/Live-my--volley.com-blue)](https://www.my-volley.com)
 
 ---
 
@@ -80,4 +80,4 @@ npm run dev
 
 ## 📄 License
 
-Made with ❤️ by [Volleyball Capbreton](https://netpoint-tracker.lovable.app)
+Made with ❤️ by [Volleyball Capbreton](https://www.my-volley.com)
