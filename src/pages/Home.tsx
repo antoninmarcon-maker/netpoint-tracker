@@ -49,7 +49,12 @@ export default function Home() {
   const [showNew, setShowNew] = useState(false);
   const [names, setNames] = useState({ blue: '', red: '' });
   const [selectedSport, setSelectedSport] = useState<SportType>('volleyball');
-  const [matches, setMatches] = useState<MatchSummary[]>(() => getAllMatches().sort((a, b) => b.updatedAt - a.updatedAt));
+  const [matches, setMatches] = useState<MatchSummary[]>(() => {
+    const all = getAllMatches();
+    const active = all.filter(m => !m.finished).sort((a, b) => b.updatedAt - a.updatedAt);
+    const finished = all.filter(m => m.finished).sort((a, b) => b.updatedAt - a.updatedAt);
+    return [...active, ...finished];
+  });
 
   const handleCreate = () => {
     const match = createNewMatch({
@@ -63,7 +68,7 @@ export default function Home() {
 
   const handleDelete = (id: string) => {
     deleteMatch(id);
-    setMatches(getAllMatches().sort((a, b) => b.updatedAt - a.updatedAt));
+    const all = getAllMatches(); const active = all.filter(m => !m.finished).sort((a, b) => b.updatedAt - a.updatedAt); const finished = all.filter(m => m.finished).sort((a, b) => b.updatedAt - a.updatedAt); setMatches([...active, ...finished]);
   };
 
   const [finishingId, setFinishingId] = useState<string | null>(null);
@@ -94,7 +99,7 @@ export default function Home() {
       match.points = [];
     }
     saveMatch({ ...match, finished: true, updatedAt: Date.now() });
-    setMatches(getAllMatches().sort((a, b) => b.updatedAt - a.updatedAt));
+    const all = getAllMatches(); const active = all.filter(m => !m.finished).sort((a, b) => b.updatedAt - a.updatedAt); const finished = all.filter(m => m.finished).sort((a, b) => b.updatedAt - a.updatedAt); setMatches([...active, ...finished]);
     setFinishingId(null);
   };
 
