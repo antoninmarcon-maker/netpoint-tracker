@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { Activity, BarChart3, HelpCircle, X, ArrowLeft } from 'lucide-react';
 import { useMatchState } from '@/hooks/useMatchState';
@@ -21,10 +21,6 @@ const Index = () => {
 
   const matchState = useMatchState(matchId ?? '');
 
-  if (!matchId || !getMatch(matchId)) {
-    return <Navigate to="/" replace />;
-  }
-
   const {
     points, allPoints, selectedTeam, selectedPointType, selectedAction,
     score, stats, setsScore, currentSetNumber, completedSets,
@@ -33,11 +29,24 @@ const Index = () => {
     setTeamNames, setPlayers, selectAction, cancelSelection, addPoint,
     assignPlayer, skipPlayerAssignment,
     undo, endSet, startNewSet, waitingForNewSet, resetMatch, switchSides, startChrono, pauseChrono,
+    addFreeThrow,
   } = matchState;
+
+  const isBasketball = sport === 'basketball';
+
+  // Auto-add free throw without court placement
+  useEffect(() => {
+    if (isBasketball && selectedAction === 'free_throw' && selectedTeam) {
+      addFreeThrow();
+    }
+  }, [isBasketball, selectedAction, selectedTeam, addFreeThrow]);
+
+  if (!matchId || !getMatch(matchId)) {
+    return <Navigate to="/" replace />;
+  }
 
   const matchData = getMatch(matchId);
   const isFinished = matchData?.finished ?? false;
-  const isBasketball = sport === 'basketball';
   const sportIcon = isBasketball ? '🏀' : '🏐';
   const periodLabel = isBasketball ? 'QT' : 'Set';
 

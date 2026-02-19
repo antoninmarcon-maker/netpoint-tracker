@@ -233,14 +233,17 @@ export function ScoreBoard({
               >
                 ⚡ {isBasketball ? 'Paniers' : 'Points Gagnés'}
               </button>
-              <button
-                onClick={() => setMenuTab('fault')}
-                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
-                  menuTab === 'fault' ? 'bg-action-fault text-action-fault-foreground' : 'bg-secondary text-secondary-foreground'
-                }`}
-              >
-                ❌ {isBasketball ? 'Actions négatives' : 'Fautes Adverses'}
-              </button>
+              {/* Basketball: actions négatives uniquement pour l'équipe bleue */}
+              {(!isBasketball || menuTeam === 'blue') && (
+                <button
+                  onClick={() => setMenuTab('fault')}
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
+                    menuTab === 'fault' ? 'bg-action-fault text-action-fault-foreground' : 'bg-secondary text-secondary-foreground'
+                  }`}
+                >
+                  ❌ {isBasketball ? 'Actions négatives' : 'Fautes Adverses'}
+                </button>
+              )}
             </div>
             <button onClick={closeMenu} className="p-1 rounded-md text-muted-foreground hover:text-foreground">
               <X size={16} />

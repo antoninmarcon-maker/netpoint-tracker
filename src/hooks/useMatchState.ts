@@ -83,6 +83,33 @@ export function useMatchState(matchId: string) {
     setSelectedAction(null);
   }, [selectedTeam, selectedPointType, selectedAction, chronoRunning, points.length, players.length, sport]);
 
+  // Basketball free throw: add point directly without court placement
+  const addFreeThrow = useCallback(() => {
+    if (!selectedTeam || !selectedPointType || !selectedAction) return;
+    if (!chronoRunning && points.length === 0) {
+      setChronoRunning(true);
+    }
+    const point: Point = {
+      id: crypto.randomUUID(),
+      team: selectedTeam,
+      type: selectedPointType,
+      action: selectedAction,
+      x: 0.5,
+      y: 0.5,
+      timestamp: Date.now(),
+      pointValue: 1,
+    };
+    const isBlueAction = (point.team === 'blue' && point.type === 'scored') || (point.team === 'red' && point.type === 'fault');
+    if (players.length > 0 && isBlueAction) {
+      setPendingPoint(point);
+    } else {
+      setPoints(prev => [...prev, point]);
+    }
+    setSelectedTeam(null);
+    setSelectedPointType(null);
+    setSelectedAction(null);
+  }, [selectedTeam, selectedPointType, selectedAction, chronoRunning, points.length, players.length]);
+
   const assignPlayer = useCallback((playerId: string) => {
     if (!pendingPoint) return;
     setPoints(prev => [...prev, { ...pendingPoint, playerId }]);
@@ -251,6 +278,7 @@ export function useMatchState(matchId: string) {
     selectAction,
     cancelSelection,
     addPoint,
+    addFreeThrow,
     assignPlayer,
     skipPlayerAssignment,
     undo,

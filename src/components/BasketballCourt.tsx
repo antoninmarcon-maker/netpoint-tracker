@@ -37,52 +37,36 @@ function isZoneAllowed(
   team: Team, action: ActionType, pointType: PointType,
   sidesSwapped: boolean
 ): boolean {
+  const inCourt = svgX >= COURT_L && svgX <= COURT_R && svgY >= COURT_T && svgY <= COURT_B;
+  if (!inCourt) return false;
+
+  // Free throw: not placed on court (handled upstream), but allow anywhere as fallback
+  if (action === 'free_throw') return true;
+
   const teamSide = sidesSwapped
     ? (team === 'blue' ? 'right' : 'left')
     : (team === 'blue' ? 'left' : 'right');
   const opponentSide = teamSide === 'left' ? 'right' : 'left';
 
-  // For scored actions, target is opponent's half
   if (pointType === 'scored') {
-    const targetSide = opponentSide;
-    const inTargetHalf = targetSide === 'left'
-      ? svgX >= COURT_L && svgX <= MID_X && svgY >= COURT_T && svgY <= COURT_B
-      : svgX >= MID_X && svgX <= COURT_R && svgY >= COURT_T && svgY <= COURT_B;
-    
-    if (!inTargetHalf) return false;
-
-    // 3-point restriction: if action is 3pts, must be OUTSIDE arc
+    // Shots: placed anywhere on court, zone check is relative to opponent's basket
     if (action === 'three_points') {
-      return !isInside3ptArc(svgX, svgY, targetSide);
+      return !isInside3ptArc(svgX, svgY, opponentSide);
     }
-    // 2pts must be INSIDE arc
     if (action === 'two_points') {
-      return isInside3ptArc(svgX, svgY, targetSide);
+      return isInside3ptArc(svgX, svgY, opponentSide);
     }
-    // Free throw: anywhere in opponent half
     return true;
   }
 
-  // For faults (missed_shot, turnover, foul_committed) → anywhere on court
-  return svgX >= COURT_L && svgX <= COURT_R && svgY >= COURT_T && svgY <= COURT_B;
+  // Faults: anywhere on court
+  return true;
 }
 
 function getZoneHighlights(
   team: Team, action: ActionType, pointType: PointType, sidesSwapped: boolean
 ): { x: number; y: number; w: number; h: number }[] {
-  const teamSide = sidesSwapped
-    ? (team === 'blue' ? 'right' : 'left')
-    : (team === 'blue' ? 'left' : 'right');
-  const opponentSide = teamSide === 'left' ? 'right' : 'left';
-
-  if (pointType === 'scored') {
-    if (opponentSide === 'left') {
-      return [{ x: COURT_L, y: COURT_T, w: MID_X - COURT_L, h: COURT_B - COURT_T }];
-    }
-    return [{ x: MID_X, y: COURT_T, w: COURT_R - MID_X, h: COURT_B - COURT_T }];
-  }
-
-  // Faults: full court
+  // All basketball actions: full court highlighted
   return [{ x: COURT_L, y: COURT_T, w: COURT_R - COURT_L, h: COURT_B - COURT_T }];
 }
 
