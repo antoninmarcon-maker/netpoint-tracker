@@ -229,7 +229,7 @@ export function BasketballCourt({ points, selectedTeam, selectedAction, selected
         </text>
 
         {/* Point markers */}
-        {points.map((point) => {
+        {points.filter(p => p.action !== 'free_throw').map((point) => {
           const cx = point.x * W;
           const cy = point.y * H;
           const color = point.team === 'blue' ? 'hsl(217, 91%, 60%)' : 'hsl(0, 84%, 60%)';
