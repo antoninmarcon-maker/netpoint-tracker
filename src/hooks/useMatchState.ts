@@ -2,8 +2,12 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Team, Point, PointType, ActionType, SetData, Player, SportType, isBasketScoredAction, getBasketPointValue } from '@/types/sports';
 import { getMatch, saveMatch, saveLastRoster } from '@/lib/matchStorage';
 
-export function useMatchState(matchId: string) {
-  const loaded = useRef(getMatch(matchId)).current;
+export function useMatchState(matchId: string, ready: boolean = true) {
+  const loadedRef = useRef<ReturnType<typeof getMatch>>(null);
+  if (ready && !loadedRef.current) {
+    loadedRef.current = getMatch(matchId);
+  }
+  const loaded = loadedRef.current;
   const [completedSets, setCompletedSets] = useState<SetData[]>(loaded?.completedSets ?? []);
   const [currentSetNumber, setCurrentSetNumber] = useState(loaded?.currentSetNumber ?? 1);
   const [points, setPoints] = useState<Point[]>(loaded?.points ?? []);

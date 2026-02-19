@@ -11,9 +11,10 @@ import { PlayerRoster } from '@/components/PlayerRoster';
 import { PlayerSelector } from '@/components/PlayerSelector';
 import { AiAnalysis } from '@/components/AiAnalysis';
 import { AuthDialog } from '@/components/AuthDialog';
-import { getMatch } from '@/lib/matchStorage';
+import { getMatch, saveMatch } from '@/lib/matchStorage';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import type { MatchSummary } from '@/types/sports';
 
 type Tab = 'match' | 'stats';
 
@@ -24,6 +25,43 @@ const Index = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [showAuthForAi, setShowAuthForAi] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [matchReady, setMatchReady] = useState(false);
+
+  // On mount: ensure match exists in localStorage (fetch from cloud if needed)
+  useEffect(() => {
+    if (!matchId) { setLoading(false); return; }
+
+    const ensureMatchLocal = async () => {
+      // Already in localStorage?
+      if (getMatch(matchId)) {
+        setMatchReady(true);
+        setLoading(false);
+        return;
+      }
+
+      // Try fetching from cloud
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data } = await supabase
+          .from('matches')
+          .select('match_data')
+          .eq('id', matchId)
+          .maybeSingle();
+        if (data?.match_data) {
+          saveMatch(data.match_data as unknown as MatchSummary);
+          setMatchReady(true);
+          setLoading(false);
+          return;
+        }
+      }
+      // Not found anywhere
+      setMatchReady(false);
+      setLoading(false);
+    };
+
+    ensureMatchLocal();
+  }, [matchId]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
@@ -31,7 +69,7 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const matchState = useMatchState(matchId ?? '');
+  const matchState = useMatchState(matchId ?? '', matchReady);
 
   const {
     points, allPoints, selectedTeam, selectedPointType, selectedAction,
@@ -60,14 +98,21 @@ const Index = () => {
     }
   }, [pendingPoint, players, skipPlayerAssignment]);
 
-  if (!matchId || !getMatch(matchId)) {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground text-sm">Chargement du match…</div>
+      </div>
+    );
+  }
+
+  if (!matchId || !matchReady) {
     return <Navigate to="/" replace />;
   }
 
   const matchData = getMatch(matchId);
   const isFinished = matchData?.finished ?? false;
   const sportIcon = isBasketball ? '🏀' : '🏐';
-  const periodLabel = isBasketball ? 'QT' : 'Set';
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
