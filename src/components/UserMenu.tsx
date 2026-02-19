@@ -32,16 +32,32 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
   const handleSendFeedback = async () => {
     if (!feedbackMessage.trim()) return;
     setSendingFeedback(true);
-    const { error } = await supabase.from('feedback').insert({
-      user_id: user.id,
-      email: user.email || '',
-      message: feedbackMessage.trim(),
-    });
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Vous devez être connecté pour envoyer un feedback.');
+        setSendingFeedback(false);
+        return;
+      }
+      const { error } = await supabase.from('feedback').insert({
+        user_id: session.user.id,
+        email: session.user.email || '',
+        message: feedbackMessage.trim(),
+      });
+      if (error) {
+        console.error('[Feedback] Insert error:', error);
+        toast.error(`Erreur : ${error.message}`);
+        setSendingFeedback(false);
+        return;
+      }
+      toast.success('Merci pour votre retour !');
+      setFeedbackMessage('');
+      setShowFeedback(false);
+    } catch (err) {
+      console.error('[Feedback] Unexpected error:', err);
+      toast.error('Erreur inattendue.');
+    }
     setSendingFeedback(false);
-    if (error) { console.error('[Feedback] Insert error:', error); toast.error('Erreur lors de l\'envoi.'); return; }
-    toast.success('Merci pour votre retour !');
-    setFeedbackMessage('');
-    setShowFeedback(false);
   };
 
   const handleUpdateEmail = async () => {
