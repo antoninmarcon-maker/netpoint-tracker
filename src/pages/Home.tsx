@@ -129,9 +129,15 @@ export default function Home() {
 
   const handleDelete = async (id: string) => {
     deleteMatch(id);
-    if (user) await deleteCloudMatch(id);
+    if (user) {
+      try {
+        await deleteCloudMatch(id);
+      } catch (err) {
+        console.error('Cloud delete failed:', err);
+      }
+    }
     setDeletingId(null);
-    loadMatches(user);
+    await loadMatches(user);
   };
 
   const handleFinishMatch = async (id: string) => {
