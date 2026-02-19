@@ -55,7 +55,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [showAuth, setShowAuth] = useState(false);
-  const [guestDismissed, setGuestDismissed] = useState(false);
+  const [guestDismissed, setGuestDismissed] = useState(() => sessionStorage.getItem('guestDismissed') === 'true');
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [showNew, setShowNew] = useState(false);
   const [names, setNames] = useState({ blue: '', red: '' });
@@ -225,7 +225,7 @@ export default function Home() {
       <AuthDialog
         open={showAuth}
         onOpenChange={setShowAuth}
-        onGuest={() => setGuestDismissed(true)}
+        onGuest={() => { setGuestDismissed(true); sessionStorage.setItem('guestDismissed', 'true'); }}
       />
 
       <main className="flex-1 overflow-auto p-4 max-w-lg mx-auto w-full space-y-6">
