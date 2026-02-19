@@ -138,6 +138,32 @@ export function ScoreBoard({
         </div>
       </div>
 
+      {/* Action buttons (annuler, switch, fin set) - above team names */}
+      {!isFinished && !waitingForNewSet && (
+        <div className="flex gap-2 justify-center flex-wrap">
+          <button
+            onClick={onUndo}
+            disabled={!canUndo}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all"
+          >
+            <Undo2 size={16} /> Annuler
+          </button>
+          <button
+            onClick={onSwitchSides}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
+          >
+            <ArrowLeftRight size={16} /> Switch
+          </button>
+          <button
+            onClick={() => setConfirmEndSet(true)}
+            disabled={!canUndo}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all"
+          >
+            <Flag size={16} /> Fin {periodLabel}
+          </button>
+        </div>
+      )}
+
       {/* Team names editing */}
       {editingNames ? (
         <div className="flex gap-2 items-end">
@@ -285,7 +311,7 @@ export function ScoreBoard({
         </div>
       )}
 
-      {/* Action buttons */}
+      {/* Status indicators (finished / waiting for new set) */}
       {isFinished ? (
         <div className="bg-muted/50 rounded-lg p-3 text-center">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">✅ Match terminé</p>
@@ -302,31 +328,7 @@ export function ScoreBoard({
             <Play size={16} /> Nouveau {periodLabel}
           </button>
         </div>
-      ) : (
-        <div className="flex gap-2 justify-center flex-wrap">
-          <button
-            onClick={onUndo}
-            disabled={!canUndo}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all"
-          >
-            <Undo2 size={16} /> Annuler
-          </button>
-          <button
-            onClick={onSwitchSides}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
-          >
-            <ArrowLeftRight size={16} /> Switch
-          </button>
-          <button
-            onClick={() => setConfirmEndSet(true)}
-            disabled={!canUndo}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all"
-          >
-            <Flag size={16} /> Fin {periodLabel}
-          </button>
-        </div>
-      )}
-      {/* End set confirmation modal */}
+      ) : null}
       {confirmEndSet && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setConfirmEndSet(false)}>
           <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4 animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
