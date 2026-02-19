@@ -121,7 +121,7 @@ export default function Home() {
             <h2 className="text-base font-bold text-foreground">Créer un match</h2>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-semibold text-team-blue mb-1 block">Équipe Bleue</label>
+                <label className="text-xs font-semibold text-team-blue mb-1 block">Équipe Bleue <span className="text-muted-foreground font-normal">· votre équipe (roster configurable)</span></label>
                 <Input
                   value={names.blue}
                   onChange={e => setNames(prev => ({ ...prev, blue: e.target.value }))}
