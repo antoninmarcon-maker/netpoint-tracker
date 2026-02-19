@@ -47,6 +47,9 @@
     --action-fault: 32 95% 55%;
     --action-fault-foreground: 0 0% 100%;
 
+    --action-cta: 152 69% 45%;
+    --action-cta-end: 170 80% 40%;
+
     --court: 142 50% 35%;
     --court-line: 0 0% 100%;
     --court-bg: 142 40% 28%;

@@ -109,9 +109,12 @@ export default function Home() {
         {!showNew ? (
           <button
             onClick={() => setShowNew(true)}
-            className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg transition-all active:scale-[0.98] hover:opacity-90"
+            className="group w-full relative flex items-center justify-center gap-3 py-4 rounded-2xl font-bold text-lg text-white overflow-hidden transition-all duration-300 active:scale-[0.97] hover:shadow-lg hover:shadow-action-scored/25"
+            style={{ background: 'linear-gradient(135deg, hsl(var(--action-cta)), hsl(var(--action-cta-end)))' }}
           >
-            <Plus size={22} /> Nouveau Match
+            <span className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-300" />
+            <Plus size={22} className="relative z-10 transition-transform duration-300 group-hover:rotate-90" /> 
+            <span className="relative z-10">Nouveau Match</span>
           </button>
         ) : (
           <div className="bg-card rounded-xl p-5 border border-border space-y-4">
