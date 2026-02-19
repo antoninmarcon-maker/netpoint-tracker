@@ -184,6 +184,7 @@ const Index = () => {
               teamName={teamNames.blue}
               sport={sport}
               userId={user?.id}
+              readOnly={isFinished}
             />
             <ScoreBoard
               score={score}

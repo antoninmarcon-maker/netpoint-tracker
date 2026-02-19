@@ -10,9 +10,10 @@ interface PlayerRosterProps {
   teamName: string;
   sport?: SportType;
   userId?: string | null;
+  readOnly?: boolean;
 }
 
-export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyball', userId }: PlayerRosterProps) {
+export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyball', userId, readOnly = false }: PlayerRosterProps) {
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [newNumber, setNewNumber] = useState('');
@@ -158,7 +159,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
       {!collapsed && (
         <>
           {/* Quick add all saved players */}
-          {availableSavedCount > 0 && (
+          {!readOnly && availableSavedCount > 0 && (
             <button
               onClick={addAllSaved}
               className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-semibold rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all"
@@ -173,7 +174,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
             <div className="space-y-1">
               {players.map(p => (
                 <div key={p.id} className="flex items-center gap-2 bg-secondary/50 rounded-lg px-2.5 py-1.5">
-                  {editingId === p.id ? (
+                  {editingId === p.id && !readOnly ? (
                     <>
                       <Input value={editNumber} onChange={e => setEditNumber(e.target.value)} className="h-7 w-14 text-xs" placeholder="#" />
                       <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-7 flex-1 text-xs" placeholder="Nom" />
@@ -183,8 +184,12 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
                     <>
                       <span className="w-8 text-center text-xs font-black text-team-blue bg-team-blue/10 rounded py-0.5">#{p.number}</span>
                       <span className="flex-1 text-xs font-medium text-foreground truncate">{p.name || '—'}</span>
-                      <button onClick={() => startEdit(p)} className="p-1 text-muted-foreground hover:text-foreground"><Pencil size={12} /></button>
-                      <button onClick={() => removePlayer(p.id)} className="p-1 text-destructive/60 hover:text-destructive"><X size={12} /></button>
+                      {!readOnly && (
+                        <>
+                          <button onClick={() => startEdit(p)} className="p-1 text-muted-foreground hover:text-foreground"><Pencil size={12} /></button>
+                          <button onClick={() => removePlayer(p.id)} className="p-1 text-destructive/60 hover:text-destructive"><X size={12} /></button>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
@@ -193,51 +198,53 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
           )}
 
           {/* Add player with autocomplete */}
-          <div className="relative" ref={suggestionsRef}>
-            <div className="flex gap-1.5">
-              <Input
-                ref={numberRef}
-                value={newNumber}
-                onChange={e => { setNewNumber(e.target.value); setShowSuggestions(true); }}
-                className="h-8 w-14 text-xs"
-                placeholder="#"
-                onFocus={() => setShowSuggestions(true)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); nameRef.current?.focus(); } }}
-              />
-              <Input
-                ref={nameRef}
-                value={newName}
-                onChange={e => { setNewName(e.target.value); setShowSuggestions(true); }}
-                className="h-8 flex-1 text-xs"
-                placeholder="Nom du joueur"
-                onFocus={() => setShowSuggestions(true)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addPlayer(); } }}
-              />
-              <button
-                onClick={addPlayer}
-                disabled={!newNumber.trim()}
-                className="px-2.5 h-8 rounded-md bg-team-blue text-primary-foreground text-xs font-semibold disabled:opacity-30 transition-all"
-              >
-                <Plus size={14} />
-              </button>
-            </div>
-
-            {/* Suggestions dropdown */}
-            {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
-                {suggestions.map(sp => (
-                  <button
-                    key={sp.id}
-                    onClick={() => selectSuggestion(sp)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary transition-colors text-left"
-                  >
-                    <span className="w-7 text-center font-black text-team-blue bg-team-blue/10 rounded py-0.5">#{sp.number}</span>
-                    <span className="font-medium text-foreground">{sp.name || '—'}</span>
-                  </button>
-                ))}
+          {!readOnly && (
+            <div className="relative" ref={suggestionsRef}>
+              <div className="flex gap-1.5">
+                <Input
+                  ref={numberRef}
+                  value={newNumber}
+                  onChange={e => { setNewNumber(e.target.value); setShowSuggestions(true); }}
+                  className="h-8 w-14 text-xs"
+                  placeholder="#"
+                  onFocus={() => setShowSuggestions(true)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); nameRef.current?.focus(); } }}
+                />
+                <Input
+                  ref={nameRef}
+                  value={newName}
+                  onChange={e => { setNewName(e.target.value); setShowSuggestions(true); }}
+                  className="h-8 flex-1 text-xs"
+                  placeholder="Nom du joueur"
+                  onFocus={() => setShowSuggestions(true)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addPlayer(); } }}
+                />
+                <button
+                  onClick={addPlayer}
+                  disabled={!newNumber.trim()}
+                  className="px-2.5 h-8 rounded-md bg-team-blue text-primary-foreground text-xs font-semibold disabled:opacity-30 transition-all"
+                >
+                  <Plus size={14} />
+                </button>
               </div>
-            )}
-          </div>
+
+              {/* Suggestions dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
+                  {suggestions.map(sp => (
+                    <button
+                      key={sp.id}
+                      onClick={() => selectSuggestion(sp)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary transition-colors text-left"
+                    >
+                      <span className="w-7 text-center font-black text-team-blue bg-team-blue/10 rounded py-0.5">#{sp.number}</span>
+                      <span className="font-medium text-foreground">{sp.name || '—'}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>
