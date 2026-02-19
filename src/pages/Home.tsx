@@ -84,6 +84,17 @@ export default function Home() {
     setLoadingMatches(false);
   }, []);
 
+  // Load local matches immediately for guests (don't wait for Supabase)
+  useEffect(() => {
+    const localMatches = getAllMatches();
+    if (localMatches.length > 0) {
+      const active = localMatches.filter(m => !m.finished).sort((a, b) => b.updatedAt - a.updatedAt);
+      const finished = localMatches.filter(m => m.finished).sort((a, b) => b.updatedAt - a.updatedAt);
+      setMatches([...active, ...finished]);
+      setLoadingMatches(false);
+    }
+  }, []);
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const u = session?.user ?? null;
