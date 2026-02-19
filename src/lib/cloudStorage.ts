@@ -22,7 +22,7 @@ export async function syncLocalMatchesToCloud(userId: string) {
       .maybeSingle();
 
     if (!existing) {
-      await supabase.from('matches').insert({
+      await supabase.from('matches').upsert({
         id: match.id,
         user_id: userId,
         match_data: match as any,
@@ -31,9 +31,6 @@ export async function syncLocalMatchesToCloud(userId: string) {
       });
     }
   }
-
-  // Clear local storage after sync
-  localStorage.removeItem('volley-tracker-matches');
 }
 
 // Get all matches from cloud (returns empty if no session)
