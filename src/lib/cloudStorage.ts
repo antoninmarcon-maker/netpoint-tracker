@@ -57,7 +57,12 @@ export async function saveCloudMatch(userId: string, match: MatchSummary) {
 // Delete match from cloud
 export async function deleteCloudMatch(matchId: string) {
   if (!(await hasSession())) return;
-  // CASCADE handles related tables automatically
+  
+  // Delete children first to avoid any FK issues
+  await supabase.from('points').delete().eq('match_id', matchId);
+  await supabase.from('players').delete().eq('match_id', matchId);
+  await supabase.from('sets').delete().eq('match_id', matchId);
+  
   const { error } = await supabase
     .from('matches')
     .delete()
