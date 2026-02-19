@@ -125,9 +125,12 @@ export default function Home() {
     navigate(`/match/${match.id}`);
   };
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const handleDelete = async (id: string) => {
     deleteMatch(id);
     if (user) await deleteCloudMatch(id);
+    setDeletingId(null);
     loadMatches(user);
   };
 
@@ -337,7 +340,7 @@ export default function Home() {
                         </button>
                       )}
                       <button
-                        onClick={() => handleDelete(match.id)}
+                        onClick={() => setDeletingId(match.id)}
                         className="px-3 py-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all"
                       >
                         <Trash2 size={14} />
@@ -371,6 +374,32 @@ export default function Home() {
                 className="flex-1 py-2.5 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm flex items-center justify-center gap-1.5"
               >
                 <CheckCircle2 size={16} /> Terminer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirm modal */}
+      {deletingId && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setDeletingId(null)}>
+          <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-foreground text-center">Supprimer le match ?</h2>
+            <p className="text-sm text-muted-foreground text-center">
+              Cette action est irréversible. Toutes les données du match seront perdues.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeletingId(null)}
+                className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => handleDelete(deletingId)}
+                className="flex-1 py-2.5 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm flex items-center justify-center gap-1.5"
+              >
+                <Trash2 size={16} /> Supprimer
               </button>
             </div>
           </div>
