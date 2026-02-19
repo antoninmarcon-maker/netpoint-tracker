@@ -103,7 +103,7 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
             <p className="text-xs text-muted-foreground text-center">{user.email}</p>
 
             <button
-              onClick={() => { setShowMenu(false); setShowFeedback(true); }}
+              onClick={() => { setShowMenu(false); setTimeout(() => setShowFeedback(true), 150); }}
               className="w-full flex items-center gap-2.5 py-3 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-all"
             >
               <MessageSquare size={16} className="text-primary" /> Laisser un feedback
@@ -111,7 +111,7 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
 
             {onOpenSavedPlayers && (
               <button
-                onClick={() => { setShowMenu(false); onOpenSavedPlayers(); }}
+                onClick={() => { setShowMenu(false); setTimeout(() => onOpenSavedPlayers(), 150); }}
                 className="w-full flex items-center gap-2.5 py-3 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-all"
               >
                 <Users size={16} className="text-primary" /> Joueurs enregistrés
@@ -119,7 +119,7 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
             )}
 
             <button
-              onClick={() => { setShowMenu(false); setShowSettings(true); }}
+              onClick={() => { setShowMenu(false); setTimeout(() => setShowSettings(true), 150); }}
               className="w-full flex items-center gap-2.5 py-3 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-all"
             >
               <Settings size={16} className="text-muted-foreground" /> Paramètres du compte
