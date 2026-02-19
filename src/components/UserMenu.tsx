@@ -26,6 +26,7 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setShowMenu(false);
+    window.location.reload();
   };
 
   const handleSendFeedback = async () => {
