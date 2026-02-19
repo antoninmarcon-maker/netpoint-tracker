@@ -56,7 +56,7 @@ function buildMatchStatsText(
       const total = scored.length + negatives.length;
       if (total === 0) return;
       const eff = total > 0 ? ((scored.length / total) * 100).toFixed(0) : '0';
-      text += `  #${p.number} ${p.name}: ${scored.length} pts gagnés, ${negatives.length} négatifs, efficacité ${eff}%`;
+      text += `  ${p.name || p.number}: ${scored.length} pts gagnés, ${negatives.length} négatifs, efficacité ${eff}%`;
       
       // Action breakdown
       const actions: Record<string, number> = {};

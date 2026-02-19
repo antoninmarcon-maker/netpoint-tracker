@@ -105,8 +105,7 @@ export function PlayerStats({ points, players, teamName, sport = 'volleyball' }:
                   className="w-full flex items-center justify-between p-2.5"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-team-blue bg-team-blue/10 rounded px-1.5 py-0.5">#{s.player.number}</span>
-                    <span className="text-xs font-semibold text-foreground">{s.player.name || '—'}</span>
+                    <span className="text-xs font-black text-team-blue bg-team-blue/10 rounded px-1.5 py-0.5">{s.player.name || s.player.number}</span>
                     <span className="text-[10px] text-muted-foreground">{s.scored} pts / {s.faults} fts</span>
                   </div>
                   <div className="flex items-center gap-1.5">

@@ -207,7 +207,7 @@ export function exportMatchToExcel(
       const globalPlayerStats = playerSetStatsBasket(allPoints, players);
       globalPlayerStats.forEach(r => {
         summaryRows.push({
-          'Info': `#${r['#']}`,
+          'Info': r['Joueur'] || r['#'],
           'Valeur': r['Joueur'],
           'Détail': `Pts: ${r['Total points']}`,
           'Extra1': `LF: ${r['LF (1pt)']}`,
@@ -221,7 +221,7 @@ export function exportMatchToExcel(
       const globalPlayerStats = playerSetStatsVolley(allPoints, players);
       globalPlayerStats.forEach(r => {
         summaryRows.push({
-          'Info': `#${r['#']}`,
+          'Info': r['Joueur'] || r['#'],
           'Valeur': r['Joueur'],
           'Détail': `Pts: ${r['Total pts gagnés']}`,
           'Extra1': `Att: ${r['Attaques']}`,

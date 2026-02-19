@@ -157,7 +157,7 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
             {players.map(p => (
               <div key={p.id} className="bg-secondary/50 rounded-xl px-3 py-2.5 space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="w-9 text-center text-xs font-black text-team-blue bg-team-blue/10 rounded py-0.5">#{p.number}</span>
+                  <span className="text-xs font-black text-team-blue">{p.name || p.number}</span>
                   {editingId === p.id ? (
                     <>
                       <input

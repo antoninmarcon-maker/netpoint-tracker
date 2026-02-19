@@ -182,8 +182,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
                     </>
                   ) : (
                     <>
-                      <span className="w-8 text-center text-xs font-black text-team-blue bg-team-blue/10 rounded py-0.5">#{p.number}</span>
-                      <span className="flex-1 text-xs font-medium text-foreground truncate">{p.name || '—'}</span>
+                      <span className="flex-1 text-xs font-medium text-foreground truncate">{p.name || p.number || '—'}</span>
                       {!readOnly && (
                         <>
                           <button onClick={() => startEdit(p)} className="p-1 text-muted-foreground hover:text-foreground"><Pencil size={12} /></button>
@@ -237,8 +236,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
                       onClick={() => selectSuggestion(sp)}
                       className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary transition-colors text-left"
                     >
-                      <span className="w-7 text-center font-black text-team-blue bg-team-blue/10 rounded py-0.5">#{sp.number}</span>
-                      <span className="font-medium text-foreground">{sp.name || '—'}</span>
+                      <span className="font-medium text-foreground">{sp.name || sp.number || '—'}</span>
                     </button>
                   ))}
                 </div>
