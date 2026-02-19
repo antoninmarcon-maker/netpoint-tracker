@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { Download, ChevronDown, Copy, Image, FileSpreadsheet, Map } from 'lucide-react';
+import { Download, ChevronDown, Copy, Image, FileSpreadsheet, Map, Share2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { Point, SetData, Player, isOffensiveAction, OFFENSIVE_ACTIONS, FAULT_ACTIONS } from '@/types/volleyball';
 import { PointTimeline } from './PointTimeline';
@@ -274,20 +274,46 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     }
   }, [teamNames]);
 
-  const copyScoreText = useCallback(() => {
+  const getScoreText = useCallback(() => {
     const allSets = [...completedSets];
     const setsBlue = allSets.filter(s => s.winner === 'blue').length;
     const setsRed = allSets.filter(s => s.winner === 'red').length;
     const details = allSets.map(s => `${s.score.blue}-${s.score.red}`).join(', ');
-    let text = `Match : ${teamNames.blue} vs ${teamNames.red} | Score Sets : ${setsBlue}-${setsRed}`;
-    if (details) text += ` | Détails : ${details}`;
+    let text = `🏐 Match : ${teamNames.blue} vs ${teamNames.red}\n📊 Score Sets : ${setsBlue}-${setsRed}`;
+    if (details) text += `\n📋 Détails : ${details}`;
     if (currentSetPoints.length > 0) {
       const blueNow = currentSetPoints.filter(p => p.team === 'blue').length;
       const redNow = currentSetPoints.filter(p => p.team === 'red').length;
-      text += ` | Set ${currentSetNumber} en cours : ${blueNow}-${redNow}`;
+      text += `\n⏳ Set ${currentSetNumber} en cours : ${blueNow}-${redNow}`;
     }
-    navigator.clipboard.writeText(text);
+    return text;
   }, [completedSets, currentSetPoints, currentSetNumber, teamNames]);
+
+  const copyScoreText = useCallback(() => {
+    navigator.clipboard.writeText(getScoreText());
+  }, [getScoreText]);
+
+  const shareToWhatsApp = useCallback(() => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(getScoreText())}`, '_blank');
+  }, [getScoreText]);
+
+  const shareToTelegram = useCallback(() => {
+    window.open(`https://t.me/share/url?text=${encodeURIComponent(getScoreText())}`, '_blank');
+  }, [getScoreText]);
+
+  const shareToX = useCallback(() => {
+    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(getScoreText())}`, '_blank');
+  }, [getScoreText]);
+
+  const shareNative = useCallback(async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: getScoreText() });
+      } catch {}
+    } else {
+      copyScoreText();
+    }
+  }, [getScoreText, copyScoreText]);
 
   const filteredPoints = useMemo(() => {
     if (setFilter_ === 'all') return points;
@@ -487,47 +513,76 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         </button>
       </div>
 
-      {/* Export dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-all"
-          >
-            <Download size={16} />
-            Options d'Export
-            <ChevronDown size={14} />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-64 bg-popover border border-border shadow-lg z-50">
-          <DropdownMenuLabel className="text-xs text-muted-foreground">Images PNG</DropdownMenuLabel>
-          <DropdownMenuItem onClick={handleExport} disabled={exporting} className="cursor-pointer">
-            <Image size={14} className="mr-2" />
-            {exporting ? 'Export en cours...' : 'Exporter stats (PNG)'}
-          </DropdownMenuItem>
-          {completedSets.map(s => (
-            <DropdownMenuItem key={`court-${s.number}`} onClick={() => exportCourtPng(s.points, `Set ${s.number}`)} className="cursor-pointer">
-              <Map size={14} className="mr-2" />
-              Terrain Set {s.number} (PNG)
+      {/* Export & Share buttons */}
+      <div className="flex gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-all">
+              <Download size={16} />
+              Export
+              <ChevronDown size={14} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-64 bg-popover border border-border shadow-lg z-50">
+            <DropdownMenuLabel className="text-xs text-muted-foreground">Images PNG</DropdownMenuLabel>
+            <DropdownMenuItem onClick={handleExport} disabled={exporting} className="cursor-pointer">
+              <Image size={14} className="mr-2" />
+              {exporting ? 'Export en cours...' : 'Exporter stats (PNG)'}
             </DropdownMenuItem>
-          ))}
-          {currentSetPoints.length > 0 && (
-            <DropdownMenuItem onClick={() => exportCourtPng(currentSetPoints, `Set ${currentSetNumber} (en cours)`)} className="cursor-pointer">
-              <Map size={14} className="mr-2" />
-              Terrain Set {currentSetNumber} en cours (PNG)
+            {completedSets.map(s => (
+              <DropdownMenuItem key={`court-${s.number}`} onClick={() => exportCourtPng(s.points, `Set ${s.number}`)} className="cursor-pointer">
+                <Map size={14} className="mr-2" />
+                Terrain Set {s.number} (PNG)
+              </DropdownMenuItem>
+            ))}
+            {currentSetPoints.length > 0 && (
+              <DropdownMenuItem onClick={() => exportCourtPng(currentSetPoints, `Set ${currentSetNumber} (en cours)`)} className="cursor-pointer">
+                <Map size={14} className="mr-2" />
+                Terrain Set {currentSetNumber} en cours (PNG)
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportMatchToExcel(completedSets, currentSetPoints, currentSetNumber, teamNames, players)} className="cursor-pointer">
+              <FileSpreadsheet size={14} className="mr-2" />
+              Excel (.xlsx)
             </DropdownMenuItem>
-          )}
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel className="text-xs text-muted-foreground">Autres formats</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => exportMatchToExcel(completedSets, currentSetPoints, currentSetNumber, teamNames, players)} className="cursor-pointer">
-            <FileSpreadsheet size={14} className="mr-2" />
-            Exporter en Excel (.xlsx)
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={copyScoreText} className="cursor-pointer">
-            <Copy size={14} className="mr-2" />
-            Copier score (texte)
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
+              <Share2 size={16} />
+              Partager
+              <ChevronDown size={14} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56 bg-popover border border-border shadow-lg z-50">
+            <DropdownMenuItem onClick={shareNative} className="cursor-pointer">
+              <Share2 size={14} className="mr-2" />
+              Partager…
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={shareToWhatsApp} className="cursor-pointer">
+              <span className="mr-2 text-sm">💬</span>
+              WhatsApp
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={shareToTelegram} className="cursor-pointer">
+              <span className="mr-2 text-sm">✈️</span>
+              Telegram
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={shareToX} className="cursor-pointer">
+              <span className="mr-2 text-sm">𝕏</span>
+              X (Twitter)
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={copyScoreText} className="cursor-pointer">
+              <Copy size={14} className="mr-2" />
+              Copier le score
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <p className="text-[8px] text-muted-foreground/50 text-center">Volley Tracker · Capbreton</p>
     </div>
