@@ -75,8 +75,8 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       timestamp: Date.now(),
       pointValue,
     };
-    // Show player selector for all actions when roster is defined
-    if (players.length > 0) {
+    // Show player selector only for blue (home) team actions
+    if (players.length > 0 && point.team === 'blue') {
       setPendingPoint(point);
     } else {
       setPoints(prev => [...prev, point]);
@@ -102,7 +102,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       timestamp: Date.now(),
       pointValue: 1,
     };
-    if (players.length > 0) {
+    if (players.length > 0 && point.team === 'blue') {
       setPendingPoint(point);
     } else {
       setPoints(prev => [...prev, point]);
