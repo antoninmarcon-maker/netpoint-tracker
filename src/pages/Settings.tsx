@@ -135,7 +135,7 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="px-4 py-4 border-b border-border flex items-center gap-3">
+      <header className="sticky top-0 z-30 bg-background px-4 py-4 border-b border-border flex items-center gap-3">
         <Link to="/" className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft size={18} />
         </Link>
