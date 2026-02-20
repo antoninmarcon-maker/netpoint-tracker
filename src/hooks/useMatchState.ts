@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Team, Point, PointType, ActionType, SetData, Player, SportType, isBasketScoredAction, getBasketPointValue } from '@/types/sports';
+import { Team, Point, PointType, ActionType, SetData, Player, SportType, isBasketScoredAction, getBasketPointValue, MatchMetadata } from '@/types/sports';
 import { getMatch, saveMatch, saveLastRoster } from '@/lib/matchStorage';
 
 export function useMatchState(matchId: string, ready: boolean = true) {
@@ -20,6 +20,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
   const [sidesSwapped, setSidesSwapped] = useState(loaded?.sidesSwapped ?? false);
   const [players, setPlayers] = useState<Player[]>(loaded?.players ?? []);
   const [pendingPoint, setPendingPoint] = useState<Omit<Point, 'playerId'> | null>(null);
+  const [initialServer, setInitialServer] = useState<Team | null>((loaded?.metadata as MatchMetadata | undefined)?.initialServer ?? null);
   const sport: SportType = loaded?.sport ?? 'volleyball';
 
   // When ready becomes true after initial empty render, reload state from localStorage
@@ -227,7 +228,8 @@ export function useMatchState(matchId: string, ready: boolean = true) {
 
   const startNewSet = useCallback(() => {
     setCurrentSetNumber(prev => prev + 1);
-    if (sport === 'volleyball') {
+    // All sports: swap sides at new set
+    if (sport === 'volleyball' || sport === 'tennis' || sport === 'padel') {
       setSidesSwapped(prev => !prev);
     }
     setWaitingForNewSet(false);
@@ -269,9 +271,13 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     resetChrono();
   }, [resetChrono]);
 
-  // Auto-save
+  // Auto-save (include initialServer in metadata)
   useEffect(() => {
     if (!loaded) return;
+    const updatedMetadata = {
+      ...(loaded.metadata as Record<string, unknown> ?? {}),
+      initialServer: initialServer,
+    };
     saveMatch({
       ...loaded,
       completedSets,
@@ -281,10 +287,11 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       sidesSwapped,
       chronoSeconds,
       players,
+      metadata: updatedMetadata as any,
       updatedAt: Date.now(),
     });
     saveLastRoster(players);
-  }, [completedSets, currentSetNumber, points, teamNames, sidesSwapped, chronoSeconds, players, loaded]);
+  }, [completedSets, currentSetNumber, points, teamNames, sidesSwapped, chronoSeconds, players, loaded, initialServer]);
 
   return {
     points,
@@ -305,6 +312,8 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     pendingPoint,
     servingTeam,
     sport,
+    initialServer,
+    setInitialServer,
     setTeamNames,
     setPlayers,
     selectAction,

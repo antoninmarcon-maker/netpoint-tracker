@@ -18,6 +18,8 @@ interface ScoreBoardProps {
   servingTeam: Team | null;
   sport: SportType;
   metadata?: MatchMetadata;
+  initialServer: Team | null;
+  onSetInitialServer: (team: Team) => void;
   onSelectAction: (team: Team, type: PointType, action: ActionType) => void;
   onCancelSelection: () => void;
   onUndo: () => void;
@@ -46,7 +48,8 @@ export function ScoreBoard({
   onSelectAction, onCancelSelection, onUndo, onReset, onEndSet, onSwitchSides,
   onStartChrono, onPauseChrono, onSetTeamNames, canUndo,
   currentSetNumber, teamNames, sidesSwapped, chronoRunning, chronoSeconds,
-  servingTeam, sport, metadata, isFinished = false, waitingForNewSet = false, onStartNewSet,
+  servingTeam, sport, metadata, initialServer, onSetInitialServer,
+  isFinished = false, waitingForNewSet = false, onStartNewSet,
 }: ScoreBoardProps) {
   const { t } = useTranslation();
   const [editingNames, setEditingNames] = useState(false);
@@ -286,13 +289,36 @@ export function ScoreBoard({
       </div>
       )}
 
+      {/* Tennis/Padel: initial server selection */}
+      {isTennisOrPadel && !initialServer && points.length === 0 && !isFinished && (
+        <div className="bg-card rounded-xl border border-border p-3 space-y-2 animate-in fade-in duration-200">
+          <p className="text-xs font-semibold text-muted-foreground text-center uppercase tracking-wider">
+            {t('scoreboard.whoServes')}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onSetInitialServer('blue')}
+              className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-team-blue/20 text-team-blue border border-team-blue/30 hover:bg-team-blue/30 transition-all active:scale-95"
+            >
+              🎾 {teamNames.blue}
+            </button>
+            <button
+              onClick={() => onSetInitialServer('red')}
+              className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-team-red/20 text-team-red border border-team-red/30 hover:bg-team-red/30 transition-all active:scale-95"
+            >
+              🎾 {teamNames.red}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Tennis/Padel: team names + action buttons */}
       {isTennisOrPadel && (
         <div className="flex items-center justify-center gap-4">
           <div className="flex-1 text-center">
             <div className="flex items-center justify-center gap-1.5">
               <p className={`text-xs font-semibold uppercase tracking-widest ${left === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{teamNames[left]}</p>
-              <span className="text-[10px]" title="Au service">🎾</span>
+              {servingTeam === left && <span className="text-[10px]" title="Au service">🎾</span>}
             </div>
             {menuTeam === left && (
               <div className="flex justify-center mt-1">
@@ -315,6 +341,7 @@ export function ScoreBoard({
           <div className="flex-1 text-center">
             <div className="flex items-center justify-center gap-1.5">
               <p className={`text-xs font-semibold uppercase tracking-widest ${right === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{teamNames[right]}</p>
+              {servingTeam === right && <span className="text-[10px]" title="Au service">🎾</span>}
             </div>
             {menuTeam === right && (
               <div className="flex justify-center mt-1">

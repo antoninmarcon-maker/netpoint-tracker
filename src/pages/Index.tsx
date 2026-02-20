@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { Activity, BarChart3, HelpCircle, X, ArrowLeft } from 'lucide-react';
 import { useMatchState } from '@/hooks/useMatchState';
@@ -75,6 +75,7 @@ const Index = () => {
     score, stats, setsScore, currentSetNumber, completedSets,
     teamNames, sidesSwapped, chronoRunning, chronoSeconds,
     players, pendingPoint, servingTeam, sport,
+    initialServer, setInitialServer,
     setTeamNames, setPlayers, selectAction, cancelSelection, addPoint,
     assignPlayer, skipPlayerAssignment,
     undo, endSet, startNewSet, waitingForNewSet, resetMatch, switchSides, startChrono, pauseChrono,
@@ -85,7 +86,18 @@ const Index = () => {
   const isTennisOrPadel = sport === 'tennis' || sport === 'padel';
   const matchData2 = getMatch(matchId ?? '');
   const metadata = matchData2?.metadata;
-  const tennisScore = useTennisScore(isTennisOrPadel ? points : [], metadata);
+
+  // For tennis/padel: compute initial server for current set based on match initial server + completed sets
+  const currentSetInitialServer = useMemo(() => {
+    if (!initialServer) return 'blue' as const;
+    const otherTeam: 'blue' | 'red' = initialServer === 'blue' ? 'red' : 'blue';
+    // Server alternates each set
+    return (completedSets.length % 2 === 0) ? initialServer : otherTeam;
+  }, [initialServer, completedSets.length]);
+
+  const tennisScore = useTennisScore(isTennisOrPadel ? points : [], metadata, currentSetInitialServer);
+  const effectiveServingTeam = isTennisOrPadel ? tennisScore.servingTeam : servingTeam;
+  
 
   useEffect(() => {
     if (!isTennisOrPadel) return;
@@ -254,9 +266,11 @@ const Index = () => {
               sidesSwapped={sidesSwapped}
               chronoRunning={chronoRunning}
               chronoSeconds={chronoSeconds}
-              servingTeam={servingTeam}
+              servingTeam={effectiveServingTeam}
               sport={sport}
               metadata={metadata}
+              initialServer={initialServer}
+              onSetInitialServer={setInitialServer}
               onSelectAction={selectAction}
               onCancelSelection={cancelSelection}
               onUndo={undo}

@@ -218,7 +218,8 @@
     "scoredBasket": "Paniers",
     "faultBasket": "Actions négatives",
     "scoredTennis": "Coups Gagnants",
-    "faultTennis": "Fautes adverses"
+    "faultTennis": "Fautes adverses",
+    "whoServes": "Qui sert en premier ?"
   },
   "roster": {
     "defineRoster": "Définir le roster {{team}}",

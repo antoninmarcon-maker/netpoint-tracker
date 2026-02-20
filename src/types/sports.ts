@@ -173,6 +173,8 @@ export interface MatchMetadata {
   advantageRule?: boolean;
   /** Tiebreak at 6-6 */
   tiebreakEnabled?: boolean;
+  /** Which team serves first in the match (tennis/padel) */
+  initialServer?: Team;
 }
 
 export interface Player {

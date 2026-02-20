@@ -12,18 +12,21 @@ export interface TennisGameState {
   setJustWon: Team | null;
   /** Number of games won by each team (for display) */
   gamesDisplay: string;
+  /** Which team is currently serving */
+  servingTeam: Team;
+  /** Total completed games in the current set (for side-switch logic) */
+  totalGamesInSet: number;
 }
 
 function getRallyWinner(point: Point): Team {
   // point.team always represents the team that benefits from the action.
-  // For 'scored': the team that hit the winner.
-  // For 'fault': the team whose opponent committed the fault.
   return point.team;
 }
 
 export function computeTennisScore(
   points: Point[],
-  metadata?: MatchMetadata
+  metadata?: MatchMetadata,
+  initialServer: Team = 'blue'
 ): TennisGameState {
   const advantageRule = metadata?.advantageRule ?? true;
   const tiebreakEnabled = metadata?.tiebreakEnabled ?? true;
@@ -34,42 +37,40 @@ export function computeTennisScore(
   let gamePointsRed = 0;
   let tiebreak = false;
   let setJustWon: Team | null = null;
+  let totalGamesCompleted = 0; // total games completed in current set
 
   for (const point of points) {
     const winner = getRallyWinner(point);
 
     if (tiebreak) {
-      // Tiebreak scoring: simple point count, first to 7 win by 2
       if (winner === 'blue') gamePointsBlue++;
       else gamePointsRed++;
 
       const maxTB = Math.max(gamePointsBlue, gamePointsRed);
       const minTB = Math.min(gamePointsBlue, gamePointsRed);
       if (maxTB >= 7 && maxTB - minTB >= 2) {
-        // Tiebreak won
         const tbWinner: Team = gamePointsBlue > gamePointsRed ? 'blue' : 'red';
         if (tbWinner === 'blue') gamesBlue++;
         else gamesRed++;
+        totalGamesCompleted++;
         setJustWon = tbWinner;
         gamePointsBlue = 0;
         gamePointsRed = 0;
         tiebreak = false;
       }
     } else {
-      // Normal game scoring
       if (winner === 'blue') gamePointsBlue++;
       else gamePointsRed++;
 
-      // Check if game is won
       const gameWinner = checkGameWinner(gamePointsBlue, gamePointsRed, advantageRule);
       if (gameWinner) {
         if (gameWinner === 'blue') gamesBlue++;
         else gamesRed++;
+        totalGamesCompleted++;
         gamePointsBlue = 0;
         gamePointsRed = 0;
         setJustWon = null;
 
-        // Check if set is won
         const sw = checkSetWinner(gamesBlue, gamesRed, tiebreakEnabled);
         if (sw) {
           setJustWon = sw;
@@ -80,6 +81,27 @@ export function computeTennisScore(
         setJustWon = null;
       }
     }
+  }
+
+  // Compute serving team
+  const otherServer: Team = initialServer === 'blue' ? 'red' : 'blue';
+  let servingTeam: Team;
+  if (tiebreak) {
+    // Tiebreak: first serve = next in sequence, then switch after 1st point, then every 2 points
+    const tbServer = (totalGamesCompleted % 2 === 0) ? initialServer : otherServer;
+    const tbOther = tbServer === 'blue' ? 'red' : 'blue';
+    const tbPoints = gamePointsBlue + gamePointsRed;
+    if (tbPoints === 0) {
+      servingTeam = tbServer;
+    } else {
+      // After 1st point, switch. Then every 2 points.
+      // Points 0: tbServer, 1: tbOther, 2-3: tbServer, 4-5: tbOther, ...
+      const adjusted = tbPoints - 1; // 0-indexed after first point
+      servingTeam = (Math.floor(adjusted / 2) % 2 === 0) ? tbOther : tbServer;
+    }
+  } else {
+    // Normal: server alternates every game
+    servingTeam = (totalGamesCompleted % 2 === 0) ? initialServer : otherServer;
   }
 
   // Build display
@@ -93,6 +115,8 @@ export function computeTennisScore(
     tiebreak,
     setJustWon,
     gamesDisplay: `${gamesBlue} - ${gamesRed}`,
+    servingTeam,
+    totalGamesInSet: totalGamesCompleted,
   };
 }
 
@@ -158,7 +182,8 @@ function formatGameScore(
 
 export function useTennisScore(
   points: Point[],
-  metadata?: MatchMetadata
+  metadata?: MatchMetadata,
+  initialServer: Team = 'blue'
 ): TennisGameState {
-  return useMemo(() => computeTennisScore(points, metadata), [points, metadata]);
+  return useMemo(() => computeTennisScore(points, metadata, initialServer), [points, metadata, initialServer]);
 }

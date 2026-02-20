@@ -218,7 +218,8 @@
     "scoredBasket": "Baskets",
     "faultBasket": "Negative Actions",
     "scoredTennis": "Winners",
-    "faultTennis": "Opponent Faults"
+    "faultTennis": "Opponent Faults",
+    "whoServes": "Who serves first?"
   },
   "roster": {
     "defineRoster": "Set roster {{team}}",
