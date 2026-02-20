@@ -74,15 +74,14 @@ export default function Home() {
   const [showSavedPlayers, setShowSavedPlayers] = useState(false);
 
   // Load matches based on auth state
-  const loadMatches = useCallback(async (currentUser: User | null) => {
-    setLoadingMatches(true);
+  const loadMatches = useCallback(async (currentUser: User | null, showSpinner = false) => {
+    if (showSpinner) setLoadingMatches(true);
     let all: MatchSummary[];
     if (currentUser) {
       all = await getCloudMatches();
     } else {
       all = getAllMatches();
     }
-    console.log('[DEBUG] loadMatches: user=', !!currentUser, 'total=', all.length, 'finished=', all.filter(m => m.finished).length, 'active=', all.filter(m => !m.finished).length);
     const active = all.filter(m => !m.finished).sort((a, b) => b.updatedAt - a.updatedAt);
     const finished = all.filter(m => m.finished).sort((a, b) => b.updatedAt - a.updatedAt);
     setMatches([...active, ...finished]);
@@ -368,7 +367,7 @@ export default function Home() {
         </Dialog>
 
         <div className="space-y-3">
-          {loadingMatches && user ? (
+          {loadingMatches && matches.length === 0 && user ? (
             <div className="flex items-center justify-center gap-2 py-8">
               <Loader2 size={18} className="animate-spin text-primary" />
               <span className="text-sm text-muted-foreground">{t('home.loadingMatches')}</span>
