@@ -141,7 +141,7 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
         style={{ background: 'linear-gradient(135deg, hsl(280, 70%, 50%), hsl(320, 70%, 50%))', color: 'white' }}
       >
         <Sparkles size={14} />
-        Analyse IA
+        Analyse
       </button>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
@@ -149,7 +149,7 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-bold flex items-center justify-center gap-2">
               <Sparkles size={18} className="text-purple-400" />
-              Analyse IA du match
+              Analyse du match
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
@@ -166,17 +166,20 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
               <p className="text-sm text-muted-foreground text-center py-4">Aucune analyse disponible.</p>
             )}
             {!loading && analysis && (
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(analysis);
-                  setCopied(true);
-                  toast.success('Analyse copiée !');
-                  setTimeout(() => setCopied(false), 2000);
-                }}
-                className="w-full py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold hover:bg-secondary/80 transition-all flex items-center justify-center gap-1.5"
-              >
-                {copied ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier l'analyse</>}
-              </button>
+              <>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(analysis);
+                    setCopied(true);
+                    toast.success('Analyse copiée !');
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="w-full py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold hover:bg-secondary/80 transition-all flex items-center justify-center gap-1.5"
+                >
+                  {copied ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier l'analyse</>}
+                </button>
+                <p className="text-[10px] text-muted-foreground text-center mt-1">Ce texte a été rédigé automatiquement à partir de l'analyse statistique du match.</p>
+              </>
             )}
           </div>
         </DialogContent>

@@ -381,7 +381,7 @@ const Index = () => {
                   <p><strong className="text-foreground">2. Choisissez l'onglet</strong> : <em>Coups Gagnants</em> ({sport === 'tennis' ? 'Ace, Coup droit/Revers gagnant, Volée, Smash' : 'Víbora, Bandeja, Smash, Bajada, Par 3'}) ou <em>Fautes adverses</em> ({sport === 'tennis' ? 'Double faute, Out long/latéral, Filet' : 'Double faute, Grille, Vitre, Out'}).</p>
                   <p><strong className="text-foreground">3. Placez sur le terrain</strong> la zone du coup, puis sélectionnez le joueur.</p>
                   <p><strong className="text-foreground">4. Scoring automatique</strong> : 0 → 15 → 30 → 40 → Jeu. À 40-40 : Deuce puis Avantage{sport === 'padel' ? ' (ou punto de oro si configuré)' : ''}. Le set se termine automatiquement (6 jeux avec 2 d'écart, tie-break à 6-6).</p>
-                  <p><strong className="text-foreground">5. Statistiques</strong> : onglet Stats pour la heatmap, les stats par joueur et l'analyse IA.</p>
+                  <p><strong className="text-foreground">5. Statistiques</strong> : onglet Stats pour la heatmap, les stats par joueur et l'analyse du match.</p>
                 </>
               ) : (
                 <>

@@ -49,7 +49,7 @@ function Instructions({ onClose }: { onClose?: () => void }) {
           <li><strong>🏓 Padel</strong> : Víbora, Bandeja, Smash, Bajada, Par 3 · Fautes adverses : Double faute, Grille, Vitre… Scoring identique au tennis avec option punto de oro.</li>
         </ul>
         <p><strong className="text-foreground">5. Périodes</strong> : « Fin du Set » / « Fin du QT » pour passer à la suite. En Tennis/Padel, le set se termine automatiquement quand un joueur gagne assez de jeux.</p>
-        <p><strong className="text-foreground">6. Stats & Heatmap</strong> : onglet Statistiques pour les stats par joueur, la heatmap et l'analyse IA.</p>
+        <p><strong className="text-foreground">6. Stats & Heatmap</strong> : onglet Statistiques pour les stats par joueur, la heatmap et l'analyse du match.</p>
         <p><strong className="text-foreground">7. Exportez</strong> : stats en PNG, terrain par set, Excel complet ou partage via un lien.</p>
       </div>
     </div>
