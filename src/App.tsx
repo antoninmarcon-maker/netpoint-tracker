@@ -10,6 +10,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Help from "./pages/Help";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Credits from "./pages/Credits";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/help" element={<Help />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/credits" element={<Credits />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

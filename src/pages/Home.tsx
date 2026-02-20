@@ -491,10 +491,24 @@ export default function Home() {
         />
       )}
 
-      <footer className="px-4 py-4 border-t border-border text-center">
-        <p className="text-xs text-muted-foreground">
+      <footer className="sticky bottom-0 z-30 bg-background border-t border-border px-4 py-3 flex items-center justify-around gap-2">
+        <Link
+          to="/help#feedback"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+        >
+          <MessageSquare size={16} />
+          {t('home.feedback')}
+        </Link>
+        <p className="text-[10px] text-muted-foreground hidden sm:block">
           {t('common.madeWith')} <span className="font-semibold text-foreground">{t('common.volleyballCapbreton')}</span>
         </p>
+        <Link
+          to="/credits"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+        >
+          <Info size={16} />
+          {t('home.story')}
+        </Link>
       </footer>
     </div>
   );

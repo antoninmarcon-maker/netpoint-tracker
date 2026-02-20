@@ -64,7 +64,19 @@
     "setInProgress": "in progress",
     "equality": "Tie",
     "errorDeleting": "Error deleting the match",
-    "errorFinishing": "Error finishing the match."
+    "errorFinishing": "Error finishing the match.",
+    "feedback": "Feedback",
+    "story": "Story"
+  },
+  "credits": {
+    "title": "Project Story",
+    "storyTitle": "The story of My Volley",
+    "storyP1": "My Volley was developed with passion by Antonin Marcon, an independent developer based in South-West France. The app was initially created for a very personal need: helping his own volleyball team analyze their matches and improve (hence the project name!).",
+    "storyP2": "Today, the tool is open to all sports enthusiasts — volleyball, basketball, tennis and padel — who want to track and analyze their performance.",
+    "supportTitle": "☕ Support the project",
+    "supportDesc": "My Volley is free and will remain so. If you enjoy the app, you can support its development with a small coffee!",
+    "supportButton": "Buy a coffee",
+    "techNote": "Developed with ❤️ in South-West France · My Volley v1.0"
   },
   "auth": {
     "login": "Log in",

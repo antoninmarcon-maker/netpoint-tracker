@@ -64,7 +64,19 @@
     "setInProgress": "en cours",
     "equality": "Égalité",
     "errorDeleting": "Erreur lors de la suppression du match",
-    "errorFinishing": "Erreur lors de la finalisation du match."
+    "errorFinishing": "Erreur lors de la finalisation du match.",
+    "feedback": "Feedback",
+    "story": "Histoire"
+  },
+  "credits": {
+    "title": "Histoire du projet",
+    "storyTitle": "L'histoire de My Volley",
+    "storyP1": "My Volley a été développé avec passion par Antonin Marcon, un développeur indépendant basé dans le Sud-Ouest de la France. L'application a été initialement créée pour un besoin très personnel : aider sa propre équipe de volley-ball à analyser ses matchs et à progresser (d'où le nom du projet !).",
+    "storyP2": "Aujourd'hui, l'outil s'ouvre à tous les passionnés de sport — volleyball, basketball, tennis et padel — qui souhaitent suivre et analyser leurs performances.",
+    "supportTitle": "☕ Soutenir le projet",
+    "supportDesc": "My Volley est gratuit et le restera. Si l'application vous plaît, vous pouvez soutenir son développement avec un petit café !",
+    "supportButton": "Offrir un café",
+    "techNote": "Développé avec ❤️ dans le Sud-Ouest · My Volley v1.0"
   },
   "auth": {
     "login": "Connexion",
