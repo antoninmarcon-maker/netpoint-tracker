@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, X, Loader2, Copy, Check } from 'lucide-react';
+import { Sparkles, X, Loader2, Copy, Check, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -15,6 +15,7 @@ interface AiAnalysisProps {
   sport: SportType;
   isLoggedIn: boolean;
   onLoginRequired: () => void;
+  finished?: boolean;
 }
 
 const SPORT_LABELS: Record<SportType, string> = {
@@ -100,8 +101,9 @@ function buildMatchStatsText(
   return text;
 }
 
-export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames, players, sport, isLoggedIn, onLoginRequired }: AiAnalysisProps) {
+export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames, players, sport, isLoggedIn, onLoginRequired, finished = false }: AiAnalysisProps) {
   const [showDialog, setShowDialog] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -111,6 +113,15 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
       onLoginRequired();
       return;
     }
+    if (!finished) {
+      setShowWarning(true);
+    } else {
+      launchAnalysis();
+    }
+  };
+
+  const launchAnalysis = () => {
+    setShowWarning(false);
     setShowDialog(true);
     if (!analysis) fetchAnalysis();
   };
@@ -143,6 +154,36 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
         <Sparkles size={14} />
         Analyse
       </button>
+
+      {/* Warning dialog for unfinished match */}
+      <Dialog open={showWarning} onOpenChange={setShowWarning}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-center text-base font-bold flex items-center justify-center gap-2">
+              <AlertTriangle size={18} className="text-yellow-500" />
+              Match en cours
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground text-center">
+            Le match n'est pas encore terminé. L'analyse sera basée sur les données partielles disponibles.
+          </p>
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => setShowWarning(false)}
+              className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={launchAnalysis}
+              className="flex-1 py-2.5 rounded-lg font-semibold text-sm text-white"
+              style={{ background: 'linear-gradient(135deg, hsl(280, 70%, 50%), hsl(320, 70%, 50%))' }}
+            >
+              Analyser quand même
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-md rounded-2xl max-h-[80vh] overflow-y-auto">
