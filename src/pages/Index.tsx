@@ -101,8 +101,14 @@ const Index = () => {
   }, [isBasketball, selectedAction, selectedTeam, addFreeThrow]);
 
   // Tennis/Padel: opponent faults are registered immediately without court click
+  // All sports: service faults (service_miss, double_fault, padel_double_fault) skip court placement
+  const SERVICE_FAULT_ACTIONS = ['service_miss', 'double_fault', 'padel_double_fault'];
   useEffect(() => {
-    if (isTennisOrPadel && matchState.selectedPointType === 'fault' && selectedTeam && selectedAction) {
+    if (!selectedTeam || !selectedAction) return;
+    const isAutoPoint =
+      (isTennisOrPadel && matchState.selectedPointType === 'fault') ||
+      SERVICE_FAULT_ACTIONS.includes(selectedAction);
+    if (isAutoPoint) {
       addPoint(0.5, 0.5);
     }
   }, [isTennisOrPadel, matchState.selectedPointType, selectedTeam, selectedAction, addPoint]);

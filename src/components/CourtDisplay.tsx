@@ -147,8 +147,13 @@ export function CourtDisplay({ points, teamNames, sport = 'volleyball' }: CourtD
           {teamNames.red}
         </text>
 
-        {/* Point markers (for tennis/padel, exclude fault points which have no real coordinates) */}
-        {(isTennisOrPadel ? points.filter(p => p.type !== 'fault') : points).map((point) => {
+        {/* Point markers (exclude service faults and tennis/padel opponent faults — no real coordinates) */}
+        {points.filter(p => {
+          const serviceFaults = ['service_miss', 'double_fault', 'padel_double_fault'];
+          if (serviceFaults.includes(p.action)) return false;
+          if (isTennisOrPadel && p.type === 'fault') return false;
+          return true;
+        }).map((point) => {
           const cx = point.x * 600;
           const cy = point.y * 400;
           const color = point.team === 'blue' ? 'hsl(217, 91%, 60%)' : 'hsl(0, 84%, 60%)';
