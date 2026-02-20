@@ -175,13 +175,18 @@ export default function Home() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDelete = async (id: string) => {
-    deleteMatch(id);
     if (user) {
       try {
         await deleteCloudMatch(id);
+        deleteMatch(id);
       } catch (err) {
         console.error('Cloud delete failed:', err);
+        toast.error('Erreur lors de la suppression du match');
+        setDeletingId(null);
+        return;
       }
+    } else {
+      deleteMatch(id);
     }
     setDeletingId(null);
     await loadMatches(user);

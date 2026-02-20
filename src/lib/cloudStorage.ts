@@ -56,18 +56,19 @@ export async function saveCloudMatch(userId: string, match: MatchSummary) {
 
 // Delete match from cloud
 export async function deleteCloudMatch(matchId: string) {
-  if (!(await hasSession())) return;
+  if (!(await hasSession())) throw new Error('No session');
   
-  // Delete children first to avoid any FK issues
-  await supabase.from('points').delete().eq('match_id', matchId);
-  await supabase.from('players').delete().eq('match_id', matchId);
-  await supabase.from('sets').delete().eq('match_id', matchId);
-  
-  const { error } = await supabase
+  // CASCADE handles children, but delete match directly
+  const { error, count } = await supabase
     .from('matches')
-    .delete()
+    .delete({ count: 'exact' })
     .eq('id', matchId);
-  if (error) console.error('Cloud delete error:', error);
+  
+  if (error) {
+    console.error('Cloud delete error:', error);
+    throw new Error(error.message);
+  }
+  console.log('[DEBUG] deleteCloudMatch: deleted', count, 'row(s) for', matchId);
 }
 
 // Generate or retrieve a share token for a match
