@@ -1,4 +1,4 @@
-import { useRef, useCallback, useMemo } from 'react';
+import { useRef, useCallback, useMemo, useEffect } from 'react';
 import { Point, Team, ActionType, PointType, isOffensiveAction } from '@/types/sports';
 
 interface VolleyballCourtProps {
@@ -155,8 +155,16 @@ function getZoneHighlights(
 
 export function VolleyballCourt({ points, selectedTeam, selectedAction, selectedPointType, sidesSwapped = false, teamNames = { blue: 'Bleue', red: 'Rouge' }, onCourtClick }: VolleyballCourtProps) {
   const courtRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const hasSelection = !!selectedTeam && !!selectedAction && !!selectedPointType;
+
+  // Auto-scroll to court when placement mode is active
+  useEffect(() => {
+    if (hasSelection && containerRef.current) {
+      containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [hasSelection]);
 
   const zoneHighlights = useMemo(() => {
     if (!hasSelection) return null;
@@ -209,7 +217,7 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
   };
 
   return (
-    <div className={`relative rounded-xl overflow-hidden transition-all ${hasSelection ? 'ring-2 ring-primary' : ''}`}>
+    <div ref={containerRef} id="court-container" className={`relative rounded-xl overflow-hidden transition-all ${hasSelection ? 'ring-2 ring-primary' : ''}`}>
       <svg
         ref={courtRef}
         viewBox="0 0 600 400"
