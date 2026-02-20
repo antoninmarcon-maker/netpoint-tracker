@@ -208,12 +208,12 @@ export function ScoreBoard({
           <div className="w-full mb-1">
             <div className="flex items-center justify-center gap-6 mb-2">
               <div className="text-center flex-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">{t('scoreboard.games')}</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">{teamNames[left]}</p>
                 <p className={`text-3xl font-black tabular-nums ${left === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{tennisScore.games[left]}</p>
               </div>
               <div className="text-muted-foreground text-sm font-bold">–</div>
               <div className="text-center flex-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">{t('scoreboard.games')}</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">{teamNames[right]}</p>
                 <p className={`text-3xl font-black tabular-nums ${right === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{tennisScore.games[right]}</p>
               </div>
             </div>
