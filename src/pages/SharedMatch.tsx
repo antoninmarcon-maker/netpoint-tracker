@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Activity, BarChart3, ArrowLeft, Loader2 } from 'lucide-react';
+import { Activity, BarChart3, ArrowLeft, Loader2, Share2 } from 'lucide-react';
 import { getMatchByShareToken } from '@/lib/cloudStorage';
 import { MatchSummary } from '@/types/sports';
 import { SetHistory } from '@/components/SetHistory';
@@ -82,10 +82,27 @@ export default function SharedMatch() {
         <Link to="/" className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft size={18} />
         </Link>
-        <h1 className="text-lg font-black text-foreground tracking-tight text-center">
+        <h1 className="text-lg font-black text-foreground tracking-tight text-center flex-1 mx-2">
           {sportIcon} {match.teamNames.blue} vs {match.teamNames.red}
         </h1>
-        <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-semibold uppercase">Lecture seule</span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const url = window.location.href;
+              if (navigator.share) {
+                navigator.share({ title: `${match.teamNames.blue} vs ${match.teamNames.red}`, text: 'Suivez le score sur my-volley.com', url });
+              } else {
+                navigator.clipboard.writeText(url);
+                import('sonner').then(({ toast }) => toast.success('Lien copié !'));
+              }
+            }}
+            className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            title="Partager"
+          >
+            <Share2 size={16} />
+          </button>
+          <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-semibold uppercase">Lecture seule</span>
+        </div>
       </header>
 
       <nav className="flex border-b border-border">

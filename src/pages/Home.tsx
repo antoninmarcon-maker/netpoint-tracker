@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, LogIn, HelpCircle, Loader2, X } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, LogIn, HelpCircle, Loader2, X, MessageSquare } from 'lucide-react';
 import logoCapbreton from '@/assets/logo-capbreton.jpeg';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -69,7 +69,6 @@ export default function Home() {
   const [selectedSport, setSelectedSport] = useState<SportType>('volleyball');
   const [finishingId, setFinishingId] = useState<string | null>(null);
   const [showSavedPlayers, setShowSavedPlayers] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
 
   // Load matches based on auth state
   const loadMatches = useCallback(async (currentUser: User | null) => {
@@ -258,13 +257,13 @@ export default function Home() {
       <header className="px-4 py-6 border-b border-border flex flex-col items-center gap-3 relative">
         {/* Help button */}
         <div className="absolute top-4 left-4">
-          <button
-            onClick={() => setShowHelp(true)}
-            className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+          <Link
+            to="/help"
+            className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors inline-flex"
             title="Aide"
           >
             <HelpCircle size={18} />
-          </button>
+          </Link>
         </div>
         {/* Auth button */}
         <div className="absolute top-4 right-4">
@@ -294,14 +293,7 @@ export default function Home() {
         onGuest={() => { setGuestDismissed(true); sessionStorage.setItem('guestDismissed', 'true'); }}
       />
 
-      {/* Help dialog */}
-      {showHelp && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setShowHelp(false)}>
-          <div className="max-w-sm w-full max-h-[80vh] overflow-auto" onClick={e => e.stopPropagation()}>
-            <Instructions onClose={() => setShowHelp(false)} />
-          </div>
-        </div>
-      )}
+      {/* Help dialog removed — now a dedicated page at /help */}
 
       <main className="flex-1 overflow-auto p-4 max-w-lg mx-auto w-full space-y-6">
         <PwaInstallBanner />
