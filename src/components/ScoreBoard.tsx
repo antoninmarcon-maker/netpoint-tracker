@@ -449,7 +449,7 @@ export function ScoreBoard({
           <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4 animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-foreground text-center">{t('scoreboard.confirmEndPeriod', { period: periodLabel.toLowerCase() })}</h2>
             <p className="text-sm text-muted-foreground text-center">
-              {t('scoreboard.currentScore')} <span className="font-bold text-team-blue">{score.blue}</span> – <span className="font-bold text-team-red">{score.red}</span>.{!isBasketball && ` ${t('scoreboard.sidesSwapped')}`}
+              {t('scoreboard.currentScore')} <span className="font-bold text-team-blue">{isTennisOrPadel ? tennisScore.games.blue : score.blue}</span> – <span className="font-bold text-team-red">{isTennisOrPadel ? tennisScore.games.red : score.red}</span>.{!isBasketball && ` ${t('scoreboard.sidesSwapped')}`}
             </p>
             <div className="flex gap-3">
               <button
