@@ -176,7 +176,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (err) {
-      console.error('Export failed:', err);
+      if (import.meta.env.DEV) console.error('Export failed:', err);
     } finally {
       setExporting(false);
     }

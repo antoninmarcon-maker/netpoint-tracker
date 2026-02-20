@@ -161,7 +161,7 @@ export default function Home() {
     setActiveMatchId(match.id);
     if (user) {
       saveCloudMatch(user.id, match).catch(err =>
-        console.error('Cloud save failed:', err)
+        { if (import.meta.env.DEV) console.error('Cloud save failed:', err); }
       );
     }
     setShowNew(false);
@@ -176,7 +176,7 @@ export default function Home() {
         await deleteCloudMatch(id);
         deleteMatch(id);
       } catch (err) {
-        console.error('Cloud delete failed:', err);
+        if (import.meta.env.DEV) console.error('Cloud delete failed:', err);
         toast.error(t('home.errorDeleting'));
         setDeletingId(null);
         return;
@@ -228,7 +228,7 @@ export default function Home() {
       loadMatches(user);
       setFinishingId(null);
     } catch (err) {
-      console.error('Error finishing match:', err);
+      if (import.meta.env.DEV) console.error('Error finishing match:', err);
       toast.error(t('home.errorFinishing'));
       setFinishingId(null);
     }

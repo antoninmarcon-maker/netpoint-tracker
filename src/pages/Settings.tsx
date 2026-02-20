@@ -71,7 +71,7 @@ export default function Settings() {
       await supabase.auth.updateUser({ data: { full_name: displayName.trim() } });
       toast.success(t('settings.profileUpdated'));
     } catch (err: any) {
-      console.error('[Settings] Save profile error:', err);
+      if (import.meta.env.DEV) console.error('[Settings] Save profile error:', err);
       toast.error(err.message || t('settings.saveError'));
     } finally {
       setSavingProfile(false);
@@ -112,7 +112,7 @@ export default function Settings() {
       toast.success(t('settings.feedbackSent'));
       setFeedbackMsg('');
     } catch (err: any) {
-      console.error('[Settings] Feedback error:', err);
+      if (import.meta.env.DEV) console.error('[Settings] Feedback error:', err);
       toast.error(err.message || t('settings.feedbackError'));
     } finally {
       setSendingFeedback(false);

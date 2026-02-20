@@ -65,10 +65,10 @@ export async function deleteCloudMatch(matchId: string) {
     .eq('id', matchId);
   
   if (error) {
-    console.error('Cloud delete error:', error);
+    if (import.meta.env.DEV) console.error('Cloud delete error:', error);
     throw new Error(error.message);
   }
-  console.log('[DEBUG] deleteCloudMatch: deleted', count, 'row(s) for', matchId);
+  if (import.meta.env.DEV) console.log('[DEBUG] deleteCloudMatch: deleted', count, 'row(s) for', matchId);
 }
 
 // Generate or retrieve a share token for a match
@@ -81,14 +81,14 @@ export async function generateShareToken(matchId: string): Promise<string | null
 
   if (existing?.share_token) return existing.share_token;
 
-  const token = crypto.randomUUID().replace(/-/g, '').slice(0, 12);
+  const token = crypto.randomUUID().replace(/-/g, '');
   const { error } = await supabase
     .from('matches')
     .update({ share_token: token } as any)
     .eq('id', matchId);
 
   if (error) {
-    console.error('Share token error:', error);
+    if (import.meta.env.DEV) console.error('Share token error:', error);
     return null;
   }
   return token;

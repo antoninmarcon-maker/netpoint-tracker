@@ -129,7 +129,7 @@ const Index = () => {
     if (snapshot === lastCloudSaveRef.current) return;
     lastCloudSaveRef.current = snapshot;
     saveCloudMatch(user.id, match).catch(err =>
-      console.error('[CloudSync] save failed:', err)
+      { if (import.meta.env.DEV) console.error('[CloudSync] save failed:', err); }
     );
   }, [user, matchId]);
 

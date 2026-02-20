@@ -55,7 +55,7 @@ const MatchSummarySchema = z.object({
 export function getAllMatches(): MatchSummary[] {
   try {
     const raw = localStorage.getItem(MATCHES_KEY);
-    console.log('[DEBUG] getAllMatches raw entries:', raw ? JSON.parse(raw).length : 0);
+    if (import.meta.env.DEV) console.log('[DEBUG] getAllMatches raw entries:', raw ? JSON.parse(raw).length : 0);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -67,15 +67,15 @@ export function getAllMatches(): MatchSummary[] {
       } else {
         // Try partial recovery: keep the raw item if it has an id
         if (item && typeof item === 'object' && item.id) {
-          console.warn('Match entry has validation issues, using raw data:', item.id, result.error.issues);
+          if (import.meta.env.DEV) console.warn('Match entry has validation issues, using raw data:', item.id, result.error.issues);
           acc.push(item as MatchSummary);
         } else {
-          console.warn('Skipping invalid match entry:', item?.id, result.error.issues);
+          if (import.meta.env.DEV) console.warn('Skipping invalid match entry:', item?.id, result.error.issues);
         }
       }
       return acc;
     }, []);
-  } catch (e) { console.error('[DEBUG] getAllMatches error:', e); return []; }
+  } catch (e) { if (import.meta.env.DEV) console.error('[DEBUG] getAllMatches error:', e); return []; }
 }
 
 export function getMatch(id: string): MatchSummary | null {
@@ -122,7 +122,7 @@ export function getLastRoster(): Player[] {
     const parsed = JSON.parse(raw);
     const result = z.array(PlayerSchema).safeParse(parsed);
     if (result.success) return result.data as unknown as Player[];
-    console.warn('Last roster validation failed, using raw data:', result.error.issues);
+    if (import.meta.env.DEV) console.warn('Last roster validation failed, using raw data:', result.error.issues);
     return Array.isArray(parsed) ? parsed as Player[] : [];
   } catch { return []; }
 }
