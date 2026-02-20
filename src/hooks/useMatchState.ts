@@ -29,11 +29,23 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     const match = getMatch(matchId);
     if (!match) return;
     loadedRef.current = match;
-    setCompletedSets(match.completedSets ?? []);
-    setCurrentSetNumber(match.currentSetNumber ?? 1);
+    const sets = match.completedSets ?? [];
+    let setNum = match.currentSetNumber ?? 1;
+    let swapped = match.sidesSwapped ?? false;
+    // Fix: if completed sets already cover currentSetNumber, auto-increment
+    // This handles the case where waitingForNewSet was lost on reload
+    if (sets.length > 0 && sets.some(s => s.number === setNum) && (match.points ?? []).length === 0) {
+      setNum = sets.length + 1;
+      // Recalculate sidesSwapped based on number of completed sets (volleyball swaps each set)
+      if ((match.sport ?? 'volleyball') === 'volleyball') {
+        swapped = sets.length % 2 !== 0;
+      }
+    }
+    setCompletedSets(sets);
+    setCurrentSetNumber(setNum);
     setPoints(match.points ?? []);
     setTeamNames(match.teamNames ?? { blue: 'Bleue', red: 'Rouge' });
-    setSidesSwapped(match.sidesSwapped ?? false);
+    setSidesSwapped(swapped);
     setPlayers(match.players ?? []);
     setChronoSeconds(match.chronoSeconds ?? 0);
   }, [ready, matchId]);
