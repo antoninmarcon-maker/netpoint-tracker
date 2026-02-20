@@ -24,9 +24,9 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,jpeg,jpg,woff,woff2}"],
       },
       manifest: {
-        name: "My Volley",
-        short_name: "MyVolley",
-        description: "Suivi de matchs de volley-ball en temps réel",
+        name: "Netpoint Tracker",
+        short_name: "Netpoint",
+        description: "Scouting multi-sports : volley, basket, tennis & padel",
         theme_color: "#0f172a",
         background_color: "#0f172a",
         display: "standalone",

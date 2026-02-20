@@ -277,8 +277,8 @@ export default function Home() {
         </div>
         <img src={logoCapbreton} alt="Volleyball Capbreton" className="w-16 h-16 rounded-full object-cover" />
         <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight text-center">🏐 My Volley</h1>
-          <p className="text-sm text-muted-foreground text-center mt-1">Suivi de matchs multi-sports</p>
+          <h1 className="text-2xl font-black text-foreground tracking-tight text-center">🏆 Netpoint Tracker</h1>
+          <p className="text-sm text-muted-foreground text-center mt-1">Volley · Basket · Tennis · Padel</p>
         </div>
       </header>
 
