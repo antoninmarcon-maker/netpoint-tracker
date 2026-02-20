@@ -123,27 +123,25 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
         </DialogHeader>
 
         {/* Sport tabs */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => setSport('volleyball')}
-            className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${
-              sport === 'volleyball'
-                ? 'bg-primary/15 text-primary border-primary/40'
-                : 'bg-secondary text-secondary-foreground border-transparent hover:bg-secondary/80'
-            }`}
-          >
-            🏐 Volley
-          </button>
-          <button
-            onClick={() => setSport('basketball')}
-            className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${
-              sport === 'basketball'
-                ? 'bg-orange-500/15 text-orange-500 border-orange-500/40'
-                : 'bg-secondary text-secondary-foreground border-transparent hover:bg-secondary/80'
-            }`}
-          >
-            🏀 Basket
-          </button>
+        <div className="grid grid-cols-4 gap-1.5">
+          {([
+            { key: 'volleyball' as SportType, icon: '🏐', label: 'Volley' },
+            { key: 'basketball' as SportType, icon: '🏀', label: 'Basket' },
+            { key: 'tennis' as SportType, icon: '🎾', label: 'Tennis' },
+            { key: 'padel' as SportType, icon: '🏓', label: 'Padel' },
+          ]).map(s => (
+            <button
+              key={s.key}
+              onClick={() => setSport(s.key)}
+              className={`py-2 rounded-xl font-bold text-xs transition-all border-2 ${
+                sport === s.key
+                  ? 'bg-primary/15 text-primary border-primary/40'
+                  : 'bg-secondary text-secondary-foreground border-transparent hover:bg-secondary/80'
+              }`}
+            >
+              {s.icon} {s.label}
+            </button>
+          ))}
         </div>
 
         {loading ? (
