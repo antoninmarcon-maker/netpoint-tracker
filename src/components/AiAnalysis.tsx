@@ -3,7 +3,7 @@ import { Sparkles, X, Loader2, Copy, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Point, SetData, Player, SportType } from '@/types/sports';
+import { Point, SetData, Player, SportType, TENNIS_SCORED_ACTIONS, TENNIS_FAULT_ACTIONS, PADEL_SCORED_ACTIONS, PADEL_FAULT_ACTIONS } from '@/types/sports';
 import ReactMarkdown from 'react-markdown';
 
 interface AiAnalysisProps {
@@ -17,6 +17,13 @@ interface AiAnalysisProps {
   onLoginRequired: () => void;
 }
 
+const SPORT_LABELS: Record<SportType, string> = {
+  volleyball: 'Volleyball',
+  basketball: 'Basketball',
+  tennis: 'Tennis',
+  padel: 'Padel',
+};
+
 function buildMatchStatsText(
   points: Point[],
   completedSets: SetData[],
@@ -28,7 +35,7 @@ function buildMatchStatsText(
   const allPts = [...completedSets.flatMap(s => s.points), ...currentSetPoints];
   const isBasket = sport === 'basketball';
 
-  let text = `Sport: ${isBasket ? 'Basketball' : 'Volleyball'}\n`;
+  let text = `Sport: ${SPORT_LABELS[sport]}\n`;
   text += `Équipes: ${teamNames.blue} (bleue) vs ${teamNames.red} (rouge)\n`;
   text += `Sets terminés: ${completedSets.length}\n`;
 
@@ -67,12 +74,27 @@ function buildMatchStatsText(
     });
   }
 
-  // Team totals
+  // Team totals with sport-specific breakdown
   for (const team of ['blue', 'red'] as const) {
     const tp = allPts.filter(p => p.team === team);
     const scored = tp.filter(p => p.type === 'scored');
     const faults = tp.filter(p => p.type === 'fault');
-    text += `\n${teamNames[team]}: ${scored.length} points marqués, ${faults.length} fautes directes\n`;
+    text += `\n${teamNames[team]}:\n`;
+    text += `  Points marqués: ${scored.length}\n`;
+    text += `  Fautes directes: ${faults.length}\n`;
+
+    // Sport-specific action breakdown
+    if (sport === 'tennis') {
+      const actionBreakdown = (pts: Point[], actions: { key: string; label: string }[]) =>
+        actions.map(a => `${a.label}: ${pts.filter(p => p.action === a.key).length}`).join(', ');
+      text += `  Coups gagnants: ${actionBreakdown(scored, TENNIS_SCORED_ACTIONS)}\n`;
+      text += `  Fautes: ${actionBreakdown(faults, TENNIS_FAULT_ACTIONS)}\n`;
+    } else if (sport === 'padel') {
+      const actionBreakdown = (pts: Point[], actions: { key: string; label: string }[]) =>
+        actions.map(a => `${a.label}: ${pts.filter(p => p.action === a.key).length}`).join(', ');
+      text += `  Coups gagnants: ${actionBreakdown(scored, PADEL_SCORED_ACTIONS)}\n`;
+      text += `  Fautes: ${actionBreakdown(faults, PADEL_FAULT_ACTIONS)}\n`;
+    }
   }
 
   return text;
@@ -98,7 +120,7 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
     try {
       const matchStats = buildMatchStatsText(points, completedSets, currentSetPoints, teamNames, players, sport);
       const { data, error } = await supabase.functions.invoke('analyze-match', {
-        body: { matchStats },
+        body: { matchStats, sport },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);

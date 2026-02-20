@@ -1,5 +1,5 @@
 import * as XLSX from '@e965/xlsx';
-import { Point, SetData, Player, SportType, isBasketScoredAction, getBasketPointValue, BASKET_SCORED_ACTIONS, BASKET_FAULT_ACTIONS } from '@/types/sports';
+import { Point, SetData, Player, SportType, isBasketScoredAction, getBasketPointValue, BASKET_SCORED_ACTIONS, BASKET_FAULT_ACTIONS, TENNIS_SCORED_ACTIONS, TENNIS_FAULT_ACTIONS, PADEL_SCORED_ACTIONS, PADEL_FAULT_ACTIONS, OFFENSIVE_ACTIONS, FAULT_ACTIONS } from '@/types/sports';
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -63,44 +63,133 @@ function playerSetStatsBasket(pts: Point[], players: Player[]) {
   });
 }
 
-function teamSetStats(pts: Point[], team: 'blue' | 'red', sport: SportType = 'volleyball') {
-  if (sport === 'basketball') {
-    const scored = pts.filter(p => p.team === team && p.type === 'scored');
-    const faults = pts.filter(p => p.team === team && p.type === 'fault');
+function playerSetStatsTennis(pts: Point[], players: Player[]) {
+  return players.map(player => {
+    const pp = pts.filter(p => p.playerId === player.id);
+    const scored = pp.filter(p => p.team === 'blue' && p.type === 'scored');
+    const faults = pp.filter(p => p.team === 'red');
+
+    const total = scored.length + faults.length;
+
     return {
-      scored: scored.reduce((s, p) => s + (p.pointValue ?? 0), 0),
-      scoredCount: scored.length,
-      freeThrows: scored.filter(p => p.action === 'free_throw').length,
-      twoPoints: scored.filter(p => p.action === 'two_points').length,
-      threePoints: scored.filter(p => p.action === 'three_points').length,
-      faults: faults.length,
-      missedShots: faults.filter(p => p.action === 'missed_shot').length,
-      turnovers: faults.filter(p => p.action === 'turnover').length,
-      foulsCommitted: faults.filter(p => p.action === 'foul_committed').length,
-      // Volley fields (0)
-      attacks: 0, aces: 0, blocks: 0, bidouilles: 0, secondeMains: 0, otherOffensive: 0,
-      outs: 0, netFaults: 0, serviceMisses: 0, blockOuts: 0,
+      'Joueur': player.name || '—',
+      'Aces': scored.filter(p => p.action === 'tennis_ace').length,
+      'CD gagnants': scored.filter(p => p.action === 'winner_forehand').length,
+      'Revers gagnants': scored.filter(p => p.action === 'winner_backhand').length,
+      'Volées gagnantes': scored.filter(p => p.action === 'volley_winner').length,
+      'Smashs': scored.filter(p => p.action === 'smash').length,
+      'Amortis': scored.filter(p => p.action === 'drop_shot_winner').length,
+      'Autres gagnants': scored.filter(p => p.action === 'other_tennis_winner').length,
+      'Total gagnants': scored.length,
+      'Doubles fautes': faults.filter(p => p.action === 'double_fault').length,
+      'Fautes CD': faults.filter(p => p.action === 'unforced_error_forehand').length,
+      'Fautes revers': faults.filter(p => p.action === 'unforced_error_backhand').length,
+      'Filet': faults.filter(p => p.action === 'net_error').length,
+      'Out': faults.filter(p => p.action === 'out_long' || p.action === 'out_wide').length,
+      'Total fautes': faults.length,
+      'Total actions': total,
+      'Efficacité (%)': total > 0 ? Math.round(scored.length / total * 100) : 0,
     };
+  });
+}
+
+function playerSetStatsPadel(pts: Point[], players: Player[]) {
+  return players.map(player => {
+    const pp = pts.filter(p => p.playerId === player.id);
+    const scored = pp.filter(p => p.team === 'blue' && p.type === 'scored');
+    const faults = pp.filter(p => p.team === 'red');
+
+    const total = scored.length + faults.length;
+
+    return {
+      'Joueur': player.name || '—',
+      'Víbora': scored.filter(p => p.action === 'vibora').length,
+      'Bandeja': scored.filter(p => p.action === 'bandeja').length,
+      'Smash': scored.filter(p => p.action === 'smash_padel').length,
+      'Volée': scored.filter(p => p.action === 'volee').length,
+      'Bajada': scored.filter(p => p.action === 'bajada').length,
+      'Chiquita': scored.filter(p => p.action === 'chiquita_winner').length,
+      'Par 3': scored.filter(p => p.action === 'par_3').length,
+      'Autres gagnants': scored.filter(p => p.action === 'other_padel_winner').length,
+      'Total gagnants': scored.length,
+      'Doubles fautes': faults.filter(p => p.action === 'padel_double_fault').length,
+      'Fautes directes': faults.filter(p => p.action === 'padel_unforced_error').length,
+      'Filet': faults.filter(p => p.action === 'padel_net_error').length,
+      'Out': faults.filter(p => p.action === 'padel_out').length,
+      'Grille': faults.filter(p => p.action === 'grille_error').length,
+      'Vitre': faults.filter(p => p.action === 'vitre_error').length,
+      'Total fautes': faults.length,
+      'Total actions': total,
+      'Efficacité (%)': total > 0 ? Math.round(scored.length / total * 100) : 0,
+    };
+  });
+}
+
+function getPlayerStats(pts: Point[], players: Player[], sport: SportType) {
+  switch (sport) {
+    case 'basketball': return playerSetStatsBasket(pts, players);
+    case 'tennis': return playerSetStatsTennis(pts, players);
+    case 'padel': return playerSetStatsPadel(pts, players);
+    default: return playerSetStatsVolley(pts, players);
   }
+}
+
+function teamSetStats(pts: Point[], team: 'blue' | 'red', sport: SportType = 'volleyball') {
   const opponent = team === 'blue' ? 'red' : 'blue';
   const scored = pts.filter(p => p.team === team && p.type === 'scored');
-  const faults = pts.filter(p => p.team === opponent && p.type === 'fault');
-  return {
-    scored: scored.length,
+  const teamFaults = pts.filter(p => p.team === team && p.type === 'fault');
+  const opponentFaults = pts.filter(p => p.team === opponent && p.type === 'fault');
+
+  const base = {
     scoredCount: scored.length,
-    attacks: scored.filter(p => p.action === 'attack').length,
-    aces: scored.filter(p => p.action === 'ace').length,
-    blocks: scored.filter(p => p.action === 'block').length,
-    bidouilles: scored.filter(p => p.action === 'bidouille').length,
-    secondeMains: scored.filter(p => p.action === 'seconde_main').length,
-    otherOffensive: scored.filter(p => p.action === 'other_offensive').length,
-    faults: faults.length,
-    outs: faults.filter(p => p.action === 'out').length,
-    netFaults: faults.filter(p => p.action === 'net_fault').length,
-    serviceMisses: faults.filter(p => p.action === 'service_miss').length,
-    blockOuts: faults.filter(p => p.action === 'block_out').length,
-    // Basket fields (0)
-    freeThrows: 0, twoPoints: 0, threePoints: 0, missedShots: 0, turnovers: 0, foulsCommitted: 0,
+    faultsCount: sport === 'basketball' ? teamFaults.length : opponentFaults.length,
+  };
+
+  if (sport === 'basketball') {
+    return {
+      ...base,
+      scored: scored.reduce((s, p) => s + (p.pointValue ?? 0), 0),
+      faults: teamFaults.length,
+      details: [
+        ['LF (1pt)', scored.filter(p => p.action === 'free_throw').length],
+        ['Int. (2pts)', scored.filter(p => p.action === 'two_points').length],
+        ['Ext. (3pts)', scored.filter(p => p.action === 'three_points').length],
+      ] as [string, number][],
+      faultDetails: [
+        ['Tirs manqués', teamFaults.filter(p => p.action === 'missed_shot').length],
+        ['Pertes de balle', teamFaults.filter(p => p.action === 'turnover').length],
+        ['Fautes commises', teamFaults.filter(p => p.action === 'foul_committed').length],
+      ] as [string, number][],
+    };
+  }
+
+  if (sport === 'tennis') {
+    return {
+      ...base,
+      scored: scored.length,
+      faults: opponentFaults.length,
+      details: TENNIS_SCORED_ACTIONS.map(a => [a.label, scored.filter(p => p.action === a.key).length] as [string, number]),
+      faultDetails: TENNIS_FAULT_ACTIONS.map(a => [a.label, opponentFaults.filter(p => p.action === a.key).length] as [string, number]),
+    };
+  }
+
+  if (sport === 'padel') {
+    return {
+      ...base,
+      scored: scored.length,
+      faults: opponentFaults.length,
+      details: PADEL_SCORED_ACTIONS.map(a => [a.label, scored.filter(p => p.action === a.key).length] as [string, number]),
+      faultDetails: PADEL_FAULT_ACTIONS.map(a => [a.label, opponentFaults.filter(p => p.action === a.key).length] as [string, number]),
+    };
+  }
+
+  // Volleyball
+  return {
+    ...base,
+    scored: scored.length,
+    faults: opponentFaults.length,
+    details: OFFENSIVE_ACTIONS.map(a => [a.label, scored.filter(p => p.action === a.key).length] as [string, number]),
+    faultDetails: FAULT_ACTIONS.map(a => [a.label, opponentFaults.filter(p => p.action === a.key).length] as [string, number]),
   };
 }
 
@@ -113,7 +202,7 @@ export function exportMatchToExcel(
   sport: SportType = 'volleyball',
 ) {
   const isBasketball = sport === 'basketball';
-  const periodLabel = isBasketball ? 'QT' : 'Set';
+  const periodLabel = sport === 'basketball' ? 'QT' : 'Set';
   const wb = XLSX.utils.book_new();
 
   const allSets: { label: string; pts: Point[]; score: { blue: number; red: number }; duration: number }[] = [];
@@ -140,8 +229,8 @@ export function exportMatchToExcel(
     rows.push({});
 
     if (players.length > 0) {
-      rows.push({ '#': '— Stats Individuelles —' });
-      const pStats = isBasketball ? playerSetStatsBasket(set.pts, players) : playerSetStatsVolley(set.pts, players);
+      rows.push({ '#': '— Stats Individuelles (Équipe Bleue) —' });
+      const pStats = getPlayerStats(set.pts, players, sport);
       pStats.forEach(r => rows.push(r));
       rows.push({});
     }
@@ -150,29 +239,10 @@ export function exportMatchToExcel(
     (['blue', 'red'] as const).forEach(team => {
       const ts = teamSetStats(set.pts, team, sport);
       rows.push({ '#': teamNames[team] });
-      if (isBasketball) {
-        rows.push({ '#': '', 'Joueur': 'Points marqués', 'Col3': ts.scored });
-        rows.push({ '#': '', 'Joueur': '  LF (1pt)', 'Col3': ts.freeThrows });
-        rows.push({ '#': '', 'Joueur': '  Int. (2pts)', 'Col3': ts.twoPoints });
-        rows.push({ '#': '', 'Joueur': '  Ext. (3pts)', 'Col3': ts.threePoints });
-        rows.push({ '#': '', 'Joueur': 'Actions négatives', 'Col3': ts.faults });
-        rows.push({ '#': '', 'Joueur': '  Tirs manqués', 'Col3': ts.missedShots });
-        rows.push({ '#': '', 'Joueur': '  Pertes de balle', 'Col3': ts.turnovers });
-        rows.push({ '#': '', 'Joueur': '  Fautes commises', 'Col3': ts.foulsCommitted });
-      } else {
-        rows.push({ '#': '', 'Joueur': 'Pts gagnés (offensifs)', 'Col3': ts.scored });
-        rows.push({ '#': '', 'Joueur': '  Attaques', 'Col3': ts.attacks });
-        rows.push({ '#': '', 'Joueur': '  Aces', 'Col3': ts.aces });
-        rows.push({ '#': '', 'Joueur': '  Blocks', 'Col3': ts.blocks });
-        rows.push({ '#': '', 'Joueur': '  Bidouilles', 'Col3': ts.bidouilles });
-        rows.push({ '#': '', 'Joueur': '  2ndes mains', 'Col3': ts.secondeMains });
-        rows.push({ '#': '', 'Joueur': '  Autres', 'Col3': ts.otherOffensive });
-        rows.push({ '#': '', 'Joueur': 'Fautes commises', 'Col3': ts.faults });
-        rows.push({ '#': '', 'Joueur': '  Out', 'Col3': ts.outs });
-        rows.push({ '#': '', 'Joueur': '  Filet', 'Col3': ts.netFaults });
-        rows.push({ '#': '', 'Joueur': '  Srv loupés', 'Col3': ts.serviceMisses });
-        rows.push({ '#': '', 'Joueur': '  Block Out', 'Col3': ts.blockOuts });
-      }
+      rows.push({ '#': '', 'Joueur': isBasketball ? 'Points marqués' : 'Pts gagnés', 'Col3': ts.scored });
+      ts.details.forEach(([l, v]) => rows.push({ '#': '', 'Joueur': `  ${l}`, 'Col3': v }));
+      rows.push({ '#': '', 'Joueur': isBasketball ? 'Actions négatives' : 'Fautes', 'Col3': ts.faults });
+      ts.faultDetails.forEach(([l, v]) => rows.push({ '#': '', 'Joueur': `  ${l}`, 'Col3': v }));
       rows.push({});
     });
 
@@ -193,41 +263,26 @@ export function exportMatchToExcel(
   summaryRows.push({ 'Info': `Score ${periodLabel.toLowerCase()}s: ${teamNames.blue} ${blueSetWins} - ${redSetWins} ${teamNames.red}` });
   summaryRows.push({});
 
-  summaryRows.push({ 'Info': `— Scores par ${periodLabel} —` });
+  // Chrono: durée par set
+  summaryRows.push({ 'Info': `— Durées par ${periodLabel} —` });
   allSets.forEach(s => {
-    summaryRows.push({ 'Info': s.label, 'Valeur': `${s.score.blue} - ${s.score.red}`, 'Détail': s.duration > 0 ? formatDuration(s.duration) : '' });
+    summaryRows.push({ 'Info': s.label, 'Valeur': `${s.score.blue} - ${s.score.red}`, 'Détail': s.duration > 0 ? formatDuration(s.duration) : 'En cours' });
   });
+  const totalDuration = allSets.reduce((sum, s) => sum + s.duration, 0);
+  if (totalDuration > 0) {
+    summaryRows.push({ 'Info': 'Durée totale', 'Détail': formatDuration(totalDuration) });
+  }
   summaryRows.push({});
 
   if (players.length > 0) {
-    summaryRows.push({ 'Info': '— Stats Individuelles Globales —' });
-    if (isBasketball) {
-      const globalPlayerStats = playerSetStatsBasket(allPoints, players);
-      globalPlayerStats.forEach(r => {
-        summaryRows.push({
-          'Info': r['Joueur'],
-          'Détail': `Pts: ${r['Total points']}`,
-          'Extra1': `LF: ${r['LF (1pt)']}`,
-          'Extra2': `2pt: ${r['Int. (2pts)']}`,
-          'Extra3': `3pt: ${r['Ext. (3pts)']}`,
-          'Extra4': `Miss: ${r['Tirs manqués']}`,
-          'Extra5': `Eff: ${r['Efficacité (%)']}%`,
-        });
-      });
-    } else {
-      const globalPlayerStats = playerSetStatsVolley(allPoints, players);
-      globalPlayerStats.forEach(r => {
-        summaryRows.push({
-          'Info': r['Joueur'],
-          'Détail': `Pts: ${r['Total pts gagnés']}`,
-          'Extra1': `Att: ${r['Attaques']}`,
-          'Extra2': `Ace: ${r['Aces']}`,
-          'Extra3': `Blk: ${r['Blocks']}`,
-          'Extra4': `Fts: ${r['Fautes commises']}`,
-          'Extra5': `Eff: ${r['Efficacité (%)']}%`,
-        });
-      });
-    }
+    summaryRows.push({ 'Info': '— Stats Individuelles Globales (Équipe Bleue) —' });
+    const globalPlayerStats = getPlayerStats(allPoints, players, sport);
+    globalPlayerStats.forEach(r => {
+      const keys = Object.keys(r);
+      const entry: Record<string, unknown> = { 'Info': r[keys[0]] };
+      keys.slice(1).forEach((k, i) => { entry[`Col${i + 1}`] = `${k}: ${r[k as keyof typeof r]}`; });
+      summaryRows.push(entry);
+    });
     summaryRows.push({});
   }
 
@@ -238,7 +293,7 @@ export function exportMatchToExcel(
   });
 
   const summaryWs = XLSX.utils.json_to_sheet(summaryRows);
-  summaryWs['!cols'] = [{ wch: 35 }, { wch: 20 }, { wch: 15 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }];
+  summaryWs['!cols'] = [{ wch: 35 }, { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
   XLSX.utils.book_append_sheet(wb, summaryWs, 'Résumé Global');
 
   const filename = `${teamNames.blue}-vs-${teamNames.red}.xlsx`;

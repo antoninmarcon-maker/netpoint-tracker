@@ -91,31 +91,22 @@ const Index = () => {
   }, [isBasketball, selectedAction, selectedTeam, addFreeThrow]);
 
   // Auto-skip player assignment when not relevant
-  // Volleyball: ask for blue scored AND red scored (opponent faults)
-  // Basketball: ask for blue faults only, skip red baskets
   useEffect(() => {
     if (!pendingPoint || players.length === 0) return;
-    console.log('[DEBUG] pendingPoint:', pendingPoint.team, pendingPoint.type, pendingPoint.action);
     if (isBasketball) {
-      // Basketball: only ask player for blue team faults, skip red team baskets
       const isBlueFault = pendingPoint.team === 'blue' && pendingPoint.type === 'fault';
       const isBlueScored = pendingPoint.team === 'blue' && pendingPoint.type === 'scored';
       if (!isBlueFault && !isBlueScored) {
-        console.log('[DEBUG] Basketball: skipping player assignment');
         skipPlayerAssignment();
       }
       return;
     }
-    // Volleyball: ask player for blue scored, red scored, AND red fault (= blue player committed fault)
+    // Volleyball, Tennis, Padel: ask player for blue scored, red scored, AND red fault
     const isBlueScored = pendingPoint.team === 'blue' && pendingPoint.type === 'scored';
     const isRedScored = pendingPoint.team === 'red' && pendingPoint.type === 'scored';
     const isRedFault = pendingPoint.team === 'red' && pendingPoint.type === 'fault';
-    console.log('[DEBUG] Volleyball: isBlueScored=', isBlueScored, 'isRedScored=', isRedScored, 'isRedFault=', isRedFault);
     if (!isBlueScored && !isRedScored && !isRedFault) {
-      console.log('[DEBUG] Volleyball: skipping player assignment');
       skipPlayerAssignment();
-    } else {
-      console.log('[DEBUG] Volleyball: showing player selector');
     }
   }, [pendingPoint, players, skipPlayerAssignment, isBasketball]);
 

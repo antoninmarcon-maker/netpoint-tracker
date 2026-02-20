@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { Download, ChevronDown, Copy, Image, FileSpreadsheet, Map, Share2, Link as LinkIcon } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { Point, SetData, Player, isOffensiveAction, isBasketScoredAction, SportType, OFFENSIVE_ACTIONS, FAULT_ACTIONS, BASKET_SCORED_ACTIONS, BASKET_FAULT_ACTIONS } from '@/types/sports';
+import { Point, SetData, Player, isOffensiveAction, isBasketScoredAction, SportType, OFFENSIVE_ACTIONS, FAULT_ACTIONS, BASKET_SCORED_ACTIONS, BASKET_FAULT_ACTIONS, getSportIcon } from '@/types/sports';
 import { PointTimeline } from './PointTimeline';
 import { CourtDisplay } from './CourtDisplay';
 import { PlayerStats } from './PlayerStats';
@@ -63,7 +63,7 @@ function buildExportContainer(teamNames: { blue: string; red: string }, label: s
 
   const header = createStyledEl('div', { textAlign: 'center' });
   const title = createStyledEl('p', { fontSize: '16px', fontWeight: '900', color: 'hsl(var(--foreground))' });
-  title.textContent = `${isBasket ? '🏀' : '🏐'} ${teamNames.blue} vs ${teamNames.red}`;
+  title.textContent = `${getSportIcon(sport)} ${teamNames.blue} vs ${teamNames.red}`;
   header.appendChild(title);
   const subtitle = createStyledEl('p', { fontSize: '10px', color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.1em' }, label);
   header.appendChild(subtitle);
@@ -323,7 +323,8 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     const setsBlue = allSets.filter(s => s.winner === 'blue').length;
     const setsRed = allSets.filter(s => s.winner === 'red').length;
     const details = allSets.map(s => `${s.score.blue}-${s.score.red}`).join(', ');
-    let text = `🏐 Match : ${teamNames.blue} vs ${teamNames.red}\n📊 Score Sets : ${setsBlue}-${setsRed}`;
+    const icon = getSportIcon(sport);
+    let text = `${icon} Match : ${teamNames.blue} vs ${teamNames.red}\n📊 Score Sets : ${setsBlue}-${setsRed}`;
     if (details) text += `\n📋 Détails : ${details}`;
     if (currentSetPoints.length > 0) {
       const blueNow = currentSetPoints.filter(p => p.team === 'blue').length;
@@ -331,7 +332,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
       text += `\n⏳ Set ${currentSetNumber} en cours : ${blueNow}-${redNow}`;
     }
     return text;
-  }, [completedSets, currentSetPoints, currentSetNumber, teamNames]);
+  }, [completedSets, currentSetPoints, currentSetNumber, teamNames, sport]);
 
   const copyScoreText = useCallback(() => {
     navigator.clipboard.writeText(getScoreText());
