@@ -66,7 +66,8 @@
     "errorDeleting": "Error deleting the match",
     "errorFinishing": "Error finishing the match.",
     "feedback": "Feedback",
-    "story": "Story"
+    "story": "Story",
+    "customizeLogo": "Customize logo"
   },
   "credits": {
     "title": "Project Story",
@@ -134,7 +135,14 @@
     "themeLabel": "App appearance",
     "themeDark": "Dark",
     "themeLight": "Light",
-    "themeSystem": "System"
+    "themeSystem": "System",
+    "logoTitle": "Custom logo",
+    "logoDesc": "Add your club or team logo. It will be displayed on the home screen.",
+    "logoChoose": "Choose an image",
+    "logoRemove": "Remove logo",
+    "logoUpdated": "Logo updated!",
+    "logoRemoved": "Logo removed.",
+    "logoTooLarge": "Image must be less than 2 MB."
   },
   "help": {
     "title": "Help center",

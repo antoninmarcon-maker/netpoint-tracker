@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, MessageSquare, ShieldCheck, UserRound, Loader2, Globe, Sun, Moon, Monitor } from 'lucide-react';
+import { ArrowLeft, Save, MessageSquare, ShieldCheck, UserRound, Loader2, Globe, Sun, Moon, Monitor, ImagePlus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +28,8 @@ export default function Settings() {
   const [savingPassword, setSavingPassword] = useState(false);
 
   // Feedback
+  const [customLogo, setCustomLogo] = useState<string | null>(() => localStorage.getItem('customLogo'));
+  const logoInputId = 'logo-file-input';
   const [feedbackMsg, setFeedbackMsg] = useState('');
   const [sendingFeedback, setSendingFeedback] = useState(false);
 
@@ -186,6 +188,68 @@ export default function Settings() {
                   <SelectItem value="system">💻 {t('settings.themeSystem')}</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Logo */}
+        <Card id="logo">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ImagePlus size={18} className="text-primary" />
+              {t('settings.logoTitle')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-xs text-muted-foreground">{t('settings.logoDesc')}</p>
+            <div className="flex items-center gap-3">
+              {customLogo ? (
+                <img src={customLogo} alt="Logo" className="w-14 h-14 rounded-full object-cover border border-border" />
+              ) : (
+                <div className="w-14 h-14 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-secondary/50">
+                  <ImagePlus size={18} className="text-muted-foreground/40" />
+                </div>
+              )}
+              <div className="flex-1 space-y-2">
+                <label htmlFor={logoInputId} className="block w-full py-2 rounded-lg bg-primary text-primary-foreground font-semibold text-sm text-center cursor-pointer hover:opacity-90 transition-opacity">
+                  {t('settings.logoChoose')}
+                </label>
+                <input
+                  id={logoInputId}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 2 * 1024 * 1024) {
+                      toast.error(t('settings.logoTooLarge'));
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      const dataUrl = ev.target?.result as string;
+                      localStorage.setItem('customLogo', dataUrl);
+                      setCustomLogo(dataUrl);
+                      toast.success(t('settings.logoUpdated'));
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                />
+                {customLogo && (
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem('customLogo');
+                      setCustomLogo(null);
+                      toast.success(t('settings.logoRemoved'));
+                    }}
+                    className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-destructive/10 text-destructive font-semibold text-sm hover:bg-destructive/20 transition-colors"
+                  >
+                    <Trash2 size={14} />
+                    {t('settings.logoRemove')}
+                  </button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

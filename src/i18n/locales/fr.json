@@ -66,7 +66,8 @@
     "errorDeleting": "Erreur lors de la suppression du match",
     "errorFinishing": "Erreur lors de la finalisation du match.",
     "feedback": "Feedback",
-    "story": "Histoire"
+    "story": "Histoire",
+    "customizeLogo": "Personnaliser le logo"
   },
   "credits": {
     "title": "Histoire du projet",
@@ -134,7 +135,14 @@
     "themeLabel": "Apparence de l'application",
     "themeDark": "Sombre",
     "themeLight": "Clair",
-    "themeSystem": "Système"
+    "themeSystem": "Système",
+    "logoTitle": "Logo personnalisé",
+    "logoDesc": "Ajoutez le logo de votre club ou équipe. Il s'affichera sur l'écran d'accueil.",
+    "logoChoose": "Choisir une image",
+    "logoRemove": "Supprimer le logo",
+    "logoUpdated": "Logo mis à jour !",
+    "logoRemoved": "Logo supprimé.",
+    "logoTooLarge": "L'image doit faire moins de 2 Mo."
   },
   "help": {
     "title": "Centre d'aide",

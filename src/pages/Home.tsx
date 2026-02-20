@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, LogIn, HelpCircle, Loader2, X, MessageSquare } from 'lucide-react';
+import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, LogIn, HelpCircle, Loader2, X, MessageSquare, ImagePlus } from 'lucide-react';
 import logoCapbreton from '@/assets/logo-capbreton.jpeg';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -72,6 +72,13 @@ export default function Home() {
   const [selectedSport, setSelectedSport] = useState<SportType>('volleyball');
   const [finishingId, setFinishingId] = useState<string | null>(null);
   const [showSavedPlayers, setShowSavedPlayers] = useState(false);
+  const [customLogo, setCustomLogo] = useState<string | null>(null);
+
+  // Load custom logo
+  useEffect(() => {
+    const saved = localStorage.getItem('customLogo');
+    if (saved) setCustomLogo(saved);
+  }, []);
 
   // Load matches based on auth state
   const loadMatches = useCallback(async (currentUser: User | null, showSpinner = false) => {
@@ -273,7 +280,13 @@ export default function Home() {
             </button>
           )}
         </div>
-        <img src={logoCapbreton} alt="Volleyball Capbreton" className="w-16 h-16 rounded-full object-cover" />
+        {customLogo ? (
+          <img src={customLogo} alt="Logo" className="w-16 h-16 rounded-full object-cover" />
+        ) : (
+          <Link to="/settings#logo" className="w-16 h-16 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-secondary/50 hover:bg-secondary hover:border-primary/50 transition-all group" title={t('home.customizeLogo')}>
+            <ImagePlus size={20} className="text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
+          </Link>
+        )}
         <div>
           <h1 className="text-2xl font-black text-foreground tracking-tight text-center">{t('home.title')}</h1>
           <p className="text-sm text-muted-foreground text-center mt-1">{t('home.subtitle')}</p>
