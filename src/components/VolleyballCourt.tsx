@@ -275,8 +275,8 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
           {teamNames[bottomTeam]}
         </text>
 
-        {/* Point markers */}
-        {points.map((point) => {
+        {/* Point markers (exclude service_miss — auto-registered without court position) */}
+        {points.filter(p => p.action !== 'service_miss').map((point) => {
           const cx = point.x * 600;
           const cy = point.y * 400;
           const color = point.team === 'blue' ? 'hsl(217, 91%, 60%)' : 'hsl(0, 84%, 60%)';
