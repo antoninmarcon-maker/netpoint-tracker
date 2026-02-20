@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { Activity, BarChart3, HelpCircle, X, ArrowLeft } from 'lucide-react';
 import { useMatchState } from '@/hooks/useMatchState';
+import { useTennisScore } from '@/hooks/useTennisScore';
 import { ScoreBoard } from '@/components/ScoreBoard';
 import { VolleyballCourt } from '@/components/VolleyballCourt';
 import { BasketballCourt } from '@/components/BasketballCourt';
@@ -82,6 +83,18 @@ const Index = () => {
   } = matchState;
 
   const isBasketball = sport === 'basketball';
+  const isTennisOrPadel = sport === 'tennis' || sport === 'padel';
+  const matchData2 = getMatch(matchId ?? '');
+  const metadata = matchData2?.metadata;
+  const tennisScore = useTennisScore(isTennisOrPadel ? points : [], metadata);
+
+  // Auto-end set when tennis/padel set is won
+  useEffect(() => {
+    if (!isTennisOrPadel) return;
+    if (tennisScore.setJustWon && points.length > 0 && !waitingForNewSet) {
+      endSet();
+    }
+  }, [tennisScore.setJustWon, isTennisOrPadel, points.length, waitingForNewSet, endSet]);
 
   // Auto-add free throw without court placement
   useEffect(() => {
@@ -228,6 +241,7 @@ const Index = () => {
             />
             <ScoreBoard
               score={score}
+              points={points}
               selectedTeam={selectedTeam}
               selectedAction={selectedAction}
               currentSetNumber={currentSetNumber}
@@ -237,6 +251,7 @@ const Index = () => {
               chronoSeconds={chronoSeconds}
               servingTeam={servingTeam}
               sport={sport}
+              metadata={metadata}
               onSelectAction={selectAction}
               onCancelSelection={cancelSelection}
               onUndo={undo}

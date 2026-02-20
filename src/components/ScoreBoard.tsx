@@ -1,10 +1,12 @@
 import { Undo2, RotateCcw, Flag, ArrowLeftRight, Play, Pause, Timer, Pencil, Plus, X, ChevronDown } from 'lucide-react';
-import { Team, PointType, ActionType, SportType, OFFENSIVE_ACTIONS, FAULT_ACTIONS, BASKET_SCORED_ACTIONS, BASKET_FAULT_ACTIONS, getScoredActionsForSport, getFaultActionsForSport, getPeriodLabel } from '@/types/sports';
+import { Team, PointType, ActionType, SportType, Point, MatchMetadata, getScoredActionsForSport, getFaultActionsForSport, getPeriodLabel } from '@/types/sports';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
+import { useTennisScore } from '@/hooks/useTennisScore';
 
 interface ScoreBoardProps {
   score: { blue: number; red: number };
+  points: Point[];
   selectedTeam: Team | null;
   selectedAction: ActionType | null;
   currentSetNumber: number;
@@ -14,6 +16,7 @@ interface ScoreBoardProps {
   chronoSeconds: number;
   servingTeam: Team | null;
   sport: SportType;
+  metadata?: MatchMetadata;
   onSelectAction: (team: Team, type: PointType, action: ActionType) => void;
   onCancelSelection: () => void;
   onUndo: () => void;
@@ -39,6 +42,7 @@ type MenuTab = 'scored' | 'fault';
 
 export function ScoreBoard({
   score,
+  points,
   selectedTeam,
   selectedAction,
   onSelectAction,
@@ -58,6 +62,7 @@ export function ScoreBoard({
   chronoSeconds,
   servingTeam,
   sport,
+  metadata,
   isFinished = false,
   waitingForNewSet = false,
   onStartNewSet,
@@ -71,6 +76,8 @@ export function ScoreBoard({
   const isBasketball = sport === 'basketball';
   const isTennisOrPadel = sport === 'tennis' || sport === 'padel';
   const periodLabel = getPeriodLabel(sport);
+
+  const tennisScore = useTennisScore(isTennisOrPadel ? points : [], metadata);
 
   const left: Team = sidesSwapped ? 'red' : 'blue';
   const right: Team = sidesSwapped ? 'blue' : 'red';
@@ -202,11 +209,46 @@ export function ScoreBoard({
 
       {/* Score display with + buttons */}
       <div className="flex items-center justify-center gap-4">
+        {/* Tennis/Padel: games + game score row */}
+        {isTennisOrPadel && (
+          <div className="w-full mb-1">
+            <div className="flex items-center justify-center gap-6 mb-2">
+              <div className="text-center flex-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Jeux</p>
+                <p className={`text-3xl font-black tabular-nums ${left === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{tennisScore.games[left]}</p>
+              </div>
+              <div className="text-muted-foreground text-sm font-bold">–</div>
+              <div className="text-center flex-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Jeux</p>
+                <p className={`text-3xl font-black tabular-nums ${right === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{tennisScore.games[right]}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-6">
+              <div className="text-center flex-1">
+                <p className={`text-lg font-bold tabular-nums ${left === 'blue' ? 'text-team-blue/70' : 'text-team-red/70'}`}>
+                  {tennisScore.tiebreak ? 'TB ' : ''}{tennisScore.gameScore[left]}
+                </p>
+              </div>
+              <div className="text-muted-foreground text-xs font-semibold">
+                {!tennisScore.tiebreak && tennisScore.gameScore[left] === '40' && tennisScore.gameScore[right] === '40' ? 'Deuce' : ''}
+                {tennisScore.gameScore[left] === 'Ad' || tennisScore.gameScore[right] === 'Ad' ? 'Avantage' : ''}
+              </div>
+              <div className="text-center flex-1">
+                <p className={`text-lg font-bold tabular-nums ${right === 'blue' ? 'text-team-blue/70' : 'text-team-red/70'}`}>
+                  {tennisScore.tiebreak ? 'TB ' : ''}{tennisScore.gameScore[right]}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {!isTennisOrPadel && (
+      <div className="flex items-center justify-center gap-4">
         <div className="flex-1 text-center">
           <div className="flex items-center justify-center gap-1.5">
             <p className={`text-xs font-semibold uppercase tracking-widest ${left === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{teamNames[left]}</p>
             {sport === 'volleyball' && servingTeam === left && <span className="text-[10px]" title="Au service">🏐</span>}
-            {(sport === 'tennis' || sport === 'padel') && servingTeam === left && <span className="text-[10px]" title="Au service">🎾</span>}
           </div>
           <p className={`text-5xl font-black tabular-nums ${left === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{score[left]}</p>
           {menuTeam === left && (
@@ -231,7 +273,6 @@ export function ScoreBoard({
           <div className="flex items-center justify-center gap-1.5">
             <p className={`text-xs font-semibold uppercase tracking-widest ${right === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{teamNames[right]}</p>
             {sport === 'volleyball' && servingTeam === right && <span className="text-[10px]" title="Au service">🏐</span>}
-            {(sport === 'tennis' || sport === 'padel') && servingTeam === right && <span className="text-[10px]" title="Au service">🎾</span>}
           </div>
           <p className={`text-5xl font-black tabular-nums ${right === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{score[right]}</p>
           {menuTeam === right && (
@@ -252,6 +293,57 @@ export function ScoreBoard({
           </button>
         </div>
       </div>
+      )}
+
+      {/* Tennis/Padel: team names + action buttons */}
+      {isTennisOrPadel && (
+        <div className="flex items-center justify-center gap-4">
+          <div className="flex-1 text-center">
+            <div className="flex items-center justify-center gap-1.5">
+              <p className={`text-xs font-semibold uppercase tracking-widest ${left === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{teamNames[left]}</p>
+              <span className="text-[10px]" title="Au service">🎾</span>
+            </div>
+            {menuTeam === left && (
+              <div className="flex justify-center mt-1">
+                <ChevronDown size={28} strokeWidth={3} className={`${left === 'blue' ? 'text-team-blue' : 'text-team-red'} opacity-60 animate-bounce`} />
+              </div>
+            )}
+            <button
+              onClick={() => openMenu(left)}
+              disabled={!!selectedTeam || isFinished || waitingForNewSet}
+              className={`mt-2 w-full py-3 rounded-xl font-bold text-lg transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${
+                left === 'blue'
+                  ? 'bg-team-blue/20 text-team-blue border-2 border-team-blue/30 hover:bg-team-blue/30'
+                  : 'bg-team-red/20 text-team-red border-2 border-team-red/30 hover:bg-team-red/30'
+              }`}
+            >
+              <Plus size={24} className="mx-auto" />
+            </button>
+          </div>
+          <div className="text-muted-foreground text-lg font-bold">VS</div>
+          <div className="flex-1 text-center">
+            <div className="flex items-center justify-center gap-1.5">
+              <p className={`text-xs font-semibold uppercase tracking-widest ${right === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{teamNames[right]}</p>
+            </div>
+            {menuTeam === right && (
+              <div className="flex justify-center mt-1">
+                <ChevronDown size={28} strokeWidth={3} className={`${right === 'blue' ? 'text-team-blue' : 'text-team-red'} opacity-60 animate-bounce`} />
+              </div>
+            )}
+            <button
+              onClick={() => openMenu(right)}
+              disabled={!!selectedTeam || isFinished || waitingForNewSet}
+              className={`mt-2 w-full py-3 rounded-xl font-bold text-lg transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${
+                right === 'blue'
+                  ? 'bg-team-blue/20 text-team-blue border-2 border-team-blue/30 hover:bg-team-blue/30'
+                  : 'bg-team-red/20 text-team-red border-2 border-team-red/30 hover:bg-team-red/30'
+              }`}
+            >
+              <Plus size={24} className="mx-auto" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Action selection menu */}
       {menuTeam && (
@@ -274,7 +366,7 @@ export function ScoreBoard({
                     menuTab === 'fault' ? 'bg-action-fault text-action-fault-foreground' : 'bg-secondary text-secondary-foreground'
                   }`}
                 >
-                  ❌ {isBasketball ? 'Actions négatives' : isTennisOrPadel ? 'Fautes' : 'Fautes Adverses'}
+                  ❌ {isBasketball ? 'Actions négatives' : 'Fautes adverses'}
                 </button>
               )}
             </div>
