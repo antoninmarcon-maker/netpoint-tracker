@@ -1,4 +1,4 @@
-# 🏐 Netpoint Tracker
+# 🏐 My Volley
 
 **Application de scouting et de statistiques multi-sports : Volleyball, Basketball, Tennis et Padel.**
 
@@ -10,7 +10,7 @@
 
 ## 🎯 Features for Coaches & Scouts
 
-Netpoint Tracker is designed to bridge the gap between amateur recording and professional scouting:
+My Volley is designed to bridge the gap between amateur recording and professional scouting:
 
 - **Multi-Sport Logic**: Specialized scoring for Volleyball (sets, rotations, service tracking), Basketball (1/2/3-point zones), Tennis & Padel (15-30-40-Jeu with advantage/deuce/tiebreak).
 - **Visual Scouting**: Clickable court interface to record exact ball impact locations — adapted per sport (tennis zones, padel walls/grids, basketball arc).
@@ -40,13 +40,11 @@ Netpoint Tracker is designed to bridge the gap between amateur recording and pro
 - Tie-break à 6-6, fin de set automatique
 - Actions : Ace, Coup droit/Revers gagnant, Volée, Smash, Amorti
 - Fautes adverses : Double faute, Out long/latéral, Filet
-- Terrain SVG avec zones simple/double, filet et fond de court
 
 ### 🏓 Padel
 - Scoring identique au tennis avec option Punto de Oro (sans avantage)
 - Actions : Víbora, Bandeja, Smash, Bajada, Chiquita, Par 3
 - Fautes adverses : Double faute, Grille, Vitre, Out
-- Terrain SVG avec vitres de fond, vitres latérales et grilles
 
 ### 📈 Analyse & Export
 - Statistiques individuelles par joueur avec efficacité
@@ -54,13 +52,14 @@ Netpoint Tracker is designed to bridge the gap between amateur recording and pro
 - Export PNG des statistiques et du terrain
 - Export Excel structuré avec un onglet par set/QT et résumé global
 - Partage du score via WhatsApp, Telegram, X
-- Analyse IA contextuelle selon le sport (ratio gagnants/fautes au tennis, zones de smash au padel…)
+- Analyse IA contextuelle selon le sport
 
 ### ⚙️ Technologie
 - **PWA** (Progressive Web App) fonctionnant sans connexion après installation
 - Authentification Google, Apple et email/mot de passe
 - Synchronisation cloud des matchs entre appareils
 - Analyse IA des performances (nécessite connexion)
+- Mode clair / sombre
 
 ---
 
@@ -69,24 +68,16 @@ Netpoint Tracker is designed to bridge the gap between amateur recording and pro
 - [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
 - [Vite](https://vitejs.dev/) + [vite-plugin-pwa](https://vite-pwa-org.netlify.app/)
 - [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
-- [Supabase](https://supabase.com/) (Auth, Database, Edge Functions)
-- [Lovable AI Gateway](https://docs.lovable.dev/features/ai) (Analyse tactique)
+- Lovable Cloud (Auth, Database, Edge Functions)
 
 ---
 
 ## 🚀 Getting Started
 
 ```sh
-# Clone the repository
 git clone <YOUR_GIT_URL>
-
-# Navigate to the project directory
-cd netpoint-tracker
-
-# Install dependencies
+cd my-volley
 npm i
-
-# Start the development server
 npm run dev
 ```
 
@@ -94,4 +85,4 @@ npm run dev
 
 ## 📄 License
 
-Made with ❤️ by [Volleyball Capbreton](https://www.my-volley.com)
+Made with ❤️ by [My Volley](https://www.my-volley.com)

@@ -26,7 +26,7 @@
     "volleyballCapbreton": "Volleyball Capbreton"
   },
   "home": {
-    "title": "🏆 Netpoint Tracker",
+    "title": "🏆 My Volley",
     "subtitle": "Volley · Basket · Tennis · Padel",
     "newMatch": "New Match",
     "createMatch": "Create a match",
@@ -117,7 +117,12 @@
     "language": "Language",
     "languageLabel": "App language",
     "french": "Français",
-    "english": "English"
+    "english": "English",
+    "theme": "Theme",
+    "themeLabel": "App appearance",
+    "themeDark": "Dark",
+    "themeLight": "Light",
+    "themeSystem": "System"
   },
   "help": {
     "title": "Help center",

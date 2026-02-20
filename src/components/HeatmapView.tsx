@@ -98,7 +98,7 @@ function buildExportContainer(teamNames: { blue: string; red: string }, label: s
   totalCard.appendChild(createStyledEl('p', { fontSize: '10px', color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.1em' }, 'Actions totales'));
   container.appendChild(totalCard);
 
-  container.appendChild(createStyledEl('p', { fontSize: '8px', textAlign: 'center', color: 'hsl(var(--muted-foreground))', opacity: '0.5' }, 'Netpoint Tracker · my-volley.com'));
+  container.appendChild(createStyledEl('p', { fontSize: '8px', textAlign: 'center', color: 'hsl(var(--muted-foreground))', opacity: '0.5' }, 'My Volley · my-volley.com'));
   return container;
 }
 
@@ -672,7 +672,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         </DropdownMenu>
       </div>
 
-      <p className="text-[8px] text-muted-foreground/50 text-center">Netpoint Tracker · my-volley.com</p>
+      <p className="text-[8px] text-muted-foreground/50 text-center">My Volley · my-volley.com</p>
     </div>
   );
 }

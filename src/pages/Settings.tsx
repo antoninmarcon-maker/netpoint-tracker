@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, MessageSquare, ShieldCheck, UserRound, Loader2, Globe } from 'lucide-react';
+import { ArrowLeft, Save, MessageSquare, ShieldCheck, UserRound, Loader2, Globe, Sun, Moon, Monitor } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@/hooks/useTheme';
 import type { User } from '@supabase/supabase-js';
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -157,6 +159,31 @@ export default function Settings() {
                 <SelectContent>
                   <SelectItem value="fr">🇫🇷 {t('settings.french')}</SelectItem>
                   <SelectItem value="en">🇬🇧 {t('settings.english')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Theme */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              {theme === 'light' ? <Sun size={18} className="text-primary" /> : theme === 'dark' ? <Moon size={18} className="text-primary" /> : <Monitor size={18} className="text-primary" />}
+              {t('settings.theme')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground">{t('settings.themeLabel')}</label>
+              <Select value={theme} onValueChange={(v) => setTheme(v as 'light' | 'dark' | 'system')}>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dark">🌙 {t('settings.themeDark')}</SelectItem>
+                  <SelectItem value="light">☀️ {t('settings.themeLight')}</SelectItem>
+                  <SelectItem value="system">💻 {t('settings.themeSystem')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

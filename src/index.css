@@ -4,6 +4,67 @@
 
 @layer base {
   :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 98%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 220 14% 95%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 220 14% 92%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 87%;
+    --input: 220 13% 87%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.75rem;
+
+    --team-blue: 217 91% 60%;
+    --team-blue-foreground: 0 0% 100%;
+    --team-blue-glow: 217 91% 60% / 0.2;
+
+    --team-red: 0 84% 60%;
+    --team-red-foreground: 0 0% 100%;
+    --team-red-glow: 0 84% 60% / 0.2;
+
+    --action-scored: 152 69% 45%;
+    --action-scored-foreground: 0 0% 100%;
+    --action-fault: 32 95% 55%;
+    --action-fault-foreground: 0 0% 100%;
+
+    --action-cta: 152 69% 45%;
+    --action-cta-end: 170 80% 40%;
+
+    --court: 142 50% 35%;
+    --court-line: 0 0% 100%;
+    --court-bg: 142 40% 28%;
+
+    --sidebar-background: 0 0% 96%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 92%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 13% 87%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+  .dark {
     --background: 220 20% 10%;
     --foreground: 210 20% 92%;
 
@@ -31,8 +92,6 @@
     --border: 220 14% 20%;
     --input: 220 14% 20%;
     --ring: 217 91% 60%;
-
-    --radius: 0.75rem;
 
     --team-blue: 217 91% 60%;
     --team-blue-foreground: 0 0% 100%;

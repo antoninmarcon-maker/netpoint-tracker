@@ -181,7 +181,7 @@ const Index = () => {
           <ArrowLeft size={18} />
         </button>
         <h1 className="text-lg font-black text-foreground tracking-tight text-center">
-          {sportIcon} Netpoint Tracker
+          {sportIcon} My Volley
         </h1>
         {tab === 'match' ? (
           <button

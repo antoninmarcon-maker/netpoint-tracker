@@ -18,14 +18,14 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "placeholder.svg"],
+      includeAssets: ["favicon.png", "placeholder.svg"],
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/, /^\/sitemap\.xml$/, /^\/robots\.txt$/],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,jpeg,jpg,woff,woff2}"],
       },
       manifest: {
-        name: "Netpoint Tracker",
-        short_name: "Netpoint",
+        name: "My Volley",
+        short_name: "My Volley",
         description: "Scouting multi-sports : volley, basket, tennis & padel",
         theme_color: "#0f172a",
         background_color: "#0f172a",

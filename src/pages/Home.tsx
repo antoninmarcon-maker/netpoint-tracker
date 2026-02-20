@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, LogIn, HelpCircle, Loader2, X, MessageSquare } from 'lucide-react';
-import logoCapbreton from '@/assets/logo-capbreton.jpeg';
+import logoMyVolley from '@/assets/logo-myvolley.png';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getAllMatches, createNewMatch, saveMatch, setActiveMatchId, deleteMatch, getMatch } from '@/lib/matchStorage';
@@ -274,7 +274,7 @@ export default function Home() {
             </button>
           )}
         </div>
-        <img src={logoCapbreton} alt={t('common.volleyballCapbreton')} className="w-16 h-16 rounded-full object-cover" />
+        <img src={logoMyVolley} alt="My Volley" className="w-16 h-16 rounded-2xl object-cover" />
         <div>
           <h1 className="text-2xl font-black text-foreground tracking-tight text-center">{t('home.title')}</h1>
           <p className="text-sm text-muted-foreground text-center mt-1">{t('home.subtitle')}</p>
