@@ -37,7 +37,7 @@ export default function Help() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="px-4 py-3 border-b border-border flex items-center gap-3">
+      <header className="sticky top-0 z-10 px-4 py-3 border-b border-border flex items-center gap-3 bg-background">
         <Link to="/" className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft size={18} />
         </Link>
