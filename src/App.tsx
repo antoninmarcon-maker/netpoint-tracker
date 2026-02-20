@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import SharedMatch from "./pages/SharedMatch";
 import ResetPassword from "./pages/ResetPassword";
 import Help from "./pages/Help";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/shared/:token" element={<SharedMatch />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/help" element={<Help />} />
+          <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

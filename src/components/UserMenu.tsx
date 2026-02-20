@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LogOut, Settings, User, MessageSquare, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,15 +12,11 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
+  const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [sendingFeedback, setSendingFeedback] = useState(false);
-  const [newEmail, setNewEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [saving, setSaving] = useState(false);
 
   const displayName = user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Utilisateur';
 
@@ -54,28 +51,6 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
     }
   };
 
-  const handleUpdateEmail = async () => {
-    if (!newEmail.trim()) return;
-    setSaving(true);
-    const { error } = await supabase.auth.updateUser({ email: newEmail });
-    setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success('Un email de confirmation a été envoyé.');
-    setNewEmail('');
-  };
-
-  const handleUpdatePassword = async () => {
-    if (!newPassword.trim() || newPassword.length < 6) {
-      toast.error('Le mot de passe doit contenir au moins 6 caractères.');
-      return;
-    }
-    setSaving(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success('Mot de passe mis à jour.');
-    setNewPassword('');
-  };
 
   return (
     <>
@@ -113,7 +88,7 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
             )}
 
             <button
-              onClick={() => { setShowMenu(false); setTimeout(() => setShowSettings(true), 150); }}
+              onClick={() => { setShowMenu(false); navigate('/settings'); }}
               className="w-full flex items-center gap-2.5 py-3 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-all"
             >
               <Settings size={16} className="text-muted-foreground" /> Paramètres du compte
@@ -162,42 +137,6 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Settings dialog */}
-      <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-center text-lg font-bold">⚙️ Paramètres</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">Changer l'email</label>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="Nouvel email"
-                  value={newEmail}
-                  onChange={e => setNewEmail(e.target.value)}
-                  className="h-9 flex-1 rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-                <button onClick={handleUpdateEmail} disabled={saving || !newEmail.trim()} className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50">OK</button>
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">Changer le mot de passe</label>
-              <div className="flex gap-2">
-                <input
-                  type="password"
-                  placeholder="Nouveau mot de passe"
-                  value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
-                  className="h-9 flex-1 rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-                <button onClick={handleUpdatePassword} disabled={saving || !newPassword.trim()} className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50">OK</button>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
