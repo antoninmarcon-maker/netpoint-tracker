@@ -366,11 +366,21 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     return [];
   }, [points, completedSets, currentSetPoints, currentSetNumber, setFilter_]);
 
-  // Heatmap: for basketball show scored shots, for volleyball show offensive actions
+  // Heatmap: show all points, normalize so blue (scored) is always RIGHT, red (faults) always LEFT
   const heatmapPoints = useMemo(() => {
-    if (isBasketball) return filteredPoints.filter(p => p.type === 'scored');
-    return filteredPoints.filter(p => p.type === 'scored' && isOffensiveAction(p.action));
-  }, [filteredPoints, isBasketball]);
+    return filteredPoints.map(p => {
+      const isBlue = p.team === 'blue';
+      const isScored = p.type === 'scored';
+      // Blue scored → right side (x > 0.5), Red fault → left side (x < 0.5)
+      // Blue fault → left side, Red scored → right side
+      const shouldBeRight = (isBlue && isScored) || (!isBlue && !isScored);
+      const shouldBeLeft = !shouldBeRight;
+      let nx = p.x;
+      if (shouldBeRight && nx < 0.5) nx = 1 - nx;
+      if (shouldBeLeft && nx > 0.5) nx = 1 - nx;
+      return { ...p, x: nx };
+    });
+  }, [filteredPoints]);
 
   const displayStats = useMemo(() => {
     return computeStats(filteredPoints, sport);
@@ -559,7 +569,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
 
         {showHeatmap && (
           <div>
-            <p className="text-[10px] text-center text-muted-foreground mb-1">Heatmap — Actions Offensives</p>
+            <p className="text-[10px] text-center text-muted-foreground mb-1">Heatmap — 🔵 Points marqués (droite) · 🔴 Points pris (gauche)</p>
             <div className="rounded-xl overflow-hidden">
               <canvas ref={canvasRef} width={600} height={400} className="w-full h-auto" />
             </div>
