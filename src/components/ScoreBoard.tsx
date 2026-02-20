@@ -3,6 +3,7 @@ import { Team, PointType, ActionType, SportType, Point, MatchMetadata, getScored
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { useTennisScore } from '@/hooks/useTennisScore';
+import { useTranslation } from 'react-i18next';
 
 interface ScoreBoardProps {
   score: { blue: number; red: number };
@@ -41,32 +42,13 @@ function formatTime(seconds: number) {
 type MenuTab = 'scored' | 'fault';
 
 export function ScoreBoard({
-  score,
-  points,
-  selectedTeam,
-  selectedAction,
-  onSelectAction,
-  onCancelSelection,
-  onUndo,
-  onReset,
-  onEndSet,
-  onSwitchSides,
-  onStartChrono,
-  onPauseChrono,
-  onSetTeamNames,
-  canUndo,
-  currentSetNumber,
-  teamNames,
-  sidesSwapped,
-  chronoRunning,
-  chronoSeconds,
-  servingTeam,
-  sport,
-  metadata,
-  isFinished = false,
-  waitingForNewSet = false,
-  onStartNewSet,
+  score, points, selectedTeam, selectedAction,
+  onSelectAction, onCancelSelection, onUndo, onReset, onEndSet, onSwitchSides,
+  onStartChrono, onPauseChrono, onSetTeamNames, canUndo,
+  currentSetNumber, teamNames, sidesSwapped, chronoRunning, chronoSeconds,
+  servingTeam, sport, metadata, isFinished = false, waitingForNewSet = false, onStartNewSet,
 }: ScoreBoardProps) {
+  const { t } = useTranslation();
   const [editingNames, setEditingNames] = useState(false);
   const [nameInputs, setNameInputs] = useState(teamNames);
   const [menuTeam, setMenuTeam] = useState<Team | null>(null);
@@ -84,8 +66,8 @@ export function ScoreBoard({
 
   const saveNames = () => {
     onSetTeamNames({
-      blue: nameInputs.blue.trim() || 'Bleue',
-      red: nameInputs.red.trim() || 'Rouge',
+      blue: nameInputs.blue.trim() || t('scoreboard.blue'),
+      red: nameInputs.red.trim() || t('scoreboard.red'),
     });
     setEditingNames(false);
   };
@@ -106,7 +88,6 @@ export function ScoreBoard({
     setMenuTeam(null);
   };
 
-  // Get filtered actions based on sport and context
   const getScoredActions = () => {
     const actions = getScoredActionsForSport(sport);
     if (sport === 'volleyball') {
@@ -133,6 +114,17 @@ export function ScoreBoard({
 
   const allActions = [...getScoredActionsForSport(sport), ...getFaultActionsForSport(sport)];
 
+  const getScoredLabel = () => {
+    if (isBasketball) return t('scoreboard.scoredBasket');
+    if (isTennisOrPadel) return t('scoreboard.scoredTennis');
+    return t('scoreboard.scoredVolley');
+  };
+
+  const getFaultLabel = () => {
+    if (isBasketball) return t('scoreboard.faultBasket');
+    return t('scoreboard.faultVolley');
+  };
+
   return (
     <div className="space-y-3">
       {/* Set + Chrono */}
@@ -150,7 +142,7 @@ export function ScoreBoard({
         </div>
       </div>
 
-      {/* Action buttons (annuler, switch, fin set) - above team names */}
+      {/* Action buttons */}
       {!isFinished && !waitingForNewSet && (
         <div className="flex gap-2 justify-center flex-wrap">
           <button
@@ -158,20 +150,20 @@ export function ScoreBoard({
             disabled={!canUndo}
             className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all"
           >
-            <Undo2 size={16} /> Annuler
+            <Undo2 size={16} /> {t('scoreboard.undo')}
           </button>
           <button
             onClick={onSwitchSides}
             className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
           >
-            <ArrowLeftRight size={16} /> Switch
+            <ArrowLeftRight size={16} /> {t('scoreboard.switch')}
           </button>
           <button
             onClick={() => setConfirmEndSet(true)}
             disabled={!canUndo}
             className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all"
           >
-            <Flag size={16} /> Fin {periodLabel}
+            <Flag size={16} /> {t('scoreboard.endPeriod', { period: periodLabel })}
           </button>
         </div>
       )}
@@ -180,21 +172,21 @@ export function ScoreBoard({
       {editingNames ? (
         <div className="flex gap-2 items-end">
           <div className="flex-1">
-            <label className="text-xs text-team-blue font-semibold">Équipe Bleue</label>
+            <label className="text-xs text-team-blue font-semibold">{t('scoreboard.blueTeam')}</label>
             <Input
               value={nameInputs.blue}
               onChange={e => setNameInputs(prev => ({ ...prev, blue: e.target.value }))}
               className="h-8 text-sm"
-              placeholder="Bleue"
+              placeholder={t('scoreboard.blue')}
             />
           </div>
           <div className="flex-1">
-            <label className="text-xs text-team-red font-semibold">Équipe Rouge</label>
+            <label className="text-xs text-team-red font-semibold">{t('scoreboard.redTeam')}</label>
             <Input
               value={nameInputs.red}
               onChange={e => setNameInputs(prev => ({ ...prev, red: e.target.value }))}
               className="h-8 text-sm"
-              placeholder="Rouge"
+              placeholder={t('scoreboard.red')}
             />
           </div>
           <button onClick={saveNames} className="px-3 py-1.5 text-xs font-semibold rounded-md bg-primary text-primary-foreground">
@@ -203,23 +195,22 @@ export function ScoreBoard({
         </div>
       ) : (
         <button onClick={() => { setNameInputs(teamNames); setEditingNames(true); }} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto">
-          <Pencil size={10} /> Modifier les noms
+          <Pencil size={10} /> {t('scoreboard.editNames')}
         </button>
       )}
 
       {/* Score display with + buttons */}
       <div className="flex items-center justify-center gap-4">
-        {/* Tennis/Padel: games + game score row */}
         {isTennisOrPadel && (
           <div className="w-full mb-1">
             <div className="flex items-center justify-center gap-6 mb-2">
               <div className="text-center flex-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Jeux</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">{t('scoreboard.games')}</p>
                 <p className={`text-3xl font-black tabular-nums ${left === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{tennisScore.games[left]}</p>
               </div>
               <div className="text-muted-foreground text-sm font-bold">–</div>
               <div className="text-center flex-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Jeux</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">{t('scoreboard.games')}</p>
                 <p className={`text-3xl font-black tabular-nums ${right === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{tennisScore.games[right]}</p>
               </div>
             </div>
@@ -230,8 +221,8 @@ export function ScoreBoard({
                 </p>
               </div>
               <div className="text-muted-foreground text-xs font-semibold">
-                {!tennisScore.tiebreak && tennisScore.gameScore[left] === '40' && tennisScore.gameScore[right] === '40' ? 'Deuce' : ''}
-                {tennisScore.gameScore[left] === 'Ad' || tennisScore.gameScore[right] === 'Ad' ? 'Avantage' : ''}
+                {!tennisScore.tiebreak && tennisScore.gameScore[left] === '40' && tennisScore.gameScore[right] === '40' ? t('scoreboard.deuce') : ''}
+                {tennisScore.gameScore[left] === 'Ad' || tennisScore.gameScore[right] === 'Ad' ? t('scoreboard.advantage') : ''}
               </div>
               <div className="text-center flex-1">
                 <p className={`text-lg font-bold tabular-nums ${right === 'blue' ? 'text-team-blue/70' : 'text-team-red/70'}`}>
@@ -356,9 +347,8 @@ export function ScoreBoard({
                   menuTab === 'scored' ? 'bg-action-scored text-action-scored-foreground' : 'bg-secondary text-secondary-foreground'
                 }`}
               >
-                ⚡ {isBasketball ? 'Paniers' : isTennisOrPadel ? 'Coups Gagnants' : 'Points Gagnés'}
+                ⚡ {getScoredLabel()}
               </button>
-              {/* Basketball: actions négatives uniquement pour l'équipe bleue */}
               {(!isBasketball || menuTeam === 'blue') && (
                 <button
                   onClick={() => setMenuTab('fault')}
@@ -366,7 +356,7 @@ export function ScoreBoard({
                     menuTab === 'fault' ? 'bg-action-fault text-action-fault-foreground' : 'bg-secondary text-secondary-foreground'
                   }`}
                 >
-                  ❌ {isBasketball ? 'Actions négatives' : 'Fautes adverses'}
+                  ❌ {getFaultLabel()}
                 </button>
               )}
             </div>
@@ -374,7 +364,6 @@ export function ScoreBoard({
               <X size={16} />
             </button>
           </div>
-          {/* Actions */}
           <div className="grid grid-cols-3 gap-1.5">
             {(menuTab === 'scored' ? getScoredActions() : getFilteredFaultActions()).map(a => (
               <button
@@ -402,7 +391,7 @@ export function ScoreBoard({
             }
           </p>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground animate-pulse">Touchez le terrain</span>
+            <span className="text-xs text-muted-foreground animate-pulse">{t('scoreboard.touchCourt')}</span>
             <button onClick={onCancelSelection} className="p-1 rounded-md text-muted-foreground hover:text-foreground">
               <X size={14} />
             </button>
@@ -410,43 +399,43 @@ export function ScoreBoard({
         </div>
       )}
 
-      {/* Status indicators (finished / waiting for new set) */}
+      {/* Status indicators */}
       {isFinished ? (
         <div className="bg-muted/50 rounded-lg p-3 text-center">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">✅ Match terminé</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('scoreboard.matchFinished')}</p>
         </div>
       ) : waitingForNewSet ? (
         <div className="space-y-2">
           <div className="bg-primary/10 rounded-lg p-3 text-center border border-primary/20">
-            <p className="text-xs font-semibold text-primary">{periodLabel} terminé ! Prêt pour le suivant ?</p>
+            <p className="text-xs font-semibold text-primary">{t('scoreboard.periodFinished', { period: periodLabel })}</p>
           </div>
           <button
             onClick={onStartNewSet}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm transition-all active:scale-[0.98] hover:opacity-90"
           >
-            <Play size={16} /> Nouveau {periodLabel}
+            <Play size={16} /> {t('scoreboard.newPeriod', { period: periodLabel })}
           </button>
         </div>
       ) : null}
       {confirmEndSet && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setConfirmEndSet(false)}>
           <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4 animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-foreground text-center">Terminer le {periodLabel.toLowerCase()} ?</h2>
+            <h2 className="text-lg font-bold text-foreground text-center">{t('scoreboard.confirmEndPeriod', { period: periodLabel.toLowerCase() })}</h2>
             <p className="text-sm text-muted-foreground text-center">
-              Score actuel : <span className="font-bold text-team-blue">{score.blue}</span> – <span className="font-bold text-team-red">{score.red}</span>.{!isBasketball && ' Les côtés seront inversés.'}
+              {t('scoreboard.currentScore')} <span className="font-bold text-team-blue">{score.blue}</span> – <span className="font-bold text-team-red">{score.red}</span>.{!isBasketball && ` ${t('scoreboard.sidesSwapped')}`}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmEndSet(false)}
                 className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => { setConfirmEndSet(false); onEndSet(); }}
                 className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-1.5"
               >
-                <Flag size={16} /> Confirmer
+                <Flag size={16} /> {t('common.confirm')}
               </button>
             </div>
           </div>

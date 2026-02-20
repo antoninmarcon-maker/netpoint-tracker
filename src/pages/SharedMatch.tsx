@@ -4,16 +4,17 @@ import { Activity, BarChart3, ArrowLeft, Loader2, Share2 } from 'lucide-react';
 import { getMatchByShareToken } from '@/lib/cloudStorage';
 import { MatchSummary } from '@/types/sports';
 import { SetHistory } from '@/components/SetHistory';
-import { ScoreBoard } from '@/components/ScoreBoard';
 import { VolleyballCourt } from '@/components/VolleyballCourt';
 import { BasketballCourt } from '@/components/BasketballCourt';
 import { TennisCourt } from '@/components/TennisCourt';
 import { PadelCourt } from '@/components/PadelCourt';
 import { HeatmapView } from '@/components/HeatmapView';
+import { useTranslation } from 'react-i18next';
 
 type Tab = 'match' | 'stats';
 
 export default function SharedMatch() {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const [match, setMatch] = useState<MatchSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,10 +41,10 @@ export default function SharedMatch() {
   if (notFound || !match) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4">
-        <p className="text-lg font-bold text-foreground">Match introuvable</p>
-        <p className="text-sm text-muted-foreground text-center">Ce lien de partage n'existe pas ou a été supprimé.</p>
+        <p className="text-lg font-bold text-foreground">{t('shared.matchNotFound')}</p>
+        <p className="text-sm text-muted-foreground text-center">{t('shared.matchNotFoundDesc')}</p>
         <Link to="/" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold">
-          Accueil
+          {t('shared.home')}
         </Link>
       </div>
     );
@@ -90,18 +91,18 @@ export default function SharedMatch() {
             onClick={() => {
               const url = window.location.href;
               if (navigator.share) {
-                navigator.share({ title: `${match.teamNames.blue} vs ${match.teamNames.red}`, text: 'Suivez le score sur my-volley.com', url });
+                navigator.share({ title: `${match.teamNames.blue} vs ${match.teamNames.red}`, text: t('shared.followScore'), url });
               } else {
                 navigator.clipboard.writeText(url);
-                import('sonner').then(({ toast }) => toast.success('Lien copié !'));
+                import('sonner').then(({ toast }) => toast.success(t('shared.linkCopied')));
               }
             }}
             className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-            title="Partager"
+            title={t('common.share')}
           >
             <Share2 size={16} />
           </button>
-          <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-semibold uppercase">Lecture seule</span>
+          <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-semibold uppercase">{t('common.readOnly')}</span>
         </div>
       </header>
 
@@ -110,13 +111,13 @@ export default function SharedMatch() {
           onClick={() => setTab('match')}
           className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-all ${tab === 'match' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}`}
         >
-          <Activity size={16} /> Match
+          <Activity size={16} /> {t('common.match')}
         </button>
         <button
           onClick={() => setTab('stats')}
           className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-all ${tab === 'stats' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}`}
         >
-          <BarChart3 size={16} /> Statistiques
+          <BarChart3 size={16} /> {t('common.stats')}
         </button>
       </nav>
 
@@ -144,7 +145,7 @@ export default function SharedMatch() {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                {match.finished ? '✅ Match terminé' : `${isBasketball ? 'QT' : 'Set'} ${match.currentSetNumber} en cours`}
+                {match.finished ? t('shared.matchFinished') : t('shared.setInProgress', { period: isBasketball ? 'QT' : 'Set', number: match.currentSetNumber })}
               </p>
             </div>
             {sport === 'basketball' ? (

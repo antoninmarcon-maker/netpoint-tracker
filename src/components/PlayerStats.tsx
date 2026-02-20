@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Point, Player, SportType, OFFENSIVE_ACTIONS, FAULT_ACTIONS, BASKET_SCORED_ACTIONS, BASKET_FAULT_ACTIONS } from '@/types/sports';
+import { useTranslation } from 'react-i18next';
 
 interface PlayerStatsProps {
   points: Point[];
@@ -10,6 +11,7 @@ interface PlayerStatsProps {
 }
 
 export function PlayerStats({ points, players, teamName, sport = 'volleyball' }: PlayerStatsProps) {
+  const { t } = useTranslation();
   const [expandedPlayers, setExpandedPlayers] = useState<Record<string, boolean>>({});
   const [expandedSections, setExpandedSections] = useState<Record<string, { scored?: boolean; faults?: boolean }>>({});
   const isBasketball = sport === 'basketball';
@@ -38,7 +40,7 @@ export function PlayerStats({ points, players, teamName, sport = 'volleyball' }:
       })).filter(b => b.count > 0);
 
       if (!isBasketball && faultWins.length > 0) {
-        scoredBreakdown.push({ label: 'Fautes adverses', count: faultWins.length });
+        scoredBreakdown.push({ label: t('playerStats.faultsLabel'), count: faultWins.length });
       }
 
       const negScoredActions = isBasketball ? BASKET_SCORED_ACTIONS : OFFENSIVE_ACTIONS;
@@ -65,7 +67,7 @@ export function PlayerStats({ points, players, teamName, sport = 'volleyball' }:
       };
     }).filter(s => s.total > 0)
       .sort((a, b) => b.scored - a.scored);
-  }, [points, players, isBasketball]);
+  }, [points, players, isBasketball, t]);
 
   const togglePlayer = (playerId: string) => {
     setExpandedPlayers(prev => ({ ...prev, [playerId]: !prev[playerId] }));
@@ -87,7 +89,7 @@ export function PlayerStats({ points, players, teamName, sport = 'volleyball' }:
         className="w-full flex items-center justify-between"
       >
         <p className="text-xs font-bold text-team-blue uppercase tracking-wider">
-          📊 Stats Individuelles — {teamName}
+          {t('playerStats.title', { team: teamName })}
         </p>
         {sectionOpen ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
       </button>
@@ -99,14 +101,13 @@ export function PlayerStats({ points, players, teamName, sport = 'volleyball' }:
             const sections = expandedSections[s.player.id] || {};
             return (
               <div key={s.player.id} className="bg-secondary/30 rounded-lg overflow-hidden">
-                {/* Collapsible header */}
                 <button
                   onClick={() => togglePlayer(s.player.id)}
                   className="w-full flex items-center justify-between p-2.5"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-black text-team-blue bg-team-blue/10 rounded px-1.5 py-0.5">{s.player.name || '—'}</span>
-                    <span className="text-[10px] text-muted-foreground">{s.scored} pts / {s.faults} fts</span>
+                    <span className="text-[10px] text-muted-foreground">{s.scored} {t('playerStats.pts')} / {s.faults} {t('playerStats.fts')}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${s.efficiency >= 60 ? 'bg-green-500/10 text-green-500' : s.efficiency >= 40 ? 'bg-yellow-500/10 text-yellow-500' : 'bg-destructive/10 text-destructive'}`}>
@@ -116,7 +117,6 @@ export function PlayerStats({ points, players, teamName, sport = 'volleyball' }:
                   </div>
                 </button>
 
-                {/* Expanded detail */}
                 {isOpen && (
                   <div className="px-2.5 pb-2.5 space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
                     <div className="flex gap-1.5">
@@ -127,7 +127,7 @@ export function PlayerStats({ points, players, teamName, sport = 'volleyball' }:
                             sections.scored ? 'bg-primary/15 text-primary' : 'bg-primary/5 text-primary hover:bg-primary/10'
                           }`}
                         >
-                          <span>⚡ {s.scored} pts</span>
+                          <span>⚡ {s.scored} {t('playerStats.pts')}</span>
                           {sections.scored ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                         </button>
                       )}
@@ -138,7 +138,7 @@ export function PlayerStats({ points, players, teamName, sport = 'volleyball' }:
                             sections.faults ? 'bg-destructive/15 text-destructive' : 'bg-destructive/5 text-destructive hover:bg-destructive/10'
                           }`}
                         >
-                          <span>❌ {s.faults} fts</span>
+                          <span>❌ {s.faults} {t('playerStats.fts')}</span>
                           {sections.faults ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                         </button>
                       )}

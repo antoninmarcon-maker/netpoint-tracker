@@ -1,6 +1,7 @@
 import { SetData, SportType } from '@/types/sports';
 import { ChevronDown, ChevronUp, Trophy, Clock } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface SetHistoryProps {
   completedSets: SetData[];
@@ -18,6 +19,7 @@ function formatDuration(seconds: number) {
 }
 
 export function SetHistory({ completedSets, currentSetNumber, setsScore, teamNames, isFinished = false, sport = 'volleyball' }: SetHistoryProps) {
+  const { t } = useTranslation();
   const periodLabel = sport === 'basketball' ? 'QT' : 'SET';
   const [expandedSet, setExpandedSet] = useState<string | null>(null);
 
@@ -25,11 +27,10 @@ export function SetHistory({ completedSets, currentSetNumber, setsScore, teamNam
 
   return (
     <div className="space-y-2">
-      {/* Sets score summary */}
       <div className="flex items-center justify-between bg-card rounded-xl p-3 border border-border">
         <div className="flex items-center gap-2">
           <Trophy size={14} className="text-muted-foreground" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sport === 'basketball' ? 'Quart-temps' : 'Sets'}</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sport === 'basketball' ? t('setHistory.quarters') : t('setHistory.sets')}</span>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm font-black text-team-blue">{setsScore.blue}</span>
@@ -42,12 +43,11 @@ export function SetHistory({ completedSets, currentSetNumber, setsScore, teamNam
               ? `🏆 ${teamNames.blue}`
               : setsScore.red > setsScore.blue
               ? `🏆 ${teamNames.red}`
-              : 'Égalité')
-            : `${periodLabel} ${currentSetNumber} en cours`}
+              : t('setHistory.equality'))
+            : t('setHistory.inProgress', { period: periodLabel, number: currentSetNumber })}
         </span>
       </div>
 
-      {/* Previous sets */}
       {completedSets.map(set => (
         <div key={set.id} className="bg-card rounded-xl border border-border overflow-hidden">
           <button
@@ -79,13 +79,13 @@ export function SetHistory({ completedSets, currentSetNumber, setsScore, teamNam
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <p className="text-team-blue font-semibold mb-1">{teamNames.blue}</p>
-                  <p className="text-muted-foreground">Marqués: {set.points.filter(p => p.team === 'blue' && p.type === 'scored').length}</p>
-                  <p className="text-muted-foreground">Fautes: {set.points.filter(p => p.team === 'blue' && p.type === 'fault').length}</p>
+                  <p className="text-muted-foreground">{t('setHistory.scored')}: {set.points.filter(p => p.team === 'blue' && p.type === 'scored').length}</p>
+                  <p className="text-muted-foreground">{t('setHistory.faults')}: {set.points.filter(p => p.team === 'blue' && p.type === 'fault').length}</p>
                 </div>
                 <div>
                   <p className="text-team-red font-semibold mb-1">{teamNames.red}</p>
-                  <p className="text-muted-foreground">Marqués: {set.points.filter(p => p.team === 'red' && p.type === 'scored').length}</p>
-                  <p className="text-muted-foreground">Fautes: {set.points.filter(p => p.team === 'red' && p.type === 'fault').length}</p>
+                  <p className="text-muted-foreground">{t('setHistory.scored')}: {set.points.filter(p => p.team === 'red' && p.type === 'scored').length}</p>
+                  <p className="text-muted-foreground">{t('setHistory.faults')}: {set.points.filter(p => p.team === 'red' && p.type === 'fault').length}</p>
                 </div>
               </div>
             </div>

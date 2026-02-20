@@ -5,6 +5,7 @@ import { SportType } from '@/types/sports';
 import { getSavedPlayers, removeSavedPlayer } from '@/lib/savedPlayers';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface SavedPlayersManagerProps {
   open: boolean;
@@ -25,6 +26,7 @@ interface PlayerWithStats extends SavedPlayer {
 }
 
 export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayersManagerProps) {
+  const { t } = useTranslation();
   const [sport, setSport] = useState<SportType>('volleyball');
   const [players, setPlayers] = useState<PlayerWithStats[]>([]);
   const [loading, setLoading] = useState(false);
@@ -97,7 +99,7 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
     await removeSavedPlayer(id, sport, userId);
     setDeletingId(null);
     loadPlayers();
-    toast.success('Joueur supprimé');
+    toast.success(t('savedPlayers.playerDeleted'));
   };
 
   const handleSaveName = async (id: string) => {
@@ -106,10 +108,10 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
       .from('saved_players')
       .update({ name: editName.trim() })
       .eq('id', id);
-    if (error) { toast.error('Erreur lors de la modification'); return; }
+    if (error) { toast.error(t('savedPlayers.nameChangeError')); return; }
     setEditingId(null);
     loadPlayers();
-    toast.success('Nom modifié');
+    toast.success(t('savedPlayers.nameChanged'));
   };
 
   return (
@@ -118,17 +120,17 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
         <DialogHeader>
           <DialogTitle className="text-center text-lg font-bold">
             <Users size={18} className="inline mr-2" />
-            Joueurs enregistrés
+            {t('savedPlayers.title')}
           </DialogTitle>
         </DialogHeader>
 
         {/* Sport tabs */}
         <div className="grid grid-cols-4 gap-1.5">
           {([
-            { key: 'volleyball' as SportType, icon: '🏐', label: 'Volley' },
-            { key: 'basketball' as SportType, icon: '🏀', label: 'Basket' },
-            { key: 'tennis' as SportType, icon: '🎾', label: 'Tennis' },
-            { key: 'padel' as SportType, icon: '🏓', label: 'Padel' },
+            { key: 'volleyball' as SportType, icon: '🏐', label: t('savedPlayers.volley') },
+            { key: 'basketball' as SportType, icon: '🏀', label: t('savedPlayers.basket') },
+            { key: 'tennis' as SportType, icon: '🎾', label: t('savedPlayers.tennis') },
+            { key: 'padel' as SportType, icon: '🏓', label: t('savedPlayers.padel') },
           ]).map(s => (
             <button
               key={s.key}
@@ -145,9 +147,9 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
         </div>
 
         {loading ? (
-          <p className="text-sm text-muted-foreground text-center py-8">Chargement…</p>
+          <p className="text-sm text-muted-foreground text-center py-8">{t('savedPlayers.loading')}</p>
         ) : players.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">Aucun joueur enregistré pour ce sport.</p>
+          <p className="text-sm text-muted-foreground text-center py-8">{t('savedPlayers.noPlayers')}</p>
         ) : (
           <div className="space-y-2">
             {players.map(p => (
@@ -177,8 +179,8 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
                 </div>
                 <div className="flex gap-3 text-[11px] text-muted-foreground pl-11">
                   <span>{p.matchCount} match{p.matchCount > 1 ? 's' : ''}</span>
-                  <span>⚡ {p.totalPoints} pts</span>
-                  <span>❌ {p.totalFaults} fautes</span>
+                  <span>⚡ {p.totalPoints} {t('playerStats.pts')}</span>
+                  <span>❌ {p.totalFaults} {t('savedPlayers.faults')}</span>
                 </div>
               </div>
             ))}
@@ -189,10 +191,10 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
         {deletingId && (
           <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4" onClick={() => setDeletingId(null)}>
             <div className="bg-card rounded-2xl p-5 max-w-xs w-full border border-border space-y-3" onClick={e => e.stopPropagation()}>
-              <p className="text-sm font-bold text-foreground text-center">Supprimer ce joueur ?</p>
+              <p className="text-sm font-bold text-foreground text-center">{t('savedPlayers.deletePlayer')}</p>
               <div className="flex gap-2">
-                <button onClick={() => setDeletingId(null)} className="flex-1 py-2 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm">Annuler</button>
-                <button onClick={() => handleDelete(deletingId)} className="flex-1 py-2 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm">Supprimer</button>
+                <button onClick={() => setDeletingId(null)} className="flex-1 py-2 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm">{t('common.cancel')}</button>
+                <button onClick={() => handleDelete(deletingId)} className="flex-1 py-2 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm">{t('common.delete')}</button>
               </div>
             </div>
           </div>

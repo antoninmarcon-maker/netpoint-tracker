@@ -19,10 +19,12 @@ import { getCloudMatchById, saveCloudMatch } from '@/lib/cloudStorage';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import type { MatchSummary } from '@/types/sports';
+import { useTranslation } from 'react-i18next';
 
 type Tab = 'match' | 'stats';
 
 const Index = () => {
+  const { t } = useTranslation();
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('match');
@@ -37,14 +39,12 @@ const Index = () => {
     if (!matchId) { setLoading(false); return; }
 
     const ensureMatchLocal = async () => {
-      // Already in localStorage?
       if (getMatch(matchId)) {
         setMatchReady(true);
         setLoading(false);
         return;
       }
 
-      // Try fetching from cloud using normalized tables
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         const cloudMatch = await getCloudMatchById(matchId);
@@ -55,7 +55,6 @@ const Index = () => {
           return;
         }
       }
-      // Not found anywhere
       setMatchReady(false);
       setLoading(false);
     };
@@ -88,7 +87,6 @@ const Index = () => {
   const metadata = matchData2?.metadata;
   const tennisScore = useTennisScore(isTennisOrPadel ? points : [], metadata);
 
-  // Auto-end set when tennis/padel set is won
   useEffect(() => {
     if (!isTennisOrPadel) return;
     if (tennisScore.setJustWon && points.length > 0 && !waitingForNewSet) {
@@ -96,14 +94,12 @@ const Index = () => {
     }
   }, [tennisScore.setJustWon, isTennisOrPadel, points.length, waitingForNewSet, endSet]);
 
-  // Auto-add free throw without court placement
   useEffect(() => {
     if (isBasketball && selectedAction === 'free_throw' && selectedTeam) {
       addFreeThrow();
     }
   }, [isBasketball, selectedAction, selectedTeam, addFreeThrow]);
 
-  // Auto-skip player assignment when not relevant
   useEffect(() => {
     if (!pendingPoint || players.length === 0) return;
     if (isBasketball) {
@@ -114,7 +110,6 @@ const Index = () => {
       }
       return;
     }
-    // Volleyball, Tennis, Padel: ask player for blue scored, red scored, AND red fault
     const isBlueScored = pendingPoint.team === 'blue' && pendingPoint.type === 'scored';
     const isRedScored = pendingPoint.team === 'red' && pendingPoint.type === 'scored';
     const isRedFault = pendingPoint.team === 'red' && pendingPoint.type === 'fault';
@@ -123,7 +118,6 @@ const Index = () => {
     }
   }, [pendingPoint, players, skipPlayerAssignment, isBasketball]);
 
-  // Cloud sync: save match_data to cloud periodically and on unmount
   const cloudSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastCloudSaveRef = useRef<string>('');
 
@@ -139,7 +133,6 @@ const Index = () => {
     );
   }, [user, matchId]);
 
-  // Debounced cloud save whenever points/sets/players change
   useEffect(() => {
     if (!user || !matchId || !matchReady) return;
     if (cloudSaveTimerRef.current) clearTimeout(cloudSaveTimerRef.current);
@@ -151,7 +144,6 @@ const Index = () => {
     };
   }, [points, completedSets, players, teamNames, chronoSeconds, sidesSwapped, user, matchId, matchReady, saveToCloud]);
 
-  // Save to cloud on unmount (navigating back)
   useEffect(() => {
     return () => {
       if (user && matchId) {
@@ -166,7 +158,7 @@ const Index = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground text-sm">Chargement du match…</div>
+        <div className="text-muted-foreground text-sm">{t('matchPage.loadingMatch')}</div>
       </div>
     );
   }
@@ -208,7 +200,7 @@ const Index = () => {
             tab === 'match' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'
           }`}
         >
-          <Activity size={16} /> Match
+          <Activity size={16} /> {t('common.match')}
         </button>
         <button
           onClick={() => setTab('stats')}
@@ -216,7 +208,7 @@ const Index = () => {
             tab === 'stats' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'
           }`}
         >
-          <BarChart3 size={16} /> Statistiques
+          <BarChart3 size={16} /> {t('common.stats')}
         </button>
       </nav>
 
@@ -267,45 +259,13 @@ const Index = () => {
               onStartNewSet={startNewSet}
             />
             {sport === 'basketball' ? (
-              <BasketballCourt
-                points={points}
-                selectedTeam={selectedTeam}
-                selectedAction={selectedAction}
-                selectedPointType={selectedPointType}
-                sidesSwapped={sidesSwapped}
-                teamNames={teamNames}
-                onCourtClick={addPoint}
-              />
+              <BasketballCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} />
             ) : sport === 'tennis' ? (
-              <TennisCourt
-                points={points}
-                selectedTeam={selectedTeam}
-                selectedAction={selectedAction}
-                selectedPointType={selectedPointType}
-                sidesSwapped={sidesSwapped}
-                teamNames={teamNames}
-                onCourtClick={addPoint}
-              />
+              <TennisCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} />
             ) : sport === 'padel' ? (
-              <PadelCourt
-                points={points}
-                selectedTeam={selectedTeam}
-                selectedAction={selectedAction}
-                selectedPointType={selectedPointType}
-                sidesSwapped={sidesSwapped}
-                teamNames={teamNames}
-                onCourtClick={addPoint}
-              />
+              <PadelCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} />
             ) : (
-              <VolleyballCourt
-                points={points}
-                selectedTeam={selectedTeam}
-                selectedAction={selectedAction}
-                selectedPointType={selectedPointType}
-                sidesSwapped={sidesSwapped}
-                teamNames={teamNames}
-                onCourtClick={addPoint}
-              />
+              <VolleyballCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} />
             )}
           </div>
         ) : (
@@ -327,9 +287,7 @@ const Index = () => {
           </div>
         )}
 
-        {/* Player assignment modal */}
         {pendingPoint && players.length > 0 && (() => {
-          // Determine if we should show the player selector
           if (isBasketball) {
             const isBlueFault = pendingPoint.team === 'blue' && pendingPoint.type === 'fault';
             const isBlueScored = pendingPoint.team === 'blue' && pendingPoint.type === 'scored';
@@ -337,20 +295,19 @@ const Index = () => {
             return (
               <PlayerSelector
                 players={players}
-                prompt={isBlueFault ? "Quel joueur a commis la faute ?" : "Quel joueur a marqué ?"}
+                prompt={isBlueFault ? t('playerSelector.whoFaulted') : t('playerSelector.whoScored')}
                 onSelect={assignPlayer}
                 onSkip={skipPlayerAssignment}
               />
             );
           }
-          // Volleyball: show player selector for blue scored, red scored, and red fault
           const showSelector = pendingPoint.type === 'scored' || (pendingPoint.team === 'red' && pendingPoint.type === 'fault');
           if (!showSelector) return null;
           const isFaultByBlue = pendingPoint.team === 'red' && (pendingPoint.type === 'fault' || pendingPoint.type === 'scored');
           return (
             <PlayerSelector
               players={players}
-              prompt={isFaultByBlue ? "Quel joueur a commis la faute ?" : "Quel joueur a marqué ?"}
+              prompt={isFaultByBlue ? t('playerSelector.whoFaulted') : t('playerSelector.whoScored')}
               onSelect={assignPlayer}
               onSkip={skipPlayerAssignment}
             />
@@ -359,39 +316,38 @@ const Index = () => {
 
       </main>
 
-      {/* Help modal */}
       {showHelp && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setShowHelp(false)}>
           <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-3 relative" onClick={e => e.stopPropagation()}>
             <button onClick={() => setShowHelp(false)} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground">
               <X size={18} />
             </button>
-            <h2 className="text-lg font-bold text-foreground">Comment ça marche ?</h2>
+            <h2 className="text-lg font-bold text-foreground">{t('matchPage.helpTitle')}</h2>
             <div className="text-sm text-muted-foreground space-y-2">
               {isBasketball ? (
                 <>
-                  <p><strong className="text-foreground">1. Appuyez sur « + »</strong> sous le score de l'équipe concernée.</p>
-                  <p><strong className="text-foreground">2. Choisissez l'onglet</strong> : <em>Paniers</em> (1pt Lancer franc, 2pts Intérieur, 3pts Extérieur) ou <em>Actions négatives</em> (Tir manqué, Perte de balle, Faute commise).</p>
-                  <p><strong className="text-foreground">3. Placez sur le terrain</strong> : pour les 3pts, seule la zone au-delà de l'arc est cliquable. Sélectionnez ensuite le joueur.</p>
-                  <p><strong className="text-foreground">4. Quart-temps</strong> : « Fin QT » termine la période en cours.</p>
-                  <p><strong className="text-foreground">5. Statistiques</strong> : onglet Stats pour voir les paniers et fautes par joueur + heatmap des tirs.</p>
+                  <p><strong className="text-foreground">{t('matchPage.helpBasketP1')}</strong></p>
+                  <p><strong className="text-foreground">{t('matchPage.helpBasketP2')}</strong></p>
+                  <p><strong className="text-foreground">{t('matchPage.helpBasketP3')}</strong></p>
+                  <p><strong className="text-foreground">{t('matchPage.helpBasketP4')}</strong></p>
+                  <p><strong className="text-foreground">{t('matchPage.helpBasketP5')}</strong></p>
                 </>
               ) : isTennisOrPadel ? (
                 <>
-                  <p><strong className="text-foreground">1. Appuyez sur « + »</strong> sous le nom de l'équipe concernée.</p>
-                  <p><strong className="text-foreground">2. Choisissez l'onglet</strong> : <em>Coups Gagnants</em> ({sport === 'tennis' ? 'Ace, Coup droit/Revers gagnant, Volée, Smash' : 'Víbora, Bandeja, Smash, Bajada, Par 3'}) ou <em>Fautes adverses</em> ({sport === 'tennis' ? 'Double faute, Out long/latéral, Filet' : 'Double faute, Grille, Vitre, Out'}).</p>
-                  <p><strong className="text-foreground">3. Placez sur le terrain</strong> la zone du coup, puis sélectionnez le joueur.</p>
-                  <p><strong className="text-foreground">4. Scoring automatique</strong> : 0 → 15 → 30 → 40 → Jeu. À 40-40 : Deuce puis Avantage{sport === 'padel' ? ' (ou punto de oro si configuré)' : ''}. Le set se termine automatiquement (6 jeux avec 2 d'écart, tie-break à 6-6).</p>
-                  <p><strong className="text-foreground">5. Statistiques</strong> : onglet Stats pour la heatmap, les stats par joueur et l'analyse du match.</p>
+                  <p><strong className="text-foreground">{t('matchPage.helpTennisP1')}</strong></p>
+                  <p><strong className="text-foreground">{t(sport === 'padel' ? 'matchPage.helpTennisP2_padel' : 'matchPage.helpTennisP2_tennis')}</strong></p>
+                  <p><strong className="text-foreground">{t('matchPage.helpTennisP3')}</strong></p>
+                  <p><strong className="text-foreground">{t(sport === 'padel' ? 'matchPage.helpTennisP4_padel' : 'matchPage.helpTennisP4')}</strong></p>
+                  <p><strong className="text-foreground">{t('matchPage.helpTennisP5')}</strong></p>
                 </>
               ) : (
                 <>
-                  <p><strong className="text-foreground">1. Appuyez sur « + »</strong> sous le score de l'équipe concernée. Une flèche animée indique l'équipe sélectionnée.</p>
-                  <p><strong className="text-foreground">2. Choisissez l'onglet</strong> : <em>Points Gagnés</em> (Attaque, Ace, Block, Bidouille, Seconde main) ou <em>Fautes adverses</em> (Out, Filet, Service loupé, Block Out).</p>
-                  <p><strong className="text-foreground">3. Cliquez sur l'action</strong> puis placez-la sur le terrain (zone autorisée illuminée) et sélectionnez le joueur.</p>
-                  <p><strong className="text-foreground">4. Gérez les sets</strong> : « Fin du Set » termine et inverse les côtés. Le gagnant 🏆 = le plus de sets remportés.</p>
-                  <p><strong className="text-foreground">5. Statistiques</strong> : onglet Stats pour voir les points ⚡ et fautes ❌ par joueur (dépliables) + heatmap.</p>
-                  <p><strong className="text-foreground">6. Exportez & Partagez</strong> : stats PNG, terrain par set, Excel, ou partagez le score via WhatsApp / Telegram / X.</p>
+                  <p><strong className="text-foreground">{t('matchPage.helpVolleyP1')}</strong></p>
+                  <p><strong className="text-foreground">{t('matchPage.helpVolleyP2')}</strong></p>
+                  <p><strong className="text-foreground">{t('matchPage.helpVolleyP3')}</strong></p>
+                  <p><strong className="text-foreground">{t('matchPage.helpVolleyP4')}</strong></p>
+                  <p><strong className="text-foreground">{t('matchPage.helpVolleyP5')}</strong></p>
+                  <p><strong className="text-foreground">{t('matchPage.helpVolleyP6')}</strong></p>
                 </>
               )}
             </div>
@@ -399,11 +355,10 @@ const Index = () => {
         </div>
       )}
 
-      {/* Auth dialog for AI */}
       <AuthDialog
         open={showAuthForAi}
         onOpenChange={setShowAuthForAi}
-        message="Cette fonctionnalité nécessite une connexion."
+        message={t('auth.requiresLogin')}
       />
     </div>
   );

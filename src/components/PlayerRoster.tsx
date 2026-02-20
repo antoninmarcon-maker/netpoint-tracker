@@ -3,6 +3,7 @@ import { Users, Plus, X, Pencil, Check, ChevronDown, ChevronUp } from 'lucide-re
 import { Player, SportType } from '@/types/sports';
 import { Input } from '@/components/ui/input';
 import { getSavedPlayers, syncMatchPlayersToPool } from '@/lib/savedPlayers';
+import { useTranslation } from 'react-i18next';
 
 interface PlayerRosterProps {
   players: Player[];
@@ -14,6 +15,7 @@ interface PlayerRosterProps {
 }
 
 export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyball', userId, readOnly = false }: PlayerRosterProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [newName, setNewName] = useState('');
@@ -121,7 +123,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
         className="w-full flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-lg bg-team-blue/10 text-team-blue border border-team-blue/20 hover:bg-team-blue/20 transition-all"
       >
         <Users size={14} />
-        {players.length > 0 ? `Roster ${teamName} (${players.length})` : `Définir le roster ${teamName}`}
+        {players.length > 0 ? t('roster.rosterTitle', { team: teamName, count: players.length }) : t('roster.defineRoster', { team: teamName })}
       </button>
     );
   }
@@ -131,7 +133,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
       <div className="flex items-center justify-between">
         <button onClick={() => setCollapsed(c => !c)} className="flex-1 flex items-center gap-1.5 text-left">
           <Users size={14} className="text-team-blue" />
-          <p className="text-sm font-bold text-team-blue">Roster {teamName} ({players.length})</p>
+          <p className="text-sm font-bold text-team-blue">{t('roster.rosterTitle', { team: teamName, count: players.length })}</p>
           {collapsed ? <ChevronDown size={14} className="text-muted-foreground" /> : <ChevronUp size={14} className="text-muted-foreground" />}
         </button>
         <button onClick={() => setOpen(false)} className="p-1 rounded-md text-muted-foreground hover:text-foreground">
@@ -148,7 +150,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
               className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-semibold rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all"
             >
               <Users size={12} />
-              Ajouter les {availableSavedCount} joueurs sauvegardés
+              {t('roster.addAllSaved', { count: availableSavedCount })}
             </button>
           )}
 
@@ -187,7 +189,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
                   value={newName}
                   onChange={e => { setNewName(e.target.value); setShowSuggestions(true); }}
                   className="h-8 flex-1 text-xs"
-                  placeholder="Nom du joueur"
+                  placeholder={t('roster.playerNamePlaceholder')}
                   onFocus={() => setShowSuggestions(true)}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addPlayer(); } }}
                 />

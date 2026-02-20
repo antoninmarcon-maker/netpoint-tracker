@@ -9,13 +9,11 @@ import { exportMatchToExcel } from '@/lib/excelExport';
 import { generateShareToken } from '@/lib/cloudStorage';
 import { toast } from 'sonner';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenuSeparator, DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import { useTranslation } from 'react-i18next';
+
 interface HeatmapViewProps {
   points: Point[];
   completedSets: SetData[];
@@ -105,12 +103,9 @@ function buildExportContainer(teamNames: { blue: string; red: string }, label: s
 }
 
 interface TeamStats {
-  scored: number;
-  faults: number;
-  // Volleyball
+  scored: number; faults: number;
   attacks: number; aces: number; blocks: number; bidouilles: number; secondeMains: number; otherOffensive: number;
   outs: number; netFaults: number; serviceMisses: number; blockOuts: number;
-  // Basketball
   scoredPoints: number; freeThrows: number; twoPoints: number; threePoints: number;
   missedShots: number; turnovers: number; foulsCommitted: number;
 }
@@ -124,7 +119,6 @@ function computeStats(pts: Point[], sport: SportType = 'volleyball'): { blue: Te
     return {
       scored: sport === 'basketball' ? scored.reduce((s, p) => s + (p.pointValue ?? 0), 0) : scored.length,
       faults: sport === 'basketball' ? teamFaults.length : opponentFaults.length,
-      // Volleyball
       attacks: scored.filter(p => p.action === 'attack').length,
       aces: scored.filter(p => p.action === 'ace').length,
       blocks: scored.filter(p => p.action === 'block').length,
@@ -135,7 +129,6 @@ function computeStats(pts: Point[], sport: SportType = 'volleyball'): { blue: Te
       netFaults: opponentFaults.filter(p => p.action === 'net_fault').length,
       serviceMisses: opponentFaults.filter(p => p.action === 'service_miss').length,
       blockOuts: opponentFaults.filter(p => p.action === 'block_out').length,
-      // Basketball
       scoredPoints: scored.reduce((s, p) => s + (p.pointValue ?? 0), 0),
       freeThrows: scored.filter(p => p.action === 'free_throw').length,
       twoPoints: scored.filter(p => p.action === 'two_points').length,
@@ -149,6 +142,7 @@ function computeStats(pts: Point[], sport: SportType = 'volleyball'): { blue: Te
 }
 
 export function HeatmapView({ points, completedSets, currentSetPoints, currentSetNumber, stats, teamNames, players = [], sport = 'volleyball', matchId, isLoggedIn }: HeatmapViewProps) {
+  const { t } = useTranslation();
   const isBasketball = sport === 'basketball';
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [setFilter_, setSetFilter] = useState<SetFilter>('all');
@@ -169,8 +163,8 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     setExporting(true);
     try {
       const label = setFilter_ === 'all'
-        ? 'Tous les sets'
-        : `Set ${setFilter_}${setFilter_ === currentSetNumber && !completedSets.some(s => s.number === setFilter_) ? ' (en cours)' : ''}`;
+        ? t('heatmap.allSets')
+        : `Set ${setFilter_}${setFilter_ === currentSetNumber && !completedSets.some(s => s.number === setFilter_) ? ` (${t('home.setInProgress')})` : ''}`;
       const filename = `stats-${teamNames.blue}-vs-${teamNames.red}-${setFilter_ === 'all' ? 'global' : `set${setFilter_}`}`;
       const ds = computeStats(filteredPoints, sport);
       const container = buildExportContainer(teamNames, label, ds, sport);
@@ -186,7 +180,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     } finally {
       setExporting(false);
     }
-  }, [teamNames, filteredPoints, setFilter_, currentSetNumber, completedSets, sport]);
+  }, [teamNames, filteredPoints, setFilter_, currentSetNumber, completedSets, sport, t]);
 
   const exportCourtPng = useCallback(async (pts: Point[], label: string) => {
     const isBasket = sport === 'basketball';
@@ -203,7 +197,6 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     svg.setAttribute('height', '440');
     svg.style.display = 'block';
 
-    // Title bar
     const titleRect = document.createElementNS(svgNS, 'rect');
     titleRect.setAttribute('x', '0'); titleRect.setAttribute('y', '0');
     titleRect.setAttribute('width', '600'); titleRect.setAttribute('height', '40');
@@ -217,14 +210,12 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     titleText.textContent = `${isBasket ? '🏀' : '🏐'} ${teamNames.blue} vs ${teamNames.red} — ${label}`;
     svg.appendChild(titleText);
 
-    // Court background
     const bg = document.createElementNS(svgNS, 'rect');
     bg.setAttribute('x', '0'); bg.setAttribute('y', '40');
     bg.setAttribute('width', '600'); bg.setAttribute('height', '400');
     bg.setAttribute('fill', isBasket ? 'hsl(30, 50%, 35%)' : 'hsl(142, 40%, 28%)');
     svg.appendChild(bg);
 
-    // Court border
     const border = document.createElementNS(svgNS, 'rect');
     border.setAttribute('x', '20'); border.setAttribute('y', '60');
     border.setAttribute('width', '560'); border.setAttribute('height', '360');
@@ -242,15 +233,12 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     };
 
     if (isBasket) {
-      // Center line
       svg.appendChild(makeLine(300, 60, 300, 420, '2', '0.8'));
-      // Center circle
       const cc = document.createElementNS(svgNS, 'circle');
       cc.setAttribute('cx', '300'); cc.setAttribute('cy', '240');
       cc.setAttribute('r', '40'); cc.setAttribute('fill', 'none');
       cc.setAttribute('stroke', 'white'); cc.setAttribute('stroke-width', '1.5'); cc.setAttribute('opacity', '0.5');
       svg.appendChild(cc);
-      // 3-point arcs
       const arcLeft = document.createElementNS(svgNS, 'path');
       arcLeft.setAttribute('d', 'M 70 120 A 120 120 0 0 1 70 360');
       arcLeft.setAttribute('fill', 'none'); arcLeft.setAttribute('stroke', 'white');
@@ -265,7 +253,6 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
       svg.appendChild(arcRight);
       svg.appendChild(makeLine(530, 120, 580, 120, '1.5', '0.7'));
       svg.appendChild(makeLine(530, 360, 580, 360, '1.5', '0.7'));
-      // Baskets
       for (const bx of [50, 550]) {
         const basket = document.createElementNS(svgNS, 'circle');
         basket.setAttribute('cx', String(bx)); basket.setAttribute('cy', '240');
@@ -274,13 +261,11 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         svg.appendChild(basket);
       }
     } else {
-      // Volleyball: net + attack lines
       svg.appendChild(makeLine(300, 60, 300, 420, '3', '1'));
       svg.appendChild(makeLine(200, 60, 200, 420, '1.5', '0.6'));
       svg.appendChild(makeLine(400, 60, 400, 420, '1.5', '0.6'));
     }
 
-    // Points
     pts.forEach(p => {
       const cx = p.x * 600;
       const cy = p.y * 400 + 40;
@@ -352,51 +337,40 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
 
   const shareNative = useCallback(async () => {
     if (navigator.share) {
-      try {
-        await navigator.share({ text: getScoreText() });
-      } catch {}
-    } else {
-      copyScoreText();
-    }
+      try { await navigator.share({ text: getScoreText() }); } catch {}
+    } else { copyScoreText(); }
   }, [getScoreText, copyScoreText]);
 
   const [generatingLink, setGeneratingLink] = useState(false);
   const shareMatchLink = useCallback(async () => {
     if (!matchId || !isLoggedIn) {
-      toast.error('Connectez-vous pour générer un lien de partage');
+      toast.error(t('heatmap.loginForLink'));
       return;
     }
     setGeneratingLink(true);
     try {
       const token = await generateShareToken(matchId);
-      if (!token) { toast.error('Erreur lors de la génération du lien'); return; }
+      if (!token) { toast.error(t('heatmap.linkError')); return; }
       const url = `${window.location.origin}/shared/${token}`;
       await navigator.clipboard.writeText(url);
-      toast.success('Lien copié dans le presse-papier !');
+      toast.success(t('heatmap.linkCopied'));
     } finally {
       setGeneratingLink(false);
     }
-  }, [matchId, isLoggedIn]);
+  }, [matchId, isLoggedIn, t]);
 
-
-  // Heatmap: only scored points, normalized so blue always RIGHT, red always LEFT
   const heatmapPoints = useMemo(() => {
-    // Volleyball: only 'scored' points; Basketball: only scored (baskets)
     const scoredOnly = filteredPoints.filter(p => p.type === 'scored');
     return scoredOnly.map(p => {
       const isBlue = p.team === 'blue';
       let nx = p.x;
-      // Blue scored → always right side (x > 0.5)
       if (isBlue && nx < 0.5) nx = 1 - nx;
-      // Red scored → always left side (x < 0.5)
       if (!isBlue && nx > 0.5) nx = 1 - nx;
       return { ...p, x: nx };
     });
   }, [filteredPoints]);
 
-  const displayStats = useMemo(() => {
-    return computeStats(filteredPoints, sport);
-  }, [filteredPoints, sport]);
+  const displayStats = useMemo(() => computeStats(filteredPoints, sport), [filteredPoints, sport]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -451,9 +425,9 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
   }, [heatmapPoints, showHeatmap]);
 
   const setOptions: { key: SetFilter; label: string }[] = [
-    { key: 'all', label: 'Tous les sets' },
-    ...completedSets.map(s => ({ key: s.number as SetFilter, label: `Set ${s.number}` })),
-    ...(currentSetNumber > 0 && currentSetPoints.length > 0 ? [{ key: currentSetNumber as SetFilter, label: `Set ${currentSetNumber} (en cours)` }] : []),
+    { key: 'all', label: t('heatmap.allSets') },
+    ...completedSets.map(s => ({ key: s.number as SetFilter, label: t('heatmap.set', { n: s.number }) })),
+    ...(currentSetNumber > 0 && currentSetPoints.length > 0 ? [{ key: currentSetNumber as SetFilter, label: t('heatmap.setInProgress', { n: currentSetNumber }) }] : []),
   ];
 
   const ds = displayStats;
@@ -461,12 +435,11 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
   return (
     <div className="space-y-4">
       <div className="space-y-4 bg-background rounded-2xl p-4">
-        {/* Header */}
         <div className="text-center space-y-1">
           <p className="text-base font-black text-foreground">
             {isBasketball ? '🏀' : '🏐'} {teamNames.blue} vs {teamNames.red}
           </p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Statistiques du match</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{t('heatmap.matchStats')}</p>
         </div>
 
         <div className="flex gap-1.5 justify-center flex-wrap">
@@ -485,7 +458,6 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
           ))}
         </div>
 
-        {/* Stats detail */}
         <div className="grid grid-cols-2 gap-3">
           {(['blue', 'red'] as const).map(team => (
             <div key={team} className="bg-card rounded-xl p-3 border border-border">
@@ -494,15 +466,15 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
               </p>
               <div className="space-y-0.5 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground font-semibold text-xs">{isBasketball ? '🏀 Points' : '⚡ Gagnés'}</span>
+                  <span className="text-muted-foreground font-semibold text-xs">{isBasketball ? t('heatmap.scoredBasket') : t('heatmap.scored')}</span>
                   <span className="font-bold text-foreground text-xs">{ds[team].scored}</span>
                 </div>
                 {isBasketball ? (
                   <>
                     {[
-                      ['Lancers francs (1pt)', ds[team].freeThrows],
-                      ['Intérieur (2pts)', ds[team].twoPoints],
-                      ['Extérieur (3pts)', ds[team].threePoints],
+                      [t('heatmap.freeThrows'), ds[team].freeThrows],
+                      [t('heatmap.twoPoints'), ds[team].twoPoints],
+                      [t('heatmap.threePoints'), ds[team].threePoints],
                     ].map(([label, val]) => (
                       <div key={label as string} className="flex justify-between pl-2">
                         <span className="text-muted-foreground text-[11px]">{label}</span>
@@ -513,12 +485,12 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
                 ) : (
                   <>
                     {[
-                      ['Attaques', ds[team].attacks],
-                      ['Aces', ds[team].aces],
-                      ['Blocks', ds[team].blocks],
-                      ['Bidouilles', ds[team].bidouilles],
-                      ['2ndes mains', ds[team].secondeMains],
-                      ['Autres', ds[team].otherOffensive],
+                      [t('heatmap.attacks'), ds[team].attacks],
+                      [t('heatmap.aces'), ds[team].aces],
+                      [t('heatmap.blocks'), ds[team].blocks],
+                      [t('heatmap.bidouilles'), ds[team].bidouilles],
+                      [t('heatmap.secondeMains'), ds[team].secondeMains],
+                      [t('heatmap.others'), ds[team].otherOffensive],
                     ].map(([label, val]) => (
                       <div key={label as string} className="flex justify-between pl-2">
                         <span className="text-muted-foreground text-[11px]">{label}</span>
@@ -529,15 +501,15 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
                 )}
 
                 <div className="flex justify-between border-t border-border pt-1 mt-1">
-                  <span className="text-muted-foreground font-semibold text-xs">{isBasketball ? '❌ Actions négatives' : '❌ Fautes commises'}</span>
+                  <span className="text-muted-foreground font-semibold text-xs">{isBasketball ? t('heatmap.faultsBasket') : t('heatmap.faults')}</span>
                   <span className="font-bold text-destructive text-xs">{ds[team].faults}</span>
                 </div>
                 {isBasketball ? (
                   <>
                     {[
-                      ['Tirs manqués', ds[team].missedShots],
-                      ['Pertes de balle', ds[team].turnovers],
-                      ['Fautes commises', ds[team].foulsCommitted],
+                      [t('heatmap.missedShots'), ds[team].missedShots],
+                      [t('heatmap.turnovers'), ds[team].turnovers],
+                      [t('heatmap.foulsCommitted'), ds[team].foulsCommitted],
                     ].map(([label, val]) => (
                       <div key={label as string} className="flex justify-between pl-2">
                         <span className="text-muted-foreground text-[11px]">{label}</span>
@@ -548,10 +520,10 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
                 ) : (
                   <>
                     {[
-                      ['Out', ds[team].outs],
-                      ['Filet', ds[team].netFaults],
-                      ['Srv loupés', ds[team].serviceMisses],
-                      ['Block Out', ds[team].blockOuts],
+                      [t('heatmap.outs'), ds[team].outs],
+                      [t('heatmap.netFaults'), ds[team].netFaults],
+                      [t('heatmap.serviceMisses'), ds[team].serviceMisses],
+                      [t('heatmap.blockOuts'), ds[team].blockOuts],
                     ].map(([label, val]) => (
                       <div key={label as string} className="flex justify-between pl-2">
                         <span className="text-muted-foreground text-[11px]">{label}</span>
@@ -562,7 +534,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
                 )}
 
                 <div className="flex justify-between border-t border-border pt-1 mt-1">
-                  <span className="text-muted-foreground text-xs">Total</span>
+                  <span className="text-muted-foreground text-xs">{t('common.total')}</span>
                   <span className="font-bold text-foreground text-xs">{ds[team].scored + ds[team].faults}</span>
                 </div>
               </div>
@@ -572,7 +544,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
 
         <div className="bg-card rounded-xl p-3 border border-border text-center">
           <p className="text-2xl font-black text-foreground">{ds.total}</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Points totaux</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('heatmap.totalActions')}</p>
         </div>
 
         {players.length > 0 && (
@@ -581,14 +553,12 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
 
         {showHeatmap && (
           <div>
-            <p className="text-[10px] text-center text-muted-foreground mb-1">Heatmap — 🔵 Points marqués (droite) · 🔴 Points pris (gauche)</p>
+            <p className="text-[10px] text-center text-muted-foreground mb-1">{t('heatmap.heatmapLabel')}</p>
             <div className="rounded-xl overflow-hidden">
               <canvas ref={canvasRef} width={600} height={400} className="w-full h-auto" />
             </div>
           </div>
         )}
-
-
       </div>
 
       {setFilter_ !== 'all' && showTimeline && (
@@ -598,7 +568,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
       {setFilter_ !== 'all' && showCourt && (
         <div className="space-y-1">
           <p className="text-[10px] text-center text-muted-foreground">
-            Terrain — {setOptions.find(o => o.key === setFilter_)?.label}
+            {t('heatmap.court')} — {setOptions.find(o => o.key === setFilter_)?.label}
           </p>
           <CourtDisplay points={filteredPoints} teamNames={teamNames} sport={sport} />
         </div>
@@ -610,7 +580,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
             onClick={() => setShowTimeline(prev => !prev)}
             className="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
           >
-            {showTimeline ? 'Masquer l\'historique' : 'Afficher l\'historique'}
+            {showTimeline ? t('heatmap.hideTimeline') : t('heatmap.showTimeline')}
           </button>
         )}
         {setFilter_ !== 'all' && (
@@ -618,43 +588,42 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
             onClick={() => setShowCourt(prev => !prev)}
             className="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
           >
-            {showCourt ? 'Masquer le terrain' : 'Afficher le terrain'}
+            {showCourt ? t('heatmap.hideCourt') : t('heatmap.showCourt')}
           </button>
         )}
         <button
           onClick={() => setShowHeatmap(prev => !prev)}
           className="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
         >
-          {showHeatmap ? 'Masquer la Heatmap' : 'Afficher la Heatmap'}
+          {showHeatmap ? t('heatmap.hideHeatmap') : t('heatmap.showHeatmap')}
         </button>
       </div>
 
-      {/* Export & Share buttons */}
       <div className="flex gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-all">
               <Download size={16} />
-              Export
+              {t('heatmap.export')}
               <ChevronDown size={14} />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-64 bg-popover border border-border shadow-lg z-50">
-            <DropdownMenuLabel className="text-xs text-muted-foreground">Images PNG</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-xs text-muted-foreground">{t('heatmap.pngImages')}</DropdownMenuLabel>
             <DropdownMenuItem onClick={handleExport} disabled={exporting} className="cursor-pointer">
               <Image size={14} className="mr-2" />
-              {exporting ? 'Export en cours...' : `Exporter stats${setFilter_ !== 'all' ? ` — Set ${setFilter_}` : ''} (PNG)`}
+              {exporting ? t('heatmap.exporting') : t('heatmap.exportStatsPng', { suffix: setFilter_ !== 'all' ? ` — Set ${setFilter_}` : '' })}
             </DropdownMenuItem>
             {setFilter_ !== 'all' && (
-              <DropdownMenuItem onClick={() => exportCourtPng(filteredPoints, `Set ${setFilter_}${setFilter_ === currentSetNumber && !completedSets.some(s => s.number === setFilter_) ? ' (en cours)' : ''}`)} className="cursor-pointer">
+              <DropdownMenuItem onClick={() => exportCourtPng(filteredPoints, `Set ${setFilter_}${setFilter_ === currentSetNumber && !completedSets.some(s => s.number === setFilter_) ? ` (${t('home.setInProgress')})` : ''}`)} className="cursor-pointer">
                 <Map size={14} className="mr-2" />
-                Terrain Set {setFilter_} (PNG)
+                {t('heatmap.courtSetPng', { n: setFilter_ })}
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => exportMatchToExcel(completedSets, currentSetPoints, currentSetNumber, teamNames, players, sport)} className="cursor-pointer">
               <FileSpreadsheet size={14} className="mr-2" />
-              Excel (.xlsx)
+              {t('heatmap.excelXlsx')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -663,14 +632,14 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
           <DropdownMenuTrigger asChild>
             <button className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
               <Share2 size={16} />
-              Partager
+              {t('common.share')}
               <ChevronDown size={14} />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56 bg-popover border border-border shadow-lg z-50">
             <DropdownMenuItem onClick={shareNative} className="cursor-pointer">
               <Share2 size={14} className="mr-2" />
-              Partager…
+              {t('heatmap.shareDots')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={shareToWhatsApp} className="cursor-pointer">
@@ -688,14 +657,14 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={copyScoreText} className="cursor-pointer">
               <Copy size={14} className="mr-2" />
-              Copier le score
+              {t('heatmap.copyScore')}
             </DropdownMenuItem>
             {matchId && isLoggedIn && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={shareMatchLink} disabled={generatingLink} className="cursor-pointer">
                   <LinkIcon size={14} className="mr-2" />
-                  {generatingLink ? 'Génération...' : '🔗 Lien de partage'}
+                  {generatingLink ? t('heatmap.generatingLink') : t('heatmap.shareLink')}
                 </DropdownMenuItem>
               </>
             )}

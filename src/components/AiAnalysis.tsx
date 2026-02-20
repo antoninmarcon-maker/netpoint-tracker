@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Point, SetData, Player, SportType, TENNIS_SCORED_ACTIONS, TENNIS_FAULT_ACTIONS, PADEL_SCORED_ACTIONS, PADEL_FAULT_ACTIONS } from '@/types/sports';
 import ReactMarkdown from 'react-markdown';
+import { useTranslation } from 'react-i18next';
 
 interface AiAnalysisProps {
   points: Point[];
@@ -54,7 +55,6 @@ function buildMatchStatsText(
     text += `  Set en cours: ${bs}-${rs}\n`;
   }
 
-  // Player stats
   if (players.length > 0) {
     text += `\nStats par joueur (${teamNames.blue}):\n`;
     players.forEach(p => {
@@ -66,7 +66,6 @@ function buildMatchStatsText(
       const eff = total > 0 ? ((scored.length / total) * 100).toFixed(0) : '0';
       text += `  ${p.name || '—'}: ${scored.length} pts gagnés, ${negatives.length} négatifs, efficacité ${eff}%`;
       
-      // Action breakdown
       const actions: Record<string, number> = {};
       scored.forEach(pt => { actions[pt.action] = (actions[pt.action] || 0) + 1; });
       const details = Object.entries(actions).map(([a, c]) => `${a}:${c}`).join(', ');
@@ -75,7 +74,6 @@ function buildMatchStatsText(
     });
   }
 
-  // Team totals with sport-specific breakdown
   for (const team of ['blue', 'red'] as const) {
     const tp = allPts.filter(p => p.team === team);
     const scored = tp.filter(p => p.type === 'scored');
@@ -84,7 +82,6 @@ function buildMatchStatsText(
     text += `  Points marqués: ${scored.length}\n`;
     text += `  Fautes directes: ${faults.length}\n`;
 
-    // Sport-specific action breakdown
     if (sport === 'tennis') {
       const actionBreakdown = (pts: Point[], actions: { key: string; label: string }[]) =>
         actions.map(a => `${a.label}: ${pts.filter(p => p.action === a.key).length}`).join(', ');
@@ -102,6 +99,7 @@ function buildMatchStatsText(
 }
 
 export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames, players, sport, isLoggedIn, onLoginRequired, finished = false }: AiAnalysisProps) {
+  const { t } = useTranslation();
   const [showDialog, setShowDialog] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
@@ -137,7 +135,7 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
       if (data?.error) throw new Error(data.error);
       setAnalysis(data.analysis);
     } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de l\'analyse');
+      toast.error(err.message || t('analysis.analysisError'));
       setAnalysis(null);
     } finally {
       setLoading(false);
@@ -152,34 +150,31 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
         style={{ background: 'linear-gradient(135deg, hsl(280, 70%, 50%), hsl(320, 70%, 50%))', color: 'white' }}
       >
         <Sparkles size={14} />
-        Analyse
+        {t('analysis.analyze')}
       </button>
 
-      {/* Warning dialog for unfinished match */}
       <Dialog open={showWarning} onOpenChange={setShowWarning}>
         <DialogContent className="max-w-sm rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-center text-base font-bold flex items-center justify-center gap-2">
               <AlertTriangle size={18} className="text-yellow-500" />
-              Match en cours
+              {t('analysis.matchInProgress')}
             </DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground text-center">
-            Le match n'est pas encore terminé. L'analyse sera basée sur les données partielles disponibles.
-          </p>
+          <p className="text-sm text-muted-foreground text-center">{t('analysis.matchNotFinished')}</p>
           <div className="flex gap-2 mt-2">
             <button
               onClick={() => setShowWarning(false)}
               className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               onClick={launchAnalysis}
               className="flex-1 py-2.5 rounded-lg font-semibold text-sm text-white"
               style={{ background: 'linear-gradient(135deg, hsl(280, 70%, 50%), hsl(320, 70%, 50%))' }}
             >
-              Analyser quand même
+              {t('analysis.analyzeAnyway')}
             </button>
           </div>
         </DialogContent>
@@ -190,21 +185,21 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-bold flex items-center justify-center gap-2">
               <Sparkles size={18} className="text-purple-400" />
-              Analyse du match
+              {t('analysis.matchAnalysis')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             {loading ? (
               <div className="flex flex-col items-center gap-3 py-8">
                 <Loader2 size={28} className="animate-spin text-purple-400" />
-                <p className="text-sm text-muted-foreground">Analyse en cours...</p>
+                <p className="text-sm text-muted-foreground">{t('analysis.analyzing')}</p>
               </div>
             ) : analysis ? (
               <div className="prose prose-sm prose-invert max-w-none text-sm text-foreground leading-relaxed">
                 <ReactMarkdown>{analysis}</ReactMarkdown>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">Aucune analyse disponible.</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t('analysis.noAnalysis')}</p>
             )}
             {!loading && analysis && (
               <>
@@ -212,14 +207,14 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
                   onClick={() => {
                     navigator.clipboard.writeText(analysis);
                     setCopied(true);
-                    toast.success('Analyse copiée !');
+                    toast.success(t('analysis.analysisCopied'));
                     setTimeout(() => setCopied(false), 2000);
                   }}
                   className="w-full py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold hover:bg-secondary/80 transition-all flex items-center justify-center gap-1.5"
                 >
-                  {copied ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier l'analyse</>}
+                  {copied ? <><Check size={14} /> {t('analysis.copied')}</> : <><Copy size={14} /> {t('analysis.copyAnalysis')}</>}
                 </button>
-                <p className="text-[10px] text-muted-foreground text-center mt-1">Ce texte a été rédigé automatiquement à partir de l'analyse statistique du match.</p>
+                <p className="text-[10px] text-muted-foreground text-center mt-1">{t('analysis.aiDisclaimer')}</p>
               </>
             )}
           </div>

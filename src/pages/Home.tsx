@@ -14,6 +14,7 @@ import { UserMenu } from '@/components/UserMenu';
 import { SavedPlayersManager } from '@/components/SavedPlayersManager';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import { useTranslation } from 'react-i18next';
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -26,6 +27,7 @@ function matchScore(match: MatchSummary) {
 }
 
 function Instructions({ onClose }: { onClose?: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="bg-card rounded-xl p-5 border border-border space-y-3 relative">
       {onClose && (
@@ -35,28 +37,29 @@ function Instructions({ onClose }: { onClose?: () => void }) {
       )}
       <div className="flex items-center gap-2">
         <Info size={16} className="text-primary" />
-        <h3 className="text-sm font-bold text-foreground">Comment ça marche ?</h3>
+        <h3 className="text-sm font-bold text-foreground">{t('home.howItWorks')}</h3>
       </div>
       <div className="text-sm text-muted-foreground space-y-2">
-        <p><strong className="text-foreground">1. Créez un match</strong> : appuyez sur « Nouveau Match », choisissez le sport (🏐 Volley, 🏀 Basket, 🎾 Tennis ou 🏓 Padel) et nommez les équipes.</p>
-        <p><strong className="text-foreground">2. Roster</strong> : ajoutez vos joueurs (numéro + nom). Ils sont sauvegardés automatiquement pour les prochains matchs.</p>
-        <p><strong className="text-foreground">3. Marquez les points</strong> : « + » sous le score → choisissez l'action → placez sur le terrain → sélectionnez le joueur.</p>
-        <p><strong className="text-foreground">4. Actions par sport</strong> :</p>
+        <p><strong className="text-foreground">{t('home.howItWorksP1')}</strong></p>
+        <p><strong className="text-foreground">{t('home.howItWorksP2')}</strong></p>
+        <p><strong className="text-foreground">{t('home.howItWorksP3')}</strong></p>
+        <p><strong className="text-foreground">{t('home.howItWorksP4')}</strong></p>
         <ul className="list-disc list-inside pl-2 space-y-1 text-xs">
-          <li><strong>🏐 Volley</strong> : Attaque, Ace, Block, Bidouille, Seconde main · Fautes adverses : Out, Filet, Service loupé…</li>
-          <li><strong>🏀 Basket</strong> : Lancer franc (1pt), Tir intérieur (2pts), Tir à 3pts · Zones adaptées sur le terrain.</li>
-          <li><strong>🎾 Tennis</strong> : Ace, Coup droit/Revers gagnant, Volée, Smash · Fautes adverses : Double faute, Out long/latéral… Scoring automatique 15-30-40-Jeu avec avantage et tie-break.</li>
-          <li><strong>🏓 Padel</strong> : Víbora, Bandeja, Smash, Bajada, Par 3 · Fautes adverses : Double faute, Grille, Vitre… Scoring identique au tennis avec option punto de oro.</li>
+          <li>{t('home.howItWorksVolley')}</li>
+          <li>{t('home.howItWorksBasket')}</li>
+          <li>{t('home.howItWorksTennis')}</li>
+          <li>{t('home.howItWorksPadel')}</li>
         </ul>
-        <p><strong className="text-foreground">5. Périodes</strong> : « Fin du Set » / « Fin du QT » pour passer à la suite. En Tennis/Padel, le set se termine automatiquement quand un joueur gagne assez de jeux.</p>
-        <p><strong className="text-foreground">6. Stats & Heatmap</strong> : onglet Statistiques pour les stats par joueur, la heatmap et l'analyse du match.</p>
-        <p><strong className="text-foreground">7. Exportez</strong> : stats en PNG, terrain par set, Excel complet ou partage via un lien.</p>
+        <p><strong className="text-foreground">{t('home.howItWorksP5')}</strong></p>
+        <p><strong className="text-foreground">{t('home.howItWorksP6')}</strong></p>
+        <p><strong className="text-foreground">{t('home.howItWorksP7')}</strong></p>
       </div>
     </div>
   );
 }
 
 export default function Home() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
@@ -100,7 +103,6 @@ export default function Home() {
   useEffect(() => {
     let isMounted = true;
 
-    // Listener for ongoing auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMounted) return;
       const u = session?.user ?? null;
@@ -112,12 +114,10 @@ export default function Home() {
           await loadMatches(u);
         }, 0);
       } else if (authLoaded) {
-        // Only reload as guest if auth was already loaded (avoid flash on init)
         loadMatches(null);
       }
     });
 
-    // Initial session load
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -141,7 +141,6 @@ export default function Home() {
     };
   }, [loadMatches]);
 
-  // Show auth dialog on first visit if not logged in AND auth is loaded
   useEffect(() => {
     if (!authLoaded) return;
     if (user) {
@@ -156,12 +155,11 @@ export default function Home() {
 
   const handleCreate = () => {
     const match = createNewMatch({
-      blue: names.blue.trim() || 'Bleue',
-      red: names.red.trim() || 'Rouge',
+      blue: names.blue.trim() || t('scoreboard.blue'),
+      red: names.red.trim() || t('scoreboard.red'),
     }, selectedSport);
     saveMatch(match);
     setActiveMatchId(match.id);
-    // Fire-and-forget cloud save — don't block navigation
     if (user) {
       saveCloudMatch(user.id, match).catch(err =>
         console.error('Cloud save failed:', err)
@@ -180,7 +178,7 @@ export default function Home() {
         deleteMatch(id);
       } catch (err) {
         console.error('Cloud delete failed:', err);
-        toast.error('Erreur lors de la suppression du match');
+        toast.error(t('home.errorDeleting'));
         setDeletingId(null);
         return;
       }
@@ -194,15 +192,14 @@ export default function Home() {
   const handleFinishMatch = async (id: string) => {
     try {
       let match = getMatch(id);
-      // If not in localStorage, try fetching from cloud
       if (!match && user) {
         const cloudMatch = await getCloudMatchById(id);
         if (cloudMatch) {
           match = cloudMatch;
-          saveMatch(cloudMatch); // cache locally
+          saveMatch(cloudMatch);
         }
       }
-      if (!match) { toast.error('Match introuvable'); setFinishingId(null); return; }
+      if (!match) { toast.error(t('home.matchNotFound')); setFinishingId(null); return; }
 
       if (match.points.length > 0) {
         const sport = match.sport ?? 'volleyball';
@@ -233,7 +230,7 @@ export default function Home() {
       setFinishingId(null);
     } catch (err) {
       console.error('Error finishing match:', err);
-      toast.error('Erreur lors de la finalisation du match.');
+      toast.error(t('home.errorFinishing'));
       setFinishingId(null);
     }
   };
@@ -255,17 +252,15 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="px-4 py-6 border-b border-border flex flex-col items-center gap-3 relative">
-        {/* Help button */}
         <div className="absolute top-4 left-4">
           <Link
             to="/help"
             className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors inline-flex"
-            title="Aide"
+            title={t('help.title')}
           >
             <HelpCircle size={18} />
           </Link>
         </div>
-        {/* Auth button */}
         <div className="absolute top-4 right-4">
           {user ? (
             <UserMenu user={user} onOpenSavedPlayers={() => setShowSavedPlayers(true)} />
@@ -275,29 +270,25 @@ export default function Home() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-foreground text-xs font-medium hover:bg-secondary transition-all"
             >
               <LogIn size={14} />
-              Connexion
+              {t('common.login')}
             </button>
           )}
         </div>
-        <img src={logoCapbreton} alt="Volleyball Capbreton" className="w-16 h-16 rounded-full object-cover" />
+        <img src={logoCapbreton} alt={t('common.volleyballCapbreton')} className="w-16 h-16 rounded-full object-cover" />
         <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight text-center">🏆 Netpoint Tracker</h1>
-          <p className="text-sm text-muted-foreground text-center mt-1">Volley · Basket · Tennis · Padel</p>
+          <h1 className="text-2xl font-black text-foreground tracking-tight text-center">{t('home.title')}</h1>
+          <p className="text-sm text-muted-foreground text-center mt-1">{t('home.subtitle')}</p>
         </div>
       </header>
 
-      {/* Auth dialog */}
       <AuthDialog
         open={showAuth}
         onOpenChange={setShowAuth}
         onGuest={() => { setGuestDismissed(true); sessionStorage.setItem('guestDismissed', 'true'); }}
       />
 
-      {/* Help dialog removed — now a dedicated page at /help */}
-
       <main className="flex-1 overflow-auto p-4 max-w-lg mx-auto w-full space-y-6">
         <PwaInstallBanner />
-        {/* New match */}
         <button
           onClick={() => setShowNew(true)}
           className="group w-full relative flex items-center justify-center gap-3 py-4 rounded-2xl font-bold text-lg text-white overflow-hidden transition-all duration-300 active:scale-[0.97] hover:shadow-lg hover:shadow-action-scored/25"
@@ -305,24 +296,23 @@ export default function Home() {
         >
           <span className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-300" />
           <Plus size={22} className="relative z-10 transition-transform duration-300 group-hover:rotate-90" />
-          <span className="relative z-10">Nouveau Match</span>
+          <span className="relative z-10">{t('home.newMatch')}</span>
         </button>
 
         <Dialog open={showNew} onOpenChange={setShowNew}>
           <DialogContent className="max-w-sm rounded-2xl">
             <DialogHeader>
-              <DialogTitle className="text-center text-lg font-bold">Créer un match</DialogTitle>
+              <DialogTitle className="text-center text-lg font-bold">{t('home.createMatch')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              {/* Sport selector */}
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground block">Sport</label>
+                <label className="text-xs font-semibold text-muted-foreground block">{t('home.sport')}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {([
-                    { key: 'volleyball' as SportType, icon: '🏐', label: 'Volley-ball', hue: 'hsl(var(--primary))' },
-                    { key: 'basketball' as SportType, icon: '🏀', label: 'Basket-ball', hue: 'hsl(30, 90%, 50%)' },
-                    { key: 'tennis' as SportType, icon: '🎾', label: 'Tennis', hue: 'hsl(142, 70%, 40%)' },
-                    { key: 'padel' as SportType, icon: '🏓', label: 'Padel', hue: 'hsl(210, 80%, 50%)' },
+                    { key: 'volleyball' as SportType, icon: '🏐', label: t('home.volleyball'), hue: 'hsl(var(--primary))' },
+                    { key: 'basketball' as SportType, icon: '🏀', label: t('home.basketball'), hue: 'hsl(30, 90%, 50%)' },
+                    { key: 'tennis' as SportType, icon: '🎾', label: t('home.tennis'), hue: 'hsl(142, 70%, 40%)' },
+                    { key: 'padel' as SportType, icon: '🏓', label: t('home.padel'), hue: 'hsl(210, 80%, 50%)' },
                   ]).map(s => (
                     <button
                       key={s.key}
@@ -341,20 +331,20 @@ export default function Home() {
 
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-team-blue mb-1 block">Équipe Bleue <span className="text-muted-foreground font-normal">· votre équipe</span></label>
+                  <label className="text-xs font-semibold text-team-blue mb-1 block">{t('home.blueTeam')} <span className="text-muted-foreground font-normal">· {t('home.blueTeamHint')}</span></label>
                   <Input
                     value={names.blue}
                     onChange={e => setNames(prev => ({ ...prev, blue: e.target.value }))}
-                    placeholder="Nom de l'équipe bleue"
+                    placeholder={t('home.blueTeamPlaceholder')}
                     className="h-10"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-team-red mb-1 block">Équipe Rouge</label>
+                  <label className="text-xs font-semibold text-team-red mb-1 block">{t('home.redTeam')}</label>
                   <Input
                     value={names.red}
                     onChange={e => setNames(prev => ({ ...prev, red: e.target.value }))}
-                    placeholder="Nom de l'équipe rouge"
+                    placeholder={t('home.redTeamPlaceholder')}
                     className="h-10"
                   />
                 </div>
@@ -364,25 +354,24 @@ export default function Home() {
                   onClick={() => setShowNew(false)}
                   className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm"
                 >
-                  Annuler
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={handleCreate}
                   className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-1.5"
                 >
-                  <Play size={16} /> Commencer
+                  <Play size={16} /> {t('home.start')}
                 </button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Match history */}
         <div className="space-y-3">
           {loadingMatches && user ? (
             <div className="flex items-center justify-center gap-2 py-8">
               <Loader2 size={18} className="animate-spin text-primary" />
-              <span className="text-sm text-muted-foreground">Chargement des matchs…</span>
+              <span className="text-sm text-muted-foreground">{t('home.loadingMatches')}</span>
             </div>
           ) : matches.length === 0 ? (
             <Instructions />
@@ -390,7 +379,7 @@ export default function Home() {
             <>
             <div className="flex items-center gap-2">
               <History size={16} className="text-muted-foreground" />
-              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Matchs précédents</h2>
+              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('home.previousMatches')}</h2>
             </div>
             <div className="space-y-2">
               {matches.map(match => {
@@ -412,8 +401,8 @@ export default function Home() {
                         <p className="text-lg font-black text-foreground tabular-nums">{sc.blue} - {sc.red}</p>
                         <p className="text-[11px] text-muted-foreground">
                           {match.finished
-                            ? (sc.blue > sc.red ? `🏆 ${match.teamNames.blue}` : sc.red > sc.blue ? `🏆 ${match.teamNames.red}` : 'Égalité')
-                            : `${match.sport === 'basketball' ? 'QT' : 'Set'} ${match.currentSetNumber} en cours`} · {totalPoints} pts
+                            ? (sc.blue > sc.red ? `🏆 ${match.teamNames.blue}` : sc.red > sc.blue ? `🏆 ${match.teamNames.red}` : t('home.equality'))
+                            : `${match.sport === 'basketball' ? 'QT' : 'Set'} ${match.currentSetNumber} ${t('home.setInProgress')}`} · {totalPoints} pts
                         </p>
                       </div>
                     </div>
@@ -422,13 +411,13 @@ export default function Home() {
                         onClick={() => handleResume(match.id)}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/15 text-primary font-semibold text-xs border border-primary/20 hover:bg-primary/25 transition-all"
                       >
-                        {match.finished ? <><Eye size={14} /> Voir</> : <><Play size={14} /> Reprendre</>}
+                        {match.finished ? <><Eye size={14} /> {t('common.view')}</> : <><Play size={14} /> {t('common.resume')}</>}
                       </button>
                       {!match.finished && (
                         <button
                           onClick={() => setFinishingId(match.id)}
                           className="px-3 py-2 rounded-lg bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all"
-                          title="Terminer le match"
+                          title={t('home.finishMatch')}
                         >
                           <CheckCircle2 size={14} />
                         </button>
@@ -449,59 +438,52 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Finish confirm modal */}
       {finishingId && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setFinishingId(null)}>
           <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-foreground text-center">Terminer le match ?</h2>
-            <p className="text-sm text-muted-foreground text-center">
-              La période en cours sera finalisée et le match sera marqué comme terminé. Cette action est irréversible.
-            </p>
+            <h2 className="text-lg font-bold text-foreground text-center">{t('home.finishMatch')}</h2>
+            <p className="text-sm text-muted-foreground text-center">{t('home.finishMatchDesc')}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setFinishingId(null)}
                 className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => handleFinishMatch(finishingId)}
                 className="flex-1 py-2.5 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm flex items-center justify-center gap-1.5"
               >
-                <CheckCircle2 size={16} /> Terminer
+                <CheckCircle2 size={16} /> {t('home.finish')}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete confirm modal */}
       {deletingId && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setDeletingId(null)}>
           <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-foreground text-center">Supprimer le match ?</h2>
-            <p className="text-sm text-muted-foreground text-center">
-              Cette action est irréversible. Toutes les données du match seront perdues.
-            </p>
+            <h2 className="text-lg font-bold text-foreground text-center">{t('home.deleteMatch')}</h2>
+            <p className="text-sm text-muted-foreground text-center">{t('home.deleteMatchDesc')}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeletingId(null)}
                 className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => handleDelete(deletingId)}
                 className="flex-1 py-2.5 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm flex items-center justify-center gap-1.5"
               >
-                <Trash2 size={16} /> Supprimer
+                <Trash2 size={16} /> {t('common.delete')}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Saved players manager */}
       {user && (
         <SavedPlayersManager
           open={showSavedPlayers}
@@ -512,7 +494,7 @@ export default function Home() {
 
       <footer className="px-4 py-4 border-t border-border text-center">
         <p className="text-xs text-muted-foreground">
-          Made with ❤️ by <span className="font-semibold text-foreground">Volleyball Capbreton</span>
+          {t('common.madeWith')} <span className="font-semibold text-foreground">{t('common.volleyballCapbreton')}</span>
         </p>
       </footer>
     </div>
