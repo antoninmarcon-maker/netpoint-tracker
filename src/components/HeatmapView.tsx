@@ -366,18 +366,17 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     return [];
   }, [points, completedSets, currentSetPoints, currentSetNumber, setFilter_]);
 
-  // Heatmap: show all points, normalize so blue (scored) is always RIGHT, red (faults) always LEFT
+  // Heatmap: only scored points, normalized so blue always RIGHT, red always LEFT
   const heatmapPoints = useMemo(() => {
-    return filteredPoints.map(p => {
+    // Volleyball: only 'scored' points; Basketball: only scored (baskets)
+    const scoredOnly = filteredPoints.filter(p => p.type === 'scored');
+    return scoredOnly.map(p => {
       const isBlue = p.team === 'blue';
-      const isScored = p.type === 'scored';
-      // Blue scored → right side (x > 0.5), Red fault → left side (x < 0.5)
-      // Blue fault → left side, Red scored → right side
-      const shouldBeRight = (isBlue && isScored) || (!isBlue && !isScored);
-      const shouldBeLeft = !shouldBeRight;
       let nx = p.x;
-      if (shouldBeRight && nx < 0.5) nx = 1 - nx;
-      if (shouldBeLeft && nx > 0.5) nx = 1 - nx;
+      // Blue scored → always right side (x > 0.5)
+      if (isBlue && nx < 0.5) nx = 1 - nx;
+      // Red scored → always left side (x < 0.5)
+      if (!isBlue && nx > 0.5) nx = 1 - nx;
       return { ...p, x: nx };
     });
   }, [filteredPoints]);
