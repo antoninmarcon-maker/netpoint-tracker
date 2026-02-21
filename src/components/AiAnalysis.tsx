@@ -27,6 +27,42 @@ const SPORT_LABELS: Record<SportType, string> = {
   padel: 'Padel',
 };
 
+function getZoneName(x: number, y: number, sport: SportType): string {
+  const isRacket = sport === 'tennis' || sport === 'padel';
+  const side = x < 0.5 ? 'Gauche' : 'Droit';
+
+  if (isRacket) {
+    const depth = y < 0.33 ? 'Au filet' : y > 0.66 ? 'Fond de court' : 'Mi-court';
+    return `${depth} ${side}`;
+  }
+  if (sport === 'basketball') {
+    const depth = y < 0.33 ? 'Raquette' : y > 0.66 ? 'Extérieur' : 'Mi-distance';
+    return `${depth} ${side}`;
+  }
+  // volleyball
+  const row = y < 0.33 ? 'Avant' : y > 0.66 ? 'Arrière' : 'Centre';
+  return `Zone ${row} ${side}`;
+}
+
+function buildZoneSummary(pts: Point[], sport: SportType): string {
+  if (pts.length === 0) return '';
+  // Skip invisible fault points (0.5, 0.5 auto-placed)
+  const validPts = pts.filter(p => !(p.x === 0.5 && p.y === 0.5));
+  if (validPts.length === 0) return '';
+
+  const zoneCounts: Record<string, number> = {};
+  validPts.forEach(p => {
+    const zone = getZoneName(p.x, p.y, sport);
+    zoneCounts[zone] = (zoneCounts[zone] || 0) + 1;
+  });
+
+  const total = validPts.length;
+  return Object.entries(zoneCounts)
+    .sort(([, a], [, b]) => b - a)
+    .map(([zone, count]) => `${zone}: ${count} (${Math.round((count / total) * 100)}%)`)
+    .join(', ');
+}
+
 function buildMatchStatsText(
   points: Point[],
   completedSets: SetData[],
@@ -72,6 +108,13 @@ function buildMatchStatsText(
       const details = Object.entries(actions).map(([a, c]) => `${a}:${c}`).join(', ');
       if (details) text += ` (${details})`;
       text += '\n';
+
+      // Placement par joueur
+      const scoredZones = buildZoneSummary(scored, sport);
+      if (scoredZones) text += `    Placement gagnants: ${scoredZones}\n`;
+      const faultPts = pp.filter(pt => pt.type === 'fault');
+      const faultZones = buildZoneSummary(faultPts, sport);
+      if (faultZones) text += `    Placement fautes: ${faultZones}\n`;
     });
   }
 
@@ -94,6 +137,12 @@ function buildMatchStatsText(
       text += `  Coups gagnants: ${actionBreakdown(scored, PADEL_SCORED_ACTIONS)}\n`;
       text += `  Fautes: ${actionBreakdown(faults, PADEL_FAULT_ACTIONS)}\n`;
     }
+
+    // Tendances de placement par équipe
+    const scoredZones = buildZoneSummary(scored, sport);
+    if (scoredZones) text += `  Tendances placement gagnants: ${scoredZones}\n`;
+    const faultZones = buildZoneSummary(faults, sport);
+    if (faultZones) text += `  Tendances placement fautes: ${faultZones}\n`;
   }
 
   return text;
