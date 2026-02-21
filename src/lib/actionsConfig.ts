@@ -6,12 +6,14 @@ export interface CustomAction {
   id: string;
   label: string;
   sport: SportType;
-  category: PointType; // 'scored' or 'fault'
+  category: PointType; // 'scored', 'fault' or 'neutral'
   points?: number; // For basketball scored actions: 1, 2 or 3
+  sigil?: string; // Max 2 chars for neutral court display
+  showOnCourt?: boolean; // Whether to display neutral point on court
 }
 
 export interface ActionsConfig {
-  /** Action keys that are hidden (not shown in match UI) */
+  /** Action keys that are hidden (not shown in match UI) — includes custom action IDs */
   hiddenActions: string[];
   /** User-created custom actions */
   customActions: CustomAction[];
@@ -60,7 +62,10 @@ export function toggleActionVisibility(actionKey: string): ActionsConfig {
   return config;
 }
 
-export function addCustomAction(label: string, sport: SportType, category: PointType, points?: number): ActionsConfig {
+export function addCustomAction(
+  label: string, sport: SportType, category: PointType,
+  points?: number, sigil?: string, showOnCourt?: boolean
+): ActionsConfig {
   const config = getConfig();
   config.customActions.push({
     id: crypto.randomUUID(),
@@ -68,18 +73,24 @@ export function addCustomAction(label: string, sport: SportType, category: Point
     sport,
     category,
     ...(points != null && { points }),
+    ...(category === 'neutral' && sigil ? { sigil: sigil.slice(0, 2).toUpperCase() } : {}),
+    ...(category === 'neutral' ? { showOnCourt: showOnCourt ?? false } : {}),
   });
   saveConfig(config);
   return config;
 }
 
-export function updateCustomAction(id: string, newLabel: string, points?: number): ActionsConfig {
+export function updateCustomAction(id: string, newLabel: string, points?: number, sigil?: string, showOnCourt?: boolean): ActionsConfig {
   const config = getConfig();
   const action = config.customActions.find(a => a.id === id);
   if (action) {
     action.label = newLabel.trim();
     if (action.sport === 'basketball' && action.category === 'scored') {
       action.points = points;
+    }
+    if (action.category === 'neutral') {
+      if (sigil !== undefined) action.sigil = sigil.slice(0, 2).toUpperCase();
+      if (showOnCourt !== undefined) action.showOnCourt = showOnCourt;
     }
   }
   saveConfig(config);
@@ -96,6 +107,7 @@ export function deleteCustomAction(id: string): ActionsConfig {
 /** Get the real ActionType key for a custom action (maps to "other_*") */
 export function getCustomActionRealKey(customAction: CustomAction): ActionType {
   const otherKeys = OTHER_ACTION_KEYS[customAction.sport];
+  if (customAction.category === 'neutral') return otherKeys.neutral;
   return customAction.category === 'scored' ? otherKeys.scored : otherKeys.fault;
 }
 
@@ -104,20 +116,22 @@ export function getVisibleActions(
   sport: SportType,
   category: PointType,
   defaultActions: { key: string; label: string; points?: number }[]
-): { key: string; label: string; points?: number; customId?: string }[] {
+): { key: string; label: string; points?: number; customId?: string; sigil?: string; showOnCourt?: boolean }[] {
   const config = getConfig();
 
   // Filter out hidden default actions
   const visible = defaultActions.filter(a => !config.hiddenActions.includes(a.key));
 
-  // Add custom actions for this sport + category
+  // Add custom actions for this sport + category, excluding hidden ones
   const customs = config.customActions
-    .filter(c => c.sport === sport && c.category === category)
+    .filter(c => c.sport === sport && c.category === category && !config.hiddenActions.includes(c.id))
     .map(c => ({
       key: getCustomActionRealKey(c),
       label: c.label,
       customId: c.id,
       ...(c.points != null && { points: c.points }),
+      ...(c.sigil ? { sigil: c.sigil } : {}),
+      ...(c.showOnCourt != null ? { showOnCourt: c.showOnCourt } : {}),
     }));
 
   return [...visible, ...customs];

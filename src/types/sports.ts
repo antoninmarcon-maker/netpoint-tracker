@@ -1,5 +1,5 @@
 export type Team = 'blue' | 'red';
-export type PointType = 'scored' | 'fault';
+export type PointType = 'scored' | 'fault' | 'neutral';
 export type SportType = 'volleyball' | 'basketball' | 'tennis' | 'padel';
 
 // ---- VOLLEYBALL ----
@@ -17,12 +17,15 @@ export type TennisFaultAction = 'double_fault' | 'unforced_error_forehand' | 'un
 // ---- PADEL ----
 export type PadelScoredAction = 'padel_ace' | 'vibora' | 'bandeja' | 'smash_padel' | 'volee' | 'bajada' | 'chiquita_winner' | 'par_3' | 'other_padel_winner';
 export type PadelFaultAction = 'padel_double_fault' | 'padel_unforced_error' | 'padel_net_error' | 'padel_out' | 'grille_error' | 'vitre_error' | 'other_padel_fault';
+// ---- NEUTRAL (per-sport generic key for custom neutral actions) ----
+export type NeutralAction = 'other_volley_neutral' | 'other_basket_neutral' | 'other_tennis_neutral' | 'other_padel_neutral';
 
 export type ActionType =
   | OffensiveAction | FaultAction
   | BasketScoredAction | BasketFaultAction
   | TennisScoredAction | TennisFaultAction
-  | PadelScoredAction | PadelFaultAction;
+  | PadelScoredAction | PadelFaultAction
+  | NeutralAction;
 
 // ---- Action lists ----
 
@@ -99,12 +102,17 @@ export const PADEL_FAULT_ACTIONS: { key: PadelFaultAction; label: string }[] = [
 ];
 
 // ---- "Other" action keys per sport (used for custom action mapping) ----
-export const OTHER_ACTION_KEYS: Record<SportType, { scored: ActionType; fault: ActionType }> = {
-  volleyball: { scored: 'other_offensive', fault: 'other_volley_fault' },
-  basketball: { scored: 'three_points', fault: 'other_basket_fault' }, // basketball scored has no generic "other"
-  tennis: { scored: 'other_tennis_winner', fault: 'other_tennis_fault' },
-  padel: { scored: 'other_padel_winner', fault: 'other_padel_fault' },
+export const OTHER_ACTION_KEYS: Record<SportType, { scored: ActionType; fault: ActionType; neutral: ActionType }> = {
+  volleyball: { scored: 'other_offensive', fault: 'other_volley_fault', neutral: 'other_volley_neutral' },
+  basketball: { scored: 'three_points', fault: 'other_basket_fault', neutral: 'other_basket_neutral' },
+  tennis: { scored: 'other_tennis_winner', fault: 'other_tennis_fault', neutral: 'other_tennis_neutral' },
+  padel: { scored: 'other_padel_winner', fault: 'other_padel_fault', neutral: 'other_padel_neutral' },
 };
+
+export function getNeutralActionsForSport(_sport: SportType): { key: string; label: string }[] {
+  // No default neutral actions — all are custom
+  return [];
+}
 
 // ---- Helper functions ----
 
@@ -220,6 +228,8 @@ export interface Point {
   playerId?: string;
   pointValue?: number; // For basketball: 1, 2 or 3
   customActionLabel?: string; // For custom actions mapped to "other"
+  sigil?: string; // Max 2 chars for neutral point display on court
+  showOnCourt?: boolean; // Whether to display on interactive court
 }
 
 export interface SetData {
