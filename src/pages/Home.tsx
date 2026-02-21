@@ -8,6 +8,7 @@ import { getAllMatches, createNewMatch, saveMatch, setActiveMatchId, deleteMatch
 import { syncLocalMatchesToCloud, getCloudMatches, saveCloudMatch, deleteCloudMatch, getCloudMatchById } from '@/lib/cloudStorage';
 import { updateTutorialStep } from '@/lib/pushNotifications';
 import { MatchSummary, SetData, Team, SportType, MatchFormat, getDefaultMatchFormat } from '@/types/sports';
+import { getSavedPlayers } from '@/lib/savedPlayers';
 import { toast } from 'sonner';
 import { PwaInstallBanner } from '@/components/PwaInstallBanner';
 import { AuthDialog } from '@/components/AuthDialog';
@@ -76,6 +77,20 @@ export default function Home() {
   const [finishingId, setFinishingId] = useState<string | null>(null);
   const [showSavedPlayers, setShowSavedPlayers] = useState(false);
   const [customLogo, setCustomLogo] = useState<string | null>(null);
+  const [savedPlayersList, setSavedPlayersList] = useState<{ id: string; name: string }[]>([]);
+
+  // Load saved players for auto-completion when dialog opens for racket sports
+  useEffect(() => {
+    if (!showNew || (selectedSport !== 'tennis' && selectedSport !== 'padel')) {
+      setSavedPlayersList([]);
+      return;
+    }
+    const load = async () => {
+      const players = await getSavedPlayers(selectedSport, user?.id);
+      setSavedPlayersList(players);
+    };
+    load();
+  }, [showNew, selectedSport, user?.id]);
 
   // Load custom logo
   useEffect(() => {
@@ -177,14 +192,14 @@ export default function Home() {
       
       if (matchFormat === 'doubles') {
         blueName = [b1, b2].filter(Boolean).join(' / ') || t('scoreboard.blue');
-        redName = [r1, r2].filter(Boolean).join(' / ') || t('scoreboard.red');
+        redName = [r1, r2].filter(Boolean).join(' / ') || t('home.opponentsDefault');
         if (b1) matchPlayers.push({ id: crypto.randomUUID(), name: b1 });
         if (b2) matchPlayers.push({ id: crypto.randomUUID(), name: b2 });
         if (r1) matchPlayers.push({ id: crypto.randomUUID(), name: r1 });
         if (r2) matchPlayers.push({ id: crypto.randomUUID(), name: r2 });
       } else {
         blueName = b1 || t('scoreboard.blue');
-        redName = r1 || t('scoreboard.red');
+        redName = r1 || t('home.opponentsDefault');
         if (b1) matchPlayers.push({ id: crypto.randomUUID(), name: b1 });
         if (r1) matchPlayers.push({ id: crypto.randomUUID(), name: r1 });
       }
@@ -412,46 +427,63 @@ export default function Home() {
               {/* Player selection for Tennis/Padel */}
               {(selectedSport === 'tennis' || selectedSport === 'padel') ? (
                 <div className="space-y-3">
+                  {/* Datalist for auto-completion */}
+                  <datalist id="saved-players-autocomplete">
+                    {savedPlayersList.map(p => (
+                      <option key={p.id} value={p.name} />
+                    ))}
+                  </datalist>
+
+                  <p className="text-xs font-semibold text-team-blue">{t('home.yourTeamLabel')}</p>
                   <div>
-                    <label className="text-xs font-semibold text-team-blue mb-1 block">
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
                       {matchFormat === 'doubles' ? t('home.bluePlayer1') : t('home.bluePlayer')}
                     </label>
                     <Input
                       value={racketPlayers.blue1}
                       onChange={e => setRacketPlayers(prev => ({ ...prev, blue1: e.target.value }))}
                       placeholder={t('home.playerNamePlaceholder')}
+                      list="saved-players-autocomplete"
                       className="h-10"
                     />
                   </div>
                   {matchFormat === 'doubles' && (
                     <div>
-                      <label className="text-xs font-semibold text-team-blue mb-1 block">{t('home.bluePlayer2')}</label>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">{t('home.bluePlayer2')}</label>
                       <Input
                         value={racketPlayers.blue2}
                         onChange={e => setRacketPlayers(prev => ({ ...prev, blue2: e.target.value }))}
                         placeholder={t('home.playerNamePlaceholder')}
+                        list="saved-players-autocomplete"
                         className="h-10"
                       />
                     </div>
                   )}
+
+                  <p className="text-xs font-semibold text-team-red flex items-center gap-1">
+                    {t('home.opponentsLabel')}
+                    <span className="text-muted-foreground font-normal">({t('home.optional')})</span>
+                  </p>
                   <div>
-                    <label className="text-xs font-semibold text-team-red mb-1 block">
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
                       {matchFormat === 'doubles' ? t('home.redPlayer1') : t('home.redPlayer')}
                     </label>
                     <Input
                       value={racketPlayers.red1}
                       onChange={e => setRacketPlayers(prev => ({ ...prev, red1: e.target.value }))}
                       placeholder={t('home.playerNamePlaceholder')}
+                      list="saved-players-autocomplete"
                       className="h-10"
                     />
                   </div>
                   {matchFormat === 'doubles' && (
                     <div>
-                      <label className="text-xs font-semibold text-team-red mb-1 block">{t('home.redPlayer2')}</label>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">{t('home.redPlayer2')}</label>
                       <Input
                         value={racketPlayers.red2}
                         onChange={e => setRacketPlayers(prev => ({ ...prev, red2: e.target.value }))}
                         placeholder={t('home.playerNamePlaceholder')}
+                        list="saved-players-autocomplete"
                         className="h-10"
                       />
                     </div>

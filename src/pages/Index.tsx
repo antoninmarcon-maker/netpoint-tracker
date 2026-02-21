@@ -18,7 +18,7 @@ import { getMatch, saveMatch } from '@/lib/matchStorage';
 import { getCloudMatchById, saveCloudMatch } from '@/lib/cloudStorage';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
-import type { MatchSummary } from '@/types/sports';
+import type { MatchSummary, Player, Team } from '@/types/sports';
 import { useTranslation } from 'react-i18next';
 
 type Tab = 'match' | 'stats';
@@ -97,7 +97,15 @@ const Index = () => {
 
   const tennisScore = useTennisScore(isTennisOrPadel ? points : [], metadata, currentSetInitialServer);
   const effectiveServingTeam = isTennisOrPadel ? tennisScore.servingTeam : servingTeam;
-  
+
+  // Helper: get players belonging to a specific team (for racket sports)
+  const getPlayersForTeam = useCallback((team: Team): Player[] => {
+    if (!isTennisOrPadel) return players;
+    const teamName = teamNames[team];
+    const names = teamName.split(' / ').map(n => n.trim());
+    return players.filter(p => names.includes(p.name));
+  }, [isTennisOrPadel, players, teamNames]);
+
 
   useEffect(() => {
     if (!isTennisOrPadel) return;
@@ -135,13 +143,37 @@ const Index = () => {
       }
       return;
     }
+    // Tennis/Padel: smart player filtering
+    if (isTennisOrPadel) {
+      const SERVICE_PLAYER_ACTIONS = ['tennis_ace', 'double_fault', 'padel_double_fault'];
+      const isServiceAction = SERVICE_PLAYER_ACTIONS.includes(pendingPoint.action);
+
+      let relevantPlayers: Player[];
+      if (isServiceAction) {
+        relevantPlayers = getPlayersForTeam(effectiveServingTeam);
+      } else if (pendingPoint.type === 'scored') {
+        relevantPlayers = getPlayersForTeam(pendingPoint.team);
+      } else if (pendingPoint.team === 'red' && pendingPoint.type === 'fault') {
+        // Blue committed a fault → attribute to blue player
+        relevantPlayers = getPlayersForTeam('blue');
+      } else {
+        // Opponent fault → skip
+        skipPlayerAssignment();
+        return;
+      }
+
+      if (relevantPlayers.length === 0) { skipPlayerAssignment(); return; }
+      if (relevantPlayers.length === 1) { assignPlayer(relevantPlayers[0].id); return; }
+      return; // Show selector in JSX
+    }
+    // Volleyball default
     const isBlueScored = pendingPoint.team === 'blue' && pendingPoint.type === 'scored';
     const isRedScored = pendingPoint.team === 'red' && pendingPoint.type === 'scored';
     const isRedFault = pendingPoint.team === 'red' && pendingPoint.type === 'fault';
     if (!isBlueScored && !isRedScored && !isRedFault) {
       skipPlayerAssignment();
     }
-  }, [pendingPoint, players, skipPlayerAssignment, isBasketball]);
+  }, [pendingPoint, players, skipPlayerAssignment, isBasketball, isTennisOrPadel, effectiveServingTeam, getPlayersForTeam, assignPlayer]);
 
   const cloudSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastCloudSaveRef = useRef<string>('');
@@ -195,6 +227,7 @@ const Index = () => {
   const matchData = getMatch(matchId);
   const isFinished = matchData?.finished ?? false;
   const sportIcon = sport === 'basketball' ? '🏀' : sport === 'tennis' ? '🎾' : sport === 'padel' ? '🏓' : '🏐';
+  const sportTitle: Record<string, string> = { volleyball: 'My Volley', basketball: 'My Basket', tennis: 'My Tennis', padel: 'My Padel' };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -206,7 +239,7 @@ const Index = () => {
           <ArrowLeft size={18} />
         </button>
         <h1 className="text-lg font-black text-foreground tracking-tight text-center">
-          {sportIcon} My Volley
+          {sportIcon} {sportTitle[sport] || 'My Volley'}
         </h1>
         {tab === 'match' ? (
           <button
@@ -330,6 +363,40 @@ const Index = () => {
               />
             );
           }
+
+          if (isTennisOrPadel) {
+            const SERVICE_PLAYER_ACTIONS = ['tennis_ace', 'double_fault', 'padel_double_fault'];
+            const isServiceAction = SERVICE_PLAYER_ACTIONS.includes(pendingPoint.action);
+
+            let filteredPlayers: Player[];
+            let prompt: string;
+
+            if (isServiceAction) {
+              filteredPlayers = getPlayersForTeam(effectiveServingTeam);
+              prompt = pendingPoint.type === 'scored' ? t('playerSelector.whoScored') : t('playerSelector.whoFaulted');
+            } else if (pendingPoint.type === 'scored') {
+              filteredPlayers = getPlayersForTeam(pendingPoint.team);
+              prompt = t('playerSelector.whoScored');
+            } else if (pendingPoint.team === 'red' && pendingPoint.type === 'fault') {
+              filteredPlayers = getPlayersForTeam('blue');
+              prompt = t('playerSelector.whoFaulted');
+            } else {
+              return null;
+            }
+
+            if (filteredPlayers.length === 0) return null;
+
+            return (
+              <PlayerSelector
+                players={filteredPlayers}
+                prompt={prompt}
+                onSelect={assignPlayer}
+                onSkip={skipPlayerAssignment}
+              />
+            );
+          }
+
+          // Volleyball default
           const showSelector = pendingPoint.type === 'scored' || (pendingPoint.team === 'red' && pendingPoint.type === 'fault');
           if (!showSelector) return null;
           const isFaultByBlue = pendingPoint.team === 'red' && (pendingPoint.type === 'fault' || pendingPoint.type === 'scored');
