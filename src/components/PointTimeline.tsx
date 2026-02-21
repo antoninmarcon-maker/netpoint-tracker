@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Point, ActionType } from '@/types/sports';
+import { Point, ActionType, PointType } from '@/types/sports';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid,
 } from 'recharts';
@@ -43,7 +43,7 @@ interface DataPoint {
   timeLabel: string;
   action: ActionType;
   team: 'blue' | 'red';
-  type: 'scored' | 'fault';
+  type: PointType;
 }
 
 export function PointTimeline({ points, teamNames }: PointTimelineProps) {
