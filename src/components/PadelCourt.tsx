@@ -9,6 +9,7 @@ interface PadelCourtProps {
   sidesSwapped: boolean;
   teamNames: { blue: string; red: string };
   onCourtClick: (x: number, y: number) => void;
+  servingSide?: 'deuce' | 'ad';
 }
 
 // Court dimensions in SVG (landscape: glass walls left/right)
@@ -35,16 +36,20 @@ const ENCLOSURE_B = CB + WALL_THICKNESS;
 // Side grilles (partial glass on top/bottom walls, near net)
 const GRILLE_WIDTH = 80;
 
-type ZoneType = 'left_court' | 'right_court' | 'net' | 'back_glass_left' | 'back_glass_right' | 'side_wall_top' | 'side_wall_bottom' | 'grille' | 'outside' | 'service_box_left' | 'service_box_right';
+type ZoneType = 'left_court' | 'right_court' | 'net' | 'back_glass_left' | 'back_glass_right' | 'side_wall_top' | 'side_wall_bottom' | 'grille' | 'outside' | 'service_box_left_top' | 'service_box_left_bottom' | 'service_box_right_top' | 'service_box_right_bottom';
 
 function getClickZone(svgX: number, svgY: number): ZoneType {
   const inCourt = svgX >= CL && svgX <= CR && svgY >= CT && svgY <= CB;
 
   if (inCourt) {
     if (Math.abs(svgX - NET_X) < 12) return 'net';
-    // Service boxes
-    if (svgX >= SERVICE_LEFT && svgX < NET_X && svgY >= CT && svgY <= CB) return 'service_box_left';
-    if (svgX > NET_X && svgX <= SERVICE_RIGHT && svgY >= CT && svgY <= CB) return 'service_box_right';
+    // Service boxes split by center line
+    if (svgX >= SERVICE_LEFT && svgX < NET_X && svgY >= CT && svgY <= CB) {
+      return svgY < MID_Y ? 'service_box_left_top' : 'service_box_left_bottom';
+    }
+    if (svgX > NET_X && svgX <= SERVICE_RIGHT && svgY >= CT && svgY <= CB) {
+      return svgY < MID_Y ? 'service_box_right_top' : 'service_box_right_bottom';
+    }
     return svgX < NET_X ? 'left_court' : 'right_court';
   }
 
@@ -64,10 +69,23 @@ function getClickZone(svgX: number, svgY: number): ZoneType {
   return 'outside';
 }
 
+/** Get the single service box zone an ace should land in (diagonal rule) */
+function getAceTargetZone(
+  serverSide: 'left' | 'right',
+  opponentSide: 'left' | 'right',
+  servingSide?: 'deuce' | 'ad'
+): ZoneType {
+  const side = servingSide ?? 'deuce';
+  const targetTop = serverSide === 'left' ? (side === 'deuce') : (side === 'ad');
+  const suffix = targetTop ? '_top' : '_bottom';
+  return (opponentSide === 'left' ? 'service_box_left' : 'service_box_right') + suffix as ZoneType;
+}
+
 function isZoneAllowed(
   zone: ZoneType,
   team: Team, action: ActionType, pointType: PointType,
-  sidesSwapped: boolean
+  sidesSwapped: boolean,
+  servingSide?: 'deuce' | 'ad'
 ): boolean {
   const teamSide = sidesSwapped
     ? (team === 'blue' ? 'right' : 'left')
@@ -75,17 +93,15 @@ function isZoneAllowed(
   const opponentSide = teamSide === 'left' ? 'right' : 'left';
 
   if (isAceAction(action)) {
-    const opponentServiceBox = opponentSide === 'left' ? 'service_box_left' : 'service_box_right';
-    return zone === opponentServiceBox;
+    const targetZone = getAceTargetZone(teamSide, opponentSide, servingSide);
+    return zone === targetZone;
   }
 
   if (isPadelScoredAction(action)) {
-    // Winners: opponent's court (including service box) or walls behind opponent
     const courtZones = opponentSide === 'left'
-      ? ['left_court', 'service_box_left']
-      : ['right_court', 'service_box_right'];
+      ? ['left_court', 'service_box_left_top', 'service_box_left_bottom']
+      : ['right_court', 'service_box_right_top', 'service_box_right_bottom'];
     const glassZone = opponentSide === 'left' ? 'back_glass_left' : 'back_glass_right';
-    // par_3 specifically targets vitre/grille
     if (action === 'par_3') {
       return [glassZone, 'grille', 'side_wall_top', 'side_wall_bottom'].includes(zone);
     }
@@ -95,7 +111,7 @@ function isZoneAllowed(
   // Faults
   switch (action) {
     case 'padel_double_fault':
-      return zone === (opponentSide === 'left' ? 'left_court' : 'right_court') || zone === 'outside' || zone === 'net';
+      return zone === 'outside' || zone === 'net' || (zone.startsWith('service_box') && zone !== getAceTargetZone(teamSide, opponentSide, servingSide));
     case 'padel_net_error':
       return zone === 'net';
     case 'padel_out':
@@ -105,14 +121,15 @@ function isZoneAllowed(
     case 'vitre_error':
       return zone === 'back_glass_left' || zone === 'back_glass_right' || zone === 'side_wall_top' || zone === 'side_wall_bottom';
     case 'padel_unforced_error':
-      return true; // Anywhere
+      return true;
     default:
       return true;
   }
 }
 
 function getZoneHighlights(
-  team: Team, action: ActionType, pointType: PointType, sidesSwapped: boolean
+  team: Team, action: ActionType, pointType: PointType, sidesSwapped: boolean,
+  servingSide?: 'deuce' | 'ad'
 ): { x: number; y: number; w: number; h: number }[] {
   const teamSide = sidesSwapped
     ? (team === 'blue' ? 'right' : 'left')
@@ -120,11 +137,14 @@ function getZoneHighlights(
   const opponentSide = teamSide === 'left' ? 'right' : 'left';
 
   if (isAceAction(action)) {
-    // Only service boxes
-    if (opponentSide === 'right') {
-      return [{ x: NET_X, y: CT, w: SERVICE_RIGHT - NET_X, h: CB - CT }];
-    }
-    return [{ x: SERVICE_LEFT, y: CT, w: NET_X - SERVICE_LEFT, h: CB - CT }];
+    const targetZone = getAceTargetZone(teamSide, opponentSide, servingSide);
+    const isLeft = targetZone.includes('left');
+    const isTop = targetZone.includes('_top');
+    const x = isLeft ? SERVICE_LEFT : NET_X;
+    const w = isLeft ? (NET_X - SERVICE_LEFT) : (SERVICE_RIGHT - NET_X);
+    const y = isTop ? CT : MID_Y;
+    const h = isTop ? (MID_Y - CT) : (CB - MID_Y);
+    return [{ x, y, w, h }];
   }
 
   if (isPadelScoredAction(action)) {
@@ -176,7 +196,7 @@ const ACTION_SHORT: Record<string, string> = {
 
 export function PadelCourt({
   points, selectedTeam, selectedAction, selectedPointType,
-  sidesSwapped, teamNames, onCourtClick
+  sidesSwapped, teamNames, onCourtClick, servingSide
 }: PadelCourtProps) {
   const courtRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -190,8 +210,8 @@ export function PadelCourt({
 
   const zoneHighlights = useMemo(() => {
     if (!hasSelection) return null;
-    return getZoneHighlights(selectedTeam!, selectedAction!, selectedPointType!, sidesSwapped);
-  }, [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped]);
+    return getZoneHighlights(selectedTeam!, selectedAction!, selectedPointType!, sidesSwapped, servingSide);
+  }, [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped, servingSide]);
 
   const handleInteraction = useCallback(
     (clientX: number, clientY: number) => {
@@ -202,11 +222,11 @@ export function PadelCourt({
       const svgX = x * W;
       const svgY = y * H;
       const zone = getClickZone(svgX, svgY);
-      if (isZoneAllowed(zone, selectedTeam!, selectedAction!, selectedPointType!, sidesSwapped)) {
+      if (isZoneAllowed(zone, selectedTeam!, selectedAction!, selectedPointType!, sidesSwapped, servingSide)) {
         onCourtClick(x, y);
       }
     },
-    [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped, onCourtClick]
+    [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped, onCourtClick, servingSide]
   );
 
   const handleClick = useCallback((e: React.MouseEvent<SVGSVGElement>) => {

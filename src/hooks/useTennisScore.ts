@@ -16,6 +16,8 @@ export interface TennisGameState {
   servingTeam: Team;
   /** Total completed games in the current set (for side-switch logic) */
   totalGamesInSet: number;
+  /** Which side the server is on: 'deuce' (even points) or 'ad' (odd points) */
+  servingSide: 'deuce' | 'ad';
 }
 
 function getRallyWinner(point: Point): Team {
@@ -109,6 +111,10 @@ export function computeTennisScore(
     ? { blue: String(gamePointsBlue), red: String(gamePointsRed) }
     : formatGameScore(gamePointsBlue, gamePointsRed, advantageRule);
 
+  // Serving side: deuce on even total game points, ad on odd
+  const totalGamePoints = gamePointsBlue + gamePointsRed;
+  const servingSide: 'deuce' | 'ad' = (totalGamePoints % 2 === 0) ? 'deuce' : 'ad';
+
   return {
     games: { blue: gamesBlue, red: gamesRed },
     gameScore,
@@ -117,6 +123,7 @@ export function computeTennisScore(
     gamesDisplay: `${gamesBlue} - ${gamesRed}`,
     servingTeam,
     totalGamesInSet: totalGamesCompleted,
+    servingSide,
   };
 }
 
