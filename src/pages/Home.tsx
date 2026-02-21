@@ -327,17 +327,17 @@ export default function Home() {
                 <label className="text-xs font-semibold text-muted-foreground block">{t('home.sport')}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {([
-                    { key: 'volleyball' as SportType, icon: '🏐', label: t('home.volleyball'), hue: 'hsl(var(--primary))' },
-                    { key: 'basketball' as SportType, icon: '🏀', label: t('home.basketball'), hue: 'hsl(30, 90%, 50%)' },
-                    { key: 'tennis' as SportType, icon: '🎾', label: t('home.tennis'), hue: 'hsl(142, 70%, 40%)' },
-                    { key: 'padel' as SportType, icon: '🏓', label: t('home.padel'), hue: 'hsl(0, 84%, 60%)' },
+                    { key: 'volleyball' as SportType, icon: '🏐', label: t('home.volleyball'), hue: '217, 91%, 60%' },
+                    { key: 'basketball' as SportType, icon: '🏀', label: t('home.basketball'), hue: '30, 90%, 50%' },
+                    { key: 'tennis' as SportType, icon: '🎾', label: t('home.tennis'), hue: '142, 70%, 40%' },
+                    { key: 'padel' as SportType, icon: '🏓', label: t('home.padel'), hue: '0, 84%, 60%' },
                   ]).map(s => (
                     <button
                       key={s.key}
                       onClick={() => setSelectedSport(s.key)}
                       className="py-3 rounded-xl font-bold text-sm transition-all border-2"
                       style={selectedSport === s.key
-                        ? { background: `${s.hue}15`, color: s.hue, borderColor: `${s.hue}66` }
+                        ? { background: `hsla(${s.hue}, 0.1)`, color: `hsl(${s.hue})`, borderColor: `hsla(${s.hue}, 0.5)` }
                         : { background: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))', borderColor: 'transparent' }
                       }
                     >
