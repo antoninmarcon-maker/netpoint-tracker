@@ -126,6 +126,7 @@ const Index = () => {
   useEffect(() => {
     if (!selectedTeam || !selectedAction) return;
     const isAutoPoint =
+      metadata?.hasCourt === false ||
       (isTennisOrPadel && matchState.selectedPointType === 'fault') ||
       SERVICE_FAULT_ACTIONS.includes(selectedAction);
     if (isAutoPoint) {
@@ -320,14 +321,16 @@ const Index = () => {
               waitingForNewSet={waitingForNewSet}
               onStartNewSet={startNewSet}
             />
-            {sport === 'basketball' ? (
-              <BasketballCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} />
-            ) : sport === 'tennis' ? (
-              <TennisCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} matchFormat={(metadata as any)?.matchFormat} servingSide={tennisScore.servingSide} />
-            ) : sport === 'padel' ? (
-              <PadelCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} servingSide={tennisScore.servingSide} />
-            ) : (
-              <VolleyballCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} />
+            {metadata?.hasCourt !== false && (
+              sport === 'basketball' ? (
+                <BasketballCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} />
+              ) : sport === 'tennis' ? (
+                <TennisCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} matchFormat={(metadata as any)?.matchFormat} servingSide={tennisScore.servingSide} />
+              ) : sport === 'padel' ? (
+                <PadelCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} servingSide={tennisScore.servingSide} />
+              ) : (
+                <VolleyballCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} />
+              )
             )}
           </div>
         ) : (
@@ -345,7 +348,13 @@ const Index = () => {
                 finished={isFinished}
               />
             </div>
-            <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} />
+            {metadata?.hasCourt === false ? (
+              <div className="bg-card p-6 rounded-xl border border-border text-center text-muted-foreground text-sm">
+                {t('stats.noHeatmap')}
+              </div>
+            ) : (
+              <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} />
+            )}
           </div>
         )}
 

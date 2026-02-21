@@ -69,6 +69,8 @@
     "opponentsLabel": "🔴 Opponents",
     "opponentsDefault": "Opponents",
     "optional": "optional",
+    "interactiveCourt": "Use interactive court",
+    "interactiveCourtHint": "Disable to score faster (Scoreboard only).",
     "finishMatch": "Finish the match?",
     "finishMatchDesc": "The current period will be finalized and the match will be marked as finished. This action is irreversible.",
     "finish": "Finish",
@@ -319,6 +321,9 @@
     "missedShots": "Missed shots",
     "turnovers": "Turnovers",
     "foulsCommitted": "Fouls committed"
+  },
+  "stats": {
+    "noHeatmap": "Heatmap is not available for matches played without interactive court."
   },
   "timeline": {
     "title": "Point timeline",

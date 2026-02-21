@@ -184,6 +184,8 @@ export interface MatchMetadata {
   initialServer?: Team;
   /** Singles or doubles format (tennis/padel) */
   matchFormat?: MatchFormat;
+  /** Whether the interactive court is enabled (default: true) */
+  hasCourt?: boolean;
 }
 
 export function getDefaultMatchFormat(sport: SportType): MatchFormat {

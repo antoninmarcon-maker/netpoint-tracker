@@ -69,6 +69,8 @@
     "opponentsLabel": "🔴 Adversaires",
     "opponentsDefault": "Adversaires",
     "optional": "optionnel",
+    "interactiveCourt": "Utiliser le terrain interactif",
+    "interactiveCourtHint": "Désactivez pour compter les points plus rapidement (Scoreboard uniquement).",
     "finishMatch": "Terminer le match ?",
     "finishMatchDesc": "La période en cours sera finalisée et le match sera marqué comme terminé. Cette action est irréversible.",
     "finish": "Terminer",
@@ -319,6 +321,9 @@
     "missedShots": "Tirs manqués",
     "turnovers": "Pertes de balle",
     "foulsCommitted": "Fautes commises"
+  },
+  "stats": {
+    "noHeatmap": "La Heatmap n'est pas disponible pour les matchs joués sans terrain interactif."
   },
   "timeline": {
     "title": "Historique des points",

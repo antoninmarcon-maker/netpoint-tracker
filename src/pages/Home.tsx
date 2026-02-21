@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, LogIn, HelpCircle, Loader2, X, MessageSquare, ImagePlus } from 'lucide-react';
 import logoCapbreton from '@/assets/logo-capbreton.jpeg';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { PlayerAutocomplete } from '@/components/PlayerAutocomplete';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getAllMatches, createNewMatch, saveMatch, setActiveMatchId, deleteMatch, getMatch } from '@/lib/matchStorage';
@@ -74,6 +76,7 @@ export default function Home() {
   const [names, setNames] = useState({ blue: '', red: '' });
   const [selectedSport, setSelectedSport] = useState<SportType>('volleyball');
   const [matchFormat, setMatchFormat] = useState<MatchFormat>('singles');
+  const [hasCourt, setHasCourt] = useState(true);
   const [racketPlayers, setRacketPlayers] = useState<{ blue1: string; blue2: string; red1: string; red2: string }>({ blue1: '', blue2: '', red1: '', red2: '' });
   const [finishingId, setFinishingId] = useState<string | null>(null);
   const [showSavedPlayers, setShowSavedPlayers] = useState(false);
@@ -209,7 +212,7 @@ export default function Home() {
       redName = names.red.trim() || t('scoreboard.red');
     }
     
-    const metadata = isRacket ? { matchFormat } : undefined;
+    const metadata = { ...(isRacket ? { matchFormat } : {}), hasCourt };
     const match = createNewMatch({ blue: blueName, red: redName }, selectedSport, metadata);
     
     // For racket sports, override players from form (not last roster)
@@ -501,6 +504,14 @@ export default function Home() {
                   </div>
                 </div>
               )}
+
+              <div className="flex items-center space-x-2 bg-secondary/30 p-3 rounded-xl border border-border">
+                <Switch id="court-mode" checked={hasCourt} onCheckedChange={setHasCourt} />
+                <div className="flex-1">
+                  <Label htmlFor="court-mode" className="text-sm font-semibold cursor-pointer">{t('home.interactiveCourt')}</Label>
+                  <p className="text-[10px] text-muted-foreground">{t('home.interactiveCourtHint')}</p>
+                </div>
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowNew(false)}
