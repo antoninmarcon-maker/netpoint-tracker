@@ -10,6 +10,7 @@ interface TennisCourtProps {
   teamNames: { blue: string; red: string };
   onCourtClick: (x: number, y: number) => void;
   matchFormat?: MatchFormat;
+  servingSide?: 'deuce' | 'ad';
 }
 
 // Court dimensions in SVG coordinates (landscape: baseline left/right)
@@ -26,7 +27,7 @@ const SERVICE_LEFT = 165;  // service line left side
 const SERVICE_RIGHT = 435; // service line right side
 const MID_Y = 200;
 
-type ZoneType = 'left_court' | 'right_court' | 'outside' | 'net' | 'alley_left' | 'alley_right' | 'service_box_left' | 'service_box_right';
+type ZoneType = 'left_court' | 'right_court' | 'outside' | 'net' | 'alley_left' | 'alley_right' | 'service_box_left_top' | 'service_box_left_bottom' | 'service_box_right_top' | 'service_box_right_bottom';
 
 function getClickZone(svgX: number, svgY: number): ZoneType {
   const inDoublesBox = svgX >= CL && svgX <= CR && svgY >= CT && svgY <= CB;
@@ -40,9 +41,13 @@ function getClickZone(svgX: number, svgY: number): ZoneType {
     return svgX < NET_X ? 'alley_left' : 'alley_right';
   }
 
-  // Service boxes (between service line and net, within singles sidelines)
-  if (svgX >= SERVICE_LEFT && svgX < NET_X && svgY >= ST && svgY <= SB) return 'service_box_left';
-  if (svgX > NET_X && svgX <= SERVICE_RIGHT && svgY >= ST && svgY <= SB) return 'service_box_right';
+  // Service boxes split by center line (top = y < MID_Y, bottom = y >= MID_Y)
+  if (svgX >= SERVICE_LEFT && svgX < NET_X && svgY >= ST && svgY <= SB) {
+    return svgY < MID_Y ? 'service_box_left_top' : 'service_box_left_bottom';
+  }
+  if (svgX > NET_X && svgX <= SERVICE_RIGHT && svgY >= ST && svgY <= SB) {
+    return svgY < MID_Y ? 'service_box_right_top' : 'service_box_right_bottom';
+  }
 
   if (svgX < NET_X) return 'left_court';
   return 'right_court';
@@ -52,7 +57,8 @@ function isZoneAllowed(
   zone: ZoneType,
   team: Team, action: ActionType, pointType: PointType,
   sidesSwapped: boolean,
-  matchFormat?: MatchFormat
+  matchFormat?: MatchFormat,
+  servingSide?: 'deuce' | 'ad'
 ): boolean {
   const teamSide = sidesSwapped
     ? (team === 'blue' ? 'right' : 'left')
@@ -62,32 +68,32 @@ function isZoneAllowed(
   // In singles, alleys are treated as outside
   const isSingles = matchFormat === 'singles' || !matchFormat;
 
-  // Aces: must land in opponent's service boxes only
+  // Aces: must land in the diagonally opposite service box
   if (isAceAction(action)) {
-    const opponentServiceBox = opponentSide === 'left' ? 'service_box_left' : 'service_box_right';
-    return zone === opponentServiceBox;
+    const targetZone = getAceTargetZone(teamSide, opponentSide, servingSide);
+    return zone === targetZone;
   }
 
   if (isTennisScoredAction(action)) {
     if (isSingles) {
-      // Singles: main court + service boxes (no alleys)
       const allowed = opponentSide === 'left'
-        ? ['left_court', 'service_box_left']
-        : ['right_court', 'service_box_right'];
+        ? ['left_court', 'service_box_left_top', 'service_box_left_bottom']
+        : ['right_court', 'service_box_right_top', 'service_box_right_bottom'];
       return allowed.includes(zone);
     }
-    // Doubles: alleys included
     const allowed = opponentSide === 'left'
-      ? ['left_court', 'alley_left', 'service_box_left']
-      : ['right_court', 'alley_right', 'service_box_right'];
+      ? ['left_court', 'alley_left', 'service_box_left_top', 'service_box_left_bottom']
+      : ['right_court', 'alley_right', 'service_box_right_top', 'service_box_right_bottom'];
     return allowed.includes(zone);
   }
 
   // Faults
   switch (action) {
-    case 'double_fault':
-      return zone === 'outside' || zone === (opponentSide === 'left' ? 'left_court' : 'right_court')
-        || zone === (opponentSide === 'left' ? 'service_box_left' : 'service_box_right');
+    case 'double_fault': {
+      const targetZone = getAceTargetZone(teamSide, opponentSide, servingSide);
+      // Double fault: the ball was SUPPOSED to go in the target zone, so allow clicks outside/net/wrong box
+      return zone === 'outside' || zone === 'net' || (zone !== targetZone && zone.startsWith('service_box'));
+    }
     case 'net_error':
       return zone === 'net';
     case 'out_long':
@@ -101,9 +107,25 @@ function isZoneAllowed(
   }
 }
 
+/** Get the single service box zone an ace should land in (diagonal rule) */
+function getAceTargetZone(
+  serverSide: 'left' | 'right',
+  opponentSide: 'left' | 'right',
+  servingSide?: 'deuce' | 'ad'
+): ZoneType {
+  const side = servingSide ?? 'deuce';
+  // In landscape SVG: top = one half, bottom = other half
+  // Server on left: deuce = bottom of baseline → diagonal = opponent top; ad = top → opponent bottom
+  // Server on right: deuce = top of baseline → diagonal = opponent bottom; ad = bottom → opponent top
+  const targetTop = serverSide === 'left' ? (side === 'deuce') : (side === 'ad');
+  const suffix = targetTop ? '_top' : '_bottom';
+  return (opponentSide === 'left' ? 'service_box_left' : 'service_box_right') + suffix as ZoneType;
+}
+
 function getZoneHighlights(
   team: Team, action: ActionType, pointType: PointType, sidesSwapped: boolean,
-  matchFormat?: MatchFormat
+  matchFormat?: MatchFormat,
+  servingSide?: 'deuce' | 'ad'
 ): { x: number; y: number; w: number; h: number }[] {
   const teamSide = sidesSwapped
     ? (team === 'blue' ? 'right' : 'left')
@@ -112,12 +134,16 @@ function getZoneHighlights(
 
   const isSingles = matchFormat === 'singles' || !matchFormat;
 
-  // Aces: only service boxes
+  // Aces: only the diagonal service box
   if (isAceAction(action)) {
-    if (opponentSide === 'right') {
-      return [{ x: NET_X, y: ST, w: SERVICE_RIGHT - NET_X, h: SB - ST }];
-    }
-    return [{ x: SERVICE_LEFT, y: ST, w: NET_X - SERVICE_LEFT, h: SB - ST }];
+    const targetZone = getAceTargetZone(teamSide, opponentSide, servingSide);
+    const isLeft = targetZone.includes('left');
+    const isTop = targetZone.includes('_top');
+    const x = isLeft ? SERVICE_LEFT : NET_X;
+    const w = isLeft ? (NET_X - SERVICE_LEFT) : (SERVICE_RIGHT - NET_X);
+    const y = isTop ? ST : MID_Y;
+    const h = isTop ? (MID_Y - ST) : (SB - MID_Y);
+    return [{ x, y, w, h }];
   }
 
   if (isTennisScoredAction(action)) {
@@ -168,7 +194,7 @@ const ACTION_SHORT: Record<string, string> = {
 
 export function TennisCourt({
   points, selectedTeam, selectedAction, selectedPointType,
-  sidesSwapped, teamNames, onCourtClick, matchFormat
+  sidesSwapped, teamNames, onCourtClick, matchFormat, servingSide
 }: TennisCourtProps) {
   const courtRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -182,8 +208,8 @@ export function TennisCourt({
 
   const zoneHighlights = useMemo(() => {
     if (!hasSelection) return null;
-    return getZoneHighlights(selectedTeam!, selectedAction!, selectedPointType!, sidesSwapped, matchFormat);
-  }, [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped, matchFormat]);
+    return getZoneHighlights(selectedTeam!, selectedAction!, selectedPointType!, sidesSwapped, matchFormat, servingSide);
+  }, [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped, matchFormat, servingSide]);
 
   const handleInteraction = useCallback(
     (clientX: number, clientY: number) => {
@@ -194,7 +220,7 @@ export function TennisCourt({
       const svgX = x * W;
       const svgY = y * H;
       const zone = getClickZone(svgX, svgY);
-      if (isZoneAllowed(zone, selectedTeam!, selectedAction!, selectedPointType!, sidesSwapped, matchFormat)) {
+      if (isZoneAllowed(zone, selectedTeam!, selectedAction!, selectedPointType!, sidesSwapped, matchFormat, servingSide)) {
         onCourtClick(x, y);
       }
     },
