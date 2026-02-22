@@ -68,6 +68,9 @@ export async function deleteCloudMatch(matchId: string) {
     if (import.meta.env.DEV) console.error('Cloud delete error:', error);
     throw new Error(error.message);
   }
+  if (count === 0) {
+    throw new Error("Supabase RLS : Aucune ligne n'a été supprimée côté serveur.");
+  }
   if (import.meta.env.DEV) console.log('[DEBUG] deleteCloudMatch: deleted', count, 'row(s) for', matchId);
 }
 
