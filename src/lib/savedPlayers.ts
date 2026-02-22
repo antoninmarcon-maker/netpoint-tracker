@@ -2,11 +2,39 @@ import { supabase } from '@/integrations/supabase/client';
 import { Player, SportType } from '@/types/sports';
 
 const SAVED_PLAYERS_KEY = 'volley-tracker-saved-players';
+const JERSEY_CONFIG_KEY = 'myvolley-jersey-config';
 
-interface SavedPlayer {
+export interface SavedPlayer {
   id: string;
   name: string;
+  number?: string;
   sport: SportType;
+}
+
+// ---- JERSEY NUMBER CONFIG ----
+
+const DEFAULT_JERSEY_CONFIG: Record<SportType, boolean> = {
+  volleyball: true,
+  basketball: true,
+  tennis: false,
+  padel: false,
+};
+
+export function getJerseyConfig(): Record<SportType, boolean> {
+  try {
+    const raw = localStorage.getItem(JERSEY_CONFIG_KEY);
+    if (!raw) return { ...DEFAULT_JERSEY_CONFIG };
+    return { ...DEFAULT_JERSEY_CONFIG, ...JSON.parse(raw) };
+  } catch {
+    return { ...DEFAULT_JERSEY_CONFIG };
+  }
+}
+
+export function setJerseyEnabled(sport: SportType, enabled: boolean): Record<SportType, boolean> {
+  const config = getJerseyConfig();
+  config[sport] = enabled;
+  localStorage.setItem(JERSEY_CONFIG_KEY, JSON.stringify(config));
+  return config;
 }
 
 // ---- LOCAL (guest) ----
@@ -98,4 +126,66 @@ export async function removeSavedPlayer(id: string, sport: SportType, userId?: s
     const existing = getLocalSavedPlayers(sport);
     saveLocalSavedPlayers(existing.filter(p => p.id !== id));
   }
+}
+
+export async function addSavedPlayer(name: string, sport: SportType, userId?: string | null, number?: string): Promise<SavedPlayer> {
+  const player: SavedPlayer = { id: crypto.randomUUID(), name: name.trim(), sport, ...(number ? { number } : {}) };
+  if (userId) {
+    const { data } = await supabase.from('saved_players').insert({
+      user_id: userId,
+      sport,
+      name: name.trim(),
+    }).select().single();
+    if (data) player.id = data.id;
+    // Number stored locally only (no DB column yet)
+  } else {
+    const existing = getLocalSavedPlayers(sport);
+    saveLocalSavedPlayers([...existing, player]);
+  }
+  // Save number in local jersey map
+  if (number) savePlayerNumber(player.id, number);
+  return player;
+}
+
+export async function updateSavedPlayerName(id: string, newName: string, sport: SportType, userId?: string | null) {
+  if (userId) {
+    await supabase.from('saved_players').update({ name: newName.trim() }).eq('id', id);
+  } else {
+    const existing = getLocalSavedPlayers(sport);
+    const updated = existing.map(p => p.id === id ? { ...p, name: newName.trim() } : p);
+    saveLocalSavedPlayers(updated);
+  }
+}
+
+export async function updateSavedPlayerNumber(id: string, number: string) {
+  savePlayerNumber(id, number);
+}
+
+// ---- JERSEY NUMBER STORAGE (localStorage-based, per player id) ----
+
+const JERSEY_NUMBERS_KEY = 'myvolley-player-numbers';
+
+function getPlayerNumbersMap(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(JERSEY_NUMBERS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function savePlayerNumber(id: string, number: string) {
+  const map = getPlayerNumbersMap();
+  if (number.trim()) {
+    map[id] = number.trim();
+  } else {
+    delete map[id];
+  }
+  localStorage.setItem(JERSEY_NUMBERS_KEY, JSON.stringify(map));
+}
+
+export function getPlayerNumber(id: string): string | undefined {
+  return getPlayerNumbersMap()[id];
+}
+
+export function getPlayerNumbers(): Record<string, string> {
+  return getPlayerNumbersMap();
 }

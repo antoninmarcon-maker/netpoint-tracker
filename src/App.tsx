@@ -12,6 +12,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Credits from "./pages/Credits";
 import ActionsConfig from "./pages/ActionsConfig";
+import Players from "./pages/Players";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/credits" element={<Credits />} />
           <Route path="/actions" element={<ActionsConfig />} />
+          <Route path="/players" element={<Players />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

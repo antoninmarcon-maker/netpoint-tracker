@@ -365,6 +365,7 @@ const Index = () => {
                 prompt={t('playerSelector.whoScored')}
                 onSelect={assignPlayer}
                 onSkip={skipPlayerAssignment}
+                sport={sport}
               />
             );
           }
@@ -379,6 +380,7 @@ const Index = () => {
                 prompt={isBlueFault ? t('playerSelector.whoFaulted') : t('playerSelector.whoScored')}
                 onSelect={assignPlayer}
                 onSkip={skipPlayerAssignment}
+                sport={sport}
               />
             );
           }
@@ -411,6 +413,7 @@ const Index = () => {
                 prompt={prompt}
                 onSelect={assignPlayer}
                 onSkip={skipPlayerAssignment}
+                sport={sport}
               />
             );
           }
@@ -425,6 +428,7 @@ const Index = () => {
               prompt={isFaultByBlue ? t('playerSelector.whoFaulted') : t('playerSelector.whoScored')}
               onSelect={assignPlayer}
               onSkip={skipPlayerAssignment}
+              sport={sport}
             />
           );
         })()}

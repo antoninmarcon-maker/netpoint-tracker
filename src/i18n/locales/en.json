@@ -374,6 +374,15 @@
     "scored": "Won",
     "faultsCategory": "Faults"
   },
+  "players": {
+    "title": "My Players",
+    "useJerseyNumbers": "Enable jersey numbers",
+    "jerseyNumbersInfoTitle": "Coach Tip 💡",
+    "jerseyNumbersInfoDesc": "Using numbers significantly speeds up live stat tracking during a match. They will be displayed next to the player's name.",
+    "jerseyNumberPlaceholder": "#",
+    "playerAdded": "Player added",
+    "noStats": "No statistics for this player."
+  },
   "shared": {
     "matchNotFound": "Match not found",
     "matchNotFoundDesc": "This share link does not exist or has been removed.",

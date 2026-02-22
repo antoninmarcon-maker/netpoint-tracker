@@ -374,6 +374,15 @@
     "scored": "Gagnés",
     "faultsCategory": "Fautes"
   },
+  "players": {
+    "title": "Mes Joueurs",
+    "useJerseyNumbers": "Activer les numéros de maillot",
+    "jerseyNumbersInfoTitle": "Astuce de Coach 💡",
+    "jerseyNumbersInfoDesc": "L'utilisation des numéros accélère considérablement la prise de statistiques en direct pendant le match. Ils s'afficheront à côté du nom du joueur.",
+    "jerseyNumberPlaceholder": "N°",
+    "playerAdded": "Joueur ajouté",
+    "noStats": "Aucune statistique pour ce joueur."
+  },
   "shared": {
     "matchNotFound": "Match introuvable",
     "matchNotFoundDesc": "Ce lien de partage n'existe pas ou a été supprimé.",

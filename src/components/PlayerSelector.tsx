@@ -2,17 +2,22 @@ import { useState, useEffect } from 'react';
 import { Player } from '@/types/sports';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getPlayerNumber, getJerseyConfig } from '@/lib/savedPlayers';
+import type { SportType } from '@/types/sports';
 
 interface PlayerSelectorProps {
   players: Player[];
   prompt: string;
   onSelect: (playerId: string) => void;
   onSkip: () => void;
+  sport?: SportType;
 }
 
-export function PlayerSelector({ players, prompt, onSelect, onSkip }: PlayerSelectorProps) {
+export function PlayerSelector({ players, prompt, onSelect, onSkip, sport = 'volleyball' }: PlayerSelectorProps) {
   const { t } = useTranslation();
   const [interactive, setInteractive] = useState(false);
+  const jerseyEnabled = getJerseyConfig()[sport];
+
   useEffect(() => {
     const timer = setTimeout(() => setInteractive(true), 100);
     return () => clearTimeout(timer);
@@ -28,11 +33,17 @@ export function PlayerSelector({ players, prompt, onSelect, onSkip }: PlayerSele
           </button>
         </div>
         <div className="grid grid-cols-4 gap-2">
-          {players.map(p => (
-            <button key={p.id} onClick={() => onSelect(p.id)} className="flex flex-col items-center gap-0.5 py-3 px-1 rounded-xl bg-team-blue/10 border border-team-blue/20 hover:bg-team-blue/20 active:scale-95 transition-all">
-              <span className="text-lg font-black text-team-blue">{p.name || '—'}</span>
-            </button>
-          ))}
+          {players.map(p => {
+            const num = jerseyEnabled ? getPlayerNumber(p.id) : undefined;
+            return (
+              <button key={p.id} onClick={() => onSelect(p.id)} className="flex flex-col items-center gap-0.5 py-3 px-1 rounded-xl bg-team-blue/10 border border-team-blue/20 hover:bg-team-blue/20 active:scale-95 transition-all">
+                {num && (
+                  <span className="text-[10px] font-black text-team-blue/60">#{num}</span>
+                )}
+                <span className={`font-black text-team-blue ${num ? 'text-sm' : 'text-lg'}`}>{p.name || '—'}</span>
+              </button>
+            );
+          })}
         </div>
         <button onClick={onSkip} className="w-full py-2 text-xs font-medium text-muted-foreground rounded-lg bg-secondary hover:bg-secondary/80 transition-all">
           {t('playerSelector.skip')}

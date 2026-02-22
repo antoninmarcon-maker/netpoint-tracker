@@ -215,6 +215,7 @@ export function getDefaultMatchFormat(sport: SportType): MatchFormat {
 export interface Player {
   id: string;
   name: string;
+  number?: string;
 }
 
 export interface Point {
