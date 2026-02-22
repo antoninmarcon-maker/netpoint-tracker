@@ -88,7 +88,10 @@ function buildExportContainer(teamNames: { blue: string; red: string }, label: s
       ? [['Tirs manqués', ds[team].missedShots], ['Pertes', ds[team].turnovers], ['Fautes', ds[team].foulsCommitted]] as [string, number][]
       : [['Out', ds[team].outs], ['Filet', ds[team].netFaults], ['Srv loupés', ds[team].serviceMisses], ['Block Out', ds[team].blockOuts]] as [string, number][];
     for (const [l, v] of faultRows) statsEl.appendChild(createStatRow(l, v, { indent: true }));
-    statsEl.appendChild(createStatRow('Total', ds[team].scored + ds[team].faults, { borderTop: true }));
+    if (ds[team].neutral > 0) {
+      statsEl.appendChild(createStatRow('📊 Faits de jeu', ds[team].neutral, { borderTop: true }));
+    }
+    statsEl.appendChild(createStatRow('Total', ds[team].scored + ds[team].faults + ds[team].neutral, { borderTop: true }));
     card.appendChild(statsEl);
     grid.appendChild(card);
   }
@@ -104,7 +107,7 @@ function buildExportContainer(teamNames: { blue: string; red: string }, label: s
 }
 
 interface TeamStats {
-  scored: number; faults: number;
+  scored: number; faults: number; neutral: number;
   attacks: number; aces: number; blocks: number; bidouilles: number; secondeMains: number; otherOffensive: number;
   outs: number; netFaults: number; serviceMisses: number; blockOuts: number;
   scoredPoints: number; freeThrows: number; twoPoints: number; threePoints: number;
@@ -117,8 +120,10 @@ function computeStats(pts: Point[], sport: SportType = 'volleyball'): { blue: Te
     const scored = pts.filter(p => p.team === team && p.type === 'scored');
     const opponentFaults = pts.filter(p => p.team === opponent && p.type === 'fault');
     const teamFaults = pts.filter(p => p.team === team && p.type === 'fault');
+    const neutralPts = pts.filter(p => p.team === team && p.type === 'neutral');
     return {
       scored: sport === 'basketball' ? scored.reduce((s, p) => s + (p.pointValue ?? 0), 0) : scored.length,
+      neutral: neutralPts.length,
       faults: sport === 'basketball' ? teamFaults.length : opponentFaults.length,
       attacks: scored.filter(p => p.action === 'attack').length,
       aces: scored.filter(p => p.action === 'ace').length,

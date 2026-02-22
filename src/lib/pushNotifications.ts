@@ -30,15 +30,15 @@ export function getNotificationPermission(): NotificationPermission | 'unsupport
   return Notification.permission;
 }
 
-export async function subscribeToPush(): Promise<boolean> {
+export async function subscribeToPush(): Promise<{ success: boolean; error?: string }> {
   if (!VAPID_PUBLIC_KEY) {
     if (import.meta.env.DEV) console.warn('[Push] VITE_VAPID_PUBLIC_KEY not set');
-    return false;
+    return { success: false, error: 'Clé VAPID manquante dans les variables.' };
   }
 
   try {
     const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return false;
+    if (permission !== 'granted') return { success: false, error: `Permission refusée (${permission})` };
 
     const registration = await navigator.serviceWorker.ready;
     
@@ -55,7 +55,7 @@ export async function subscribeToPush(): Promise<boolean> {
     const keys = subscription.toJSON().keys;
     if (!keys?.auth || !keys?.p256dh) {
       if (import.meta.env.DEV) console.error('[Push] Missing subscription keys');
-      return false;
+      return { success: false, error: 'Clés de souscription manquantes (auth/p256dh)' };
     }
 
     // Get current user (may be null for guests)
@@ -75,15 +75,15 @@ export async function subscribeToPush(): Promise<boolean> {
 
     if (error) {
       if (import.meta.env.DEV) console.error('[Push] Upsert error:', error);
-      return false;
+      return { success: false, error: error.message };
     }
 
     // Store endpoint locally for tutorial step updates
     localStorage.setItem(SUBSCRIPTION_ENDPOINT_KEY, subscription.endpoint);
-    return true;
-  } catch (err) {
+    return { success: true };
+  } catch (err: any) {
     if (import.meta.env.DEV) console.error('[Push] Subscribe error:', err);
-    return false;
+    return { success: false, error: err.message || 'Erreur inconnue du navigateur' };
   }
 }
 

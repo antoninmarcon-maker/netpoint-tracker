@@ -133,16 +133,16 @@ export default function Settings() {
 
   const handleEnableNotifications = async () => {
     setSubscribingPush(true);
-    const success = await subscribeToPush();
+    const result = await subscribeToPush();
     setSubscribingPush(false);
     setNotifPermission(getNotificationPermission());
-    if (success) {
+    if (result.success) {
       toast.success(t('settings.notificationsEnabled'));
     } else {
       if (Notification.permission === 'denied') {
-        toast.error(t('settings.notificationsDenied'));
+        toast.error(t('settings.notificationsDenied'), { duration: 10000 });
       } else {
-        toast.error(t('settings.notificationsError'));
+        toast.error(result.error || t('settings.notificationsError'), { duration: 10000 });
       }
     }
   };

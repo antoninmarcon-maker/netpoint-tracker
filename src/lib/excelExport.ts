@@ -13,10 +13,11 @@ function playerSetStatsVolley(pts: Point[], players: Player[]) {
     const scored = pp.filter(p => p.team === 'blue' && p.type === 'scored');
     const faultWins = pp.filter(p => p.team === 'blue' && p.type === 'fault');
     const faults = pp.filter(p => p.team === 'red');
+    const neutrals = pp.filter(p => p.type === 'neutral');
 
     const totalPositive = scored.length + faultWins.length;
     const totalNegative = faults.length;
-    const total = totalPositive + totalNegative;
+    const total = totalPositive + totalNegative + neutrals.length;
 
     return {
       'Joueur': player.name || '—',
@@ -30,6 +31,7 @@ function playerSetStatsVolley(pts: Point[], players: Player[]) {
       'Pts gagnés (fautes adv.)': faultWins.length,
       'Total pts gagnés': totalPositive,
       'Fautes commises': totalNegative,
+      'Faits de jeu (Total)': neutrals.length,
       'Total actions': total,
       'Efficacité (%)': total > 0 ? Math.round(totalPositive / total * 100) : 0,
     };
@@ -41,9 +43,10 @@ function playerSetStatsBasket(pts: Point[], players: Player[]) {
     const pp = pts.filter(p => p.playerId === player.id);
     const scored = pp.filter(p => p.team === 'blue' && p.type === 'scored');
     const negatives = pp.filter(p => p.team === 'red');
+    const neutrals = pp.filter(p => p.type === 'neutral');
 
     const totalPoints = scored.reduce((s, p) => s + (p.pointValue ?? 0), 0);
-    const total = scored.length + negatives.length;
+    const total = scored.length + negatives.length + neutrals.length;
 
     return {
       'Joueur': player.name || '—',
@@ -57,6 +60,7 @@ function playerSetStatsBasket(pts: Point[], players: Player[]) {
       'Pertes balle': negatives.filter(p => p.action === 'turnover').length,
       'Fautes': negatives.filter(p => p.action === 'foul_committed').length,
       'Total négatifs': negatives.length,
+      'Faits de jeu (Total)': neutrals.length,
       'Total actions': total,
       'Efficacité (%)': total > 0 ? Math.round(scored.length / total * 100) : 0,
     };
@@ -68,8 +72,9 @@ function playerSetStatsTennis(pts: Point[], players: Player[]) {
     const pp = pts.filter(p => p.playerId === player.id);
     const scored = pp.filter(p => p.team === 'blue' && p.type === 'scored');
     const faults = pp.filter(p => p.team === 'red');
+    const neutrals = pp.filter(p => p.type === 'neutral');
 
-    const total = scored.length + faults.length;
+    const total = scored.length + faults.length + neutrals.length;
 
     return {
       'Joueur': player.name || '—',
@@ -87,6 +92,7 @@ function playerSetStatsTennis(pts: Point[], players: Player[]) {
       'Filet': faults.filter(p => p.action === 'net_error').length,
       'Out': faults.filter(p => p.action === 'out_long' || p.action === 'out_wide').length,
       'Total fautes': faults.length,
+      'Faits de jeu (Total)': neutrals.length,
       'Total actions': total,
       'Efficacité (%)': total > 0 ? Math.round(scored.length / total * 100) : 0,
     };
@@ -98,8 +104,9 @@ function playerSetStatsPadel(pts: Point[], players: Player[]) {
     const pp = pts.filter(p => p.playerId === player.id);
     const scored = pp.filter(p => p.team === 'blue' && p.type === 'scored');
     const faults = pp.filter(p => p.team === 'red');
+    const neutrals = pp.filter(p => p.type === 'neutral');
 
-    const total = scored.length + faults.length;
+    const total = scored.length + faults.length + neutrals.length;
 
     return {
       'Joueur': player.name || '—',
@@ -119,6 +126,7 @@ function playerSetStatsPadel(pts: Point[], players: Player[]) {
       'Grille': faults.filter(p => p.action === 'grille_error').length,
       'Vitre': faults.filter(p => p.action === 'vitre_error').length,
       'Total fautes': faults.length,
+      'Faits de jeu (Total)': neutrals.length,
       'Total actions': total,
       'Efficacité (%)': total > 0 ? Math.round(scored.length / total * 100) : 0,
     };
