@@ -159,7 +159,7 @@ export default function Players() {
     if (!editName.trim()) return;
     await updateSavedPlayerName(id, editName, sport, user?.id);
     if (jerseyEnabled) {
-      await updateSavedPlayerNumber(id, editNumber);
+      await updateSavedPlayerNumber(id, editNumber, user?.id);
     }
     setEditingId(null);
     loadPlayers();

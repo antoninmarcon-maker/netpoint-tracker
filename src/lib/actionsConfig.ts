@@ -1,4 +1,5 @@
 import { SportType, ActionType, PointType, OTHER_ACTION_KEYS } from '@/types/sports';
+import { getCurrentUserId, patchCloudSettings } from './cloudSettings';
 
 const STORAGE_KEY = 'myvolley-actions-config';
 
@@ -44,10 +45,36 @@ function getDefaultConfig(): ActionsConfig {
 
 function saveConfig(config: ActionsConfig) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  // Fire-and-forget cloud sync
+  syncActionsToCloud(config);
+}
+
+/** Sync actions config to cloud if user is logged in */
+async function syncActionsToCloud(config: ActionsConfig) {
+  try {
+    const userId = await getCurrentUserId();
+    if (!userId) return;
+    await patchCloudSettings(userId, {
+      customActions: config.customActions,
+      hiddenActions: config.hiddenActions,
+    });
+  } catch {
+    // Silent fail — localStorage is source of truth for current session
+  }
 }
 
 export function getActionsConfig(): ActionsConfig {
   return getConfig();
+}
+
+/** Overwrite local config from cloud data (used during hydration) */
+export function hydrateActionsConfig(cloud: { customActions?: CustomAction[]; hiddenActions?: string[] }) {
+  const local = getConfig();
+  const merged: ActionsConfig = {
+    hiddenActions: cloud.hiddenActions ?? local.hiddenActions,
+    customActions: cloud.customActions ?? local.customActions,
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
 }
 
 export function toggleActionVisibility(actionKey: string): ActionsConfig {
@@ -104,7 +131,6 @@ export function deleteCustomAction(id: string): ActionsConfig {
   return config;
 }
 
-/** Get the real ActionType key for a custom action (maps to "other_*") */
 // ── Advantage Rule per sport ──
 
 const ADVANTAGE_STORAGE_KEY = 'myvolley-advantage-rule';
@@ -134,6 +160,21 @@ export function setAdvantageRule(sport: SportType, value: boolean): void {
   const config = getAdvantageConfig();
   config[sport] = value;
   localStorage.setItem(ADVANTAGE_STORAGE_KEY, JSON.stringify(config));
+  // Sync to cloud
+  syncAdvantageToCloud(config);
+}
+
+async function syncAdvantageToCloud(config: AdvantageRuleConfig) {
+  try {
+    const userId = await getCurrentUserId();
+    if (!userId) return;
+    await patchCloudSettings(userId, { advantageRule: config });
+  } catch { /* silent */ }
+}
+
+/** Hydrate advantage rule from cloud */
+export function hydrateAdvantageRule(cloud: { tennis: boolean; padel: boolean }) {
+  localStorage.setItem(ADVANTAGE_STORAGE_KEY, JSON.stringify(cloud));
 }
 
 /** Get the real ActionType key for a custom action (maps to "other_*") */

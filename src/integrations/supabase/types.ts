@@ -191,6 +191,7 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          settings: Json
           updated_at: string
           user_id: string
         }
@@ -199,6 +200,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          settings?: Json
           updated_at?: string
           user_id: string
         }
@@ -207,6 +209,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          settings?: Json
           updated_at?: string
           user_id?: string
         }
@@ -249,6 +252,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          jersey_number: string | null
           name: string
           sport: string
           updated_at: string
@@ -257,6 +261,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          jersey_number?: string | null
           name?: string
           sport?: string
           updated_at?: string
@@ -265,6 +270,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          jersey_number?: string | null
           name?: string
           sport?: string
           updated_at?: string

@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Player, SportType } from '@/types/sports';
+import { getCurrentUserId, patchCloudSettings } from './cloudSettings';
 
 const SAVED_PLAYERS_KEY = 'volley-tracker-saved-players';
 const JERSEY_CONFIG_KEY = 'myvolley-jersey-config';
@@ -34,6 +35,10 @@ export function setJerseyEnabled(sport: SportType, enabled: boolean): Record<Spo
   const config = getJerseyConfig();
   config[sport] = enabled;
   localStorage.setItem(JERSEY_CONFIG_KEY, JSON.stringify(config));
+  // Fire-and-forget cloud sync
+  getCurrentUserId().then(uid => {
+    if (uid) patchCloudSettings(uid, { jerseyConfig: config }).catch(() => {});
+  });
   return config;
 }
 
@@ -81,7 +86,12 @@ async function getCloudSavedPlayers(sport: SportType): Promise<SavedPlayer[]> {
     .eq('sport', sport)
     .order('name');
   if (error || !data) return [];
-  return data.map(r => ({ id: r.id, name: r.name, sport: r.sport as SportType }));
+  return data.map((r: any) => ({
+    id: r.id,
+    name: r.name,
+    sport: r.sport as SportType,
+    ...(r.jersey_number ? { number: r.jersey_number } : {}),
+  }));
 }
 
 async function mergeCloudPlayers(userId: string, sport: SportType, matchPlayers: Player[]) {
@@ -90,10 +100,11 @@ async function mergeCloudPlayers(userId: string, sport: SportType, matchPlayers:
     mp.name.trim() && !existing.some(e => e.name === mp.name)
   );
   if (newOnes.length === 0) return;
-  const rows = newOnes.map(p => ({
+  const rows: any[] = newOnes.map(p => ({
     user_id: userId,
     sport,
     name: p.name,
+    ...(p.number ? { jersey_number: p.number } : {}),
   }));
   await supabase.from('saved_players').insert(rows);
 }
@@ -135,9 +146,9 @@ export async function addSavedPlayer(name: string, sport: SportType, userId?: st
       user_id: userId,
       sport,
       name: name.trim(),
-    }).select().single();
+      ...(number ? { jersey_number: number } : {}),
+    } as any).select().single();
     if (data) player.id = data.id;
-    // Number stored locally only (no DB column yet)
   } else {
     const existing = getLocalSavedPlayers(sport);
     saveLocalSavedPlayers([...existing, player]);
@@ -157,8 +168,12 @@ export async function updateSavedPlayerName(id: string, newName: string, sport: 
   }
 }
 
-export async function updateSavedPlayerNumber(id: string, number: string) {
+export async function updateSavedPlayerNumber(id: string, number: string, userId?: string | null) {
   savePlayerNumber(id, number);
+  // Also persist to cloud
+  if (userId) {
+    await supabase.from('saved_players').update({ jersey_number: number.trim() || null } as any).eq('id', id);
+  }
 }
 
 // ---- JERSEY NUMBER STORAGE (localStorage-based, per player id) ----

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, MessageSquare, ShieldCheck, UserRound, Loader2, Globe, Sun, Moon, Monitor, ImagePlus, Trash2, Bell, BellOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { patchCloudSettings } from '@/lib/cloudSettings';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -296,6 +297,7 @@ export default function Settings() {
                       const dataUrl = ev.target?.result as string;
                       localStorage.setItem('customLogo', dataUrl);
                       setCustomLogo(dataUrl);
+                      if (user) patchCloudSettings(user.id, { customLogo: dataUrl }).catch(() => {});
                       toast.success(t('settings.logoUpdated'));
                       navigate('/');
                     };
@@ -307,6 +309,7 @@ export default function Settings() {
                     onClick={() => {
                       localStorage.removeItem('customLogo');
                       setCustomLogo(null);
+                      if (user) patchCloudSettings(user.id, { customLogo: null }).catch(() => {});
                       toast.success(t('settings.logoRemoved'));
                     }}
                     className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-destructive/10 text-destructive font-semibold text-sm hover:bg-destructive/20 transition-colors"

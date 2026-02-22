@@ -97,7 +97,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
     };
     // Save number to localStorage
     if (jerseyEnabled && newNumber.trim()) {
-      updateSavedPlayerNumber(player.id, newNumber.trim());
+      updateSavedPlayerNumber(player.id, newNumber.trim(), userId);
     }
     onSetPlayers([...players, player]);
     setNewName('');
@@ -121,7 +121,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
       ...(jerseyEnabled && savedNum ? { number: savedNum } : {}),
     };
     if (jerseyEnabled && savedNum) {
-      updateSavedPlayerNumber(player.id, savedNum);
+      updateSavedPlayerNumber(player.id, savedNum, userId);
     }
     onSetPlayers([...players, player]);
     setNewName('');
@@ -148,7 +148,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
         ...(jerseyEnabled && savedNum ? { number: savedNum } : {}),
       };
       if (jerseyEnabled && savedNum) {
-        updateSavedPlayerNumber(player.id, savedNum);
+        updateSavedPlayerNumber(player.id, savedNum, userId);
       }
       return player;
     });
@@ -168,7 +168,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
   const saveEdit = () => {
     if (!editingId || !editName.trim()) return;
     if (jerseyEnabled) {
-      updateSavedPlayerNumber(editingId, editNumber.trim());
+      updateSavedPlayerNumber(editingId, editNumber.trim(), userId);
     }
     onSetPlayers(players.map(p => p.id === editingId ? {
       ...p,
