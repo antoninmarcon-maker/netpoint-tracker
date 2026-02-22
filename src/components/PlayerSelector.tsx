@@ -34,7 +34,7 @@ export function PlayerSelector({ players, prompt, onSelect, onSkip, sport = 'vol
         </div>
         <div className="grid grid-cols-4 gap-2">
           {players.map(p => {
-            const num = jerseyEnabled ? getPlayerNumber(p.id) : undefined;
+            const num = jerseyEnabled ? (getPlayerNumber(p.id) || p.number) : undefined;
             return (
               <button key={p.id} onClick={() => onSelect(p.id)} className="flex flex-col items-center gap-0.5 py-3 px-1 rounded-xl bg-team-blue/10 border border-team-blue/20 hover:bg-team-blue/20 active:scale-95 transition-all">
                 {num && (
