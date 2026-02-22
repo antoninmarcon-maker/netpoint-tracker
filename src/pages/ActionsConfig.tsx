@@ -222,26 +222,38 @@ export default function ActionsConfig() {
 
         {/* Add form */}
         {addingCategory === category && (
-          <div className="flex items-center gap-2 p-2 rounded-lg border border-primary/30 bg-primary/5 flex-wrap">
-            <Input
-              value={newLabel}
-              onChange={e => setNewLabel(e.target.value)}
-              placeholder={t('actionsConfig.newActionPlaceholder')}
-              className="h-8 text-sm flex-1 min-w-[100px]"
-              onKeyDown={e => e.key === 'Enter' && handleAdd()}
-              autoFocus
-            />
-            {showPtsForCategory && (
-              <div className="flex gap-1">
-                {[1, 2, 3].map(p => (
-                  <button key={p} onClick={() => setNewPoints(p)}
-                    className={`w-7 h-7 rounded-full text-xs font-bold transition-colors ${newPoints === p ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}
-                  >{p}</button>
-                ))}
-              </div>
-            )}
+          <div className="flex flex-col gap-2 p-2 rounded-lg border border-primary/30 bg-primary/5">
+            <div className="flex items-center gap-2">
+              <Input
+                value={newLabel}
+                onChange={e => setNewLabel(e.target.value)}
+                placeholder={t('actionsConfig.newActionPlaceholder')}
+                className="h-8 text-sm flex-1 min-w-[100px]"
+                onKeyDown={e => e.key === 'Enter' && handleAdd()}
+                autoFocus
+              />
+              {showPtsForCategory && (
+                <div className="flex gap-1">
+                  {[1, 2, 3].map(p => (
+                    <button key={p} onClick={() => setNewPoints(p)}
+                      className={`w-7 h-7 rounded-full text-xs font-bold transition-colors ${newPoints === p ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}
+                    >{p}</button>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={handleAdd}
+                disabled={!newLabel.trim()}
+                className="p-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50"
+              >
+                <Check size={16} />
+              </button>
+              <button onClick={() => setAddingCategory(null)} className="p-1 text-muted-foreground">
+                <X size={16} />
+              </button>
+            </div>
             {isNeutral && (
-              <>
+              <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5">
                   <Switch checked={newShowOnCourt} onCheckedChange={setNewShowOnCourt} className="scale-75" />
                   <Label className="text-[10px] text-muted-foreground">{t('actionsConfig.showOnCourt')}</Label>
@@ -251,21 +263,11 @@ export default function ActionsConfig() {
                     value={newSigil}
                     onChange={e => setNewSigil(e.target.value.slice(0, 2).toUpperCase())}
                     placeholder={t('actionsConfig.sigilPlaceholder')}
-                    className="h-8 text-sm w-20"
+                    className="h-8 text-sm w-24"
                   />
                 )}
-              </>
+              </div>
             )}
-            <button
-              onClick={handleAdd}
-              disabled={!newLabel.trim()}
-              className="p-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50"
-            >
-              <Check size={16} />
-            </button>
-            <button onClick={() => setAddingCategory(null)} className="p-1 text-muted-foreground">
-              <X size={16} />
-            </button>
           </div>
         )}
       </div>
