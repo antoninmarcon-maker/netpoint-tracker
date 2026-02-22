@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Users, Plus, X, Pencil, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { Player, SportType } from '@/types/sports';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { getSavedPlayers, syncMatchPlayersToPool } from '@/lib/savedPlayers';
+import { getSavedPlayers, syncMatchPlayersToPool, getJerseyConfig, getPlayerNumber, updateSavedPlayerNumber } from '@/lib/savedPlayers';
 import { useTranslation } from 'react-i18next';
 
 interface PlayerRosterProps {
@@ -19,12 +20,37 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [newName, setNewName] = useState('');
+  const [newNumber, setNewNumber] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [editNumber, setEditNumber] = useState('');
   const [savedPlayers, setSavedPlayers] = useState<{ id: string; name: string }[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
+  const numberRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  const jerseyEnabled = getJerseyConfig()[sport];
+
+  // Compute next number suggestion
+  const nextNumber = useMemo(() => {
+    if (!jerseyEnabled) return '';
+    const nums = players
+      .map(p => {
+        const n = getPlayerNumber(p.id);
+        return n ? parseInt(n, 10) : NaN;
+      })
+      .filter(n => !isNaN(n));
+    if (nums.length === 0) return '1';
+    return String(Math.max(...nums) + 1);
+  }, [players, jerseyEnabled]);
+
+  // Set default number when adding
+  useEffect(() => {
+    if (jerseyEnabled && !newNumber) {
+      setNewNumber(nextNumber);
+    }
+  }, [nextNumber, jerseyEnabled]);
 
   // Load saved players pool
   useEffect(() => {
@@ -67,22 +93,46 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
     const player: Player = {
       id: crypto.randomUUID(),
       name: newName.trim(),
+      ...(jerseyEnabled && newNumber.trim() ? { number: newNumber.trim() } : {}),
     };
+    // Save number to localStorage
+    if (jerseyEnabled && newNumber.trim()) {
+      updateSavedPlayerNumber(player.id, newNumber.trim());
+    }
     onSetPlayers([...players, player]);
     setNewName('');
+    setNewNumber('');
     setShowSuggestions(false);
-    setTimeout(() => nameRef.current?.focus(), 0);
+    setTimeout(() => {
+      if (jerseyEnabled && numberRef.current) {
+        numberRef.current.focus();
+      } else if (nameRef.current) {
+        nameRef.current.focus();
+      }
+    }, 0);
   };
 
-  const selectSuggestion = (sp: { name: string }) => {
+  const selectSuggestion = (sp: { id: string; name: string }) => {
     setShowSuggestions(false);
+    const savedNum = getPlayerNumber(sp.id);
     const player: Player = {
       id: crypto.randomUUID(),
       name: sp.name,
+      ...(jerseyEnabled && savedNum ? { number: savedNum } : {}),
     };
+    if (jerseyEnabled && savedNum) {
+      updateSavedPlayerNumber(player.id, savedNum);
+    }
     onSetPlayers([...players, player]);
     setNewName('');
-    setTimeout(() => nameRef.current?.focus(), 0);
+    setNewNumber('');
+    setTimeout(() => {
+      if (jerseyEnabled && numberRef.current) {
+        numberRef.current.focus();
+      } else if (nameRef.current) {
+        nameRef.current.focus();
+      }
+    }, 0);
   };
 
   const addAllSaved = () => {
@@ -90,10 +140,18 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
       !players.some(p => p.name === sp.name)
     );
     if (toAdd.length === 0) return;
-    const newPlayers = toAdd.map(sp => ({
-      id: crypto.randomUUID(),
-      name: sp.name,
-    }));
+    const newPlayers = toAdd.map(sp => {
+      const savedNum = getPlayerNumber(sp.id);
+      const player: Player = {
+        id: crypto.randomUUID(),
+        name: sp.name,
+        ...(jerseyEnabled && savedNum ? { number: savedNum } : {}),
+      };
+      if (jerseyEnabled && savedNum) {
+        updateSavedPlayerNumber(player.id, savedNum);
+      }
+      return player;
+    });
     onSetPlayers([...players, ...newPlayers]);
   };
 
@@ -104,11 +162,19 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
   const startEdit = (p: Player) => {
     setEditingId(p.id);
     setEditName(p.name);
+    setEditNumber(getPlayerNumber(p.id) || p.number || '');
   };
 
   const saveEdit = () => {
     if (!editingId || !editName.trim()) return;
-    onSetPlayers(players.map(p => p.id === editingId ? { ...p, name: editName.trim() } : p));
+    if (jerseyEnabled) {
+      updateSavedPlayerNumber(editingId, editNumber.trim());
+    }
+    onSetPlayers(players.map(p => p.id === editingId ? {
+      ...p,
+      name: editName.trim(),
+      ...(jerseyEnabled ? { number: editNumber.trim() || undefined } : {}),
+    } : p));
     setEditingId(null);
   };
 
@@ -157,26 +223,43 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
           {/* Player list */}
           {players.length > 0 && (
             <div className="space-y-1">
-              {players.map(p => (
-                <div key={p.id} className="flex items-center gap-2 bg-secondary/50 rounded-lg px-2.5 py-1.5">
-                  {editingId === p.id && !readOnly ? (
-                    <>
-                      <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-7 flex-1 text-xs" placeholder="Nom" onKeyDown={e => { if (e.key === 'Enter') saveEdit(); }} />
-                      <button onClick={saveEdit} className="p-1 text-primary"><Check size={14} /></button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="flex-1 text-xs font-medium text-foreground truncate">{p.name || '—'}</span>
-                      {!readOnly && (
-                        <>
-                          <button onClick={() => startEdit(p)} className="p-1 text-muted-foreground hover:text-foreground"><Pencil size={12} /></button>
-                          <button onClick={() => removePlayer(p.id)} className="p-1 text-destructive/60 hover:text-destructive"><X size={12} /></button>
-                        </>
-                      )}
-                    </>
-                  )}
-                </div>
-              ))}
+              {players.map(p => {
+                const num = jerseyEnabled ? (getPlayerNumber(p.id) || p.number) : undefined;
+                return (
+                  <div key={p.id} className="flex items-center gap-2 bg-secondary/50 rounded-lg px-2.5 py-1.5">
+                    {editingId === p.id && !readOnly ? (
+                      <>
+                        {jerseyEnabled && (
+                          <Input
+                            value={editNumber}
+                            onChange={e => setEditNumber(e.target.value.slice(0, 3))}
+                            placeholder={t('players.jerseyNumberPlaceholder')}
+                            className="h-7 w-10 text-xs text-center font-bold px-1"
+                            onKeyDown={e => { if (e.key === 'Enter') saveEdit(); }}
+                          />
+                        )}
+                        <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-7 flex-1 text-xs" placeholder="Nom" onKeyDown={e => { if (e.key === 'Enter') saveEdit(); }} autoFocus />
+                        <button onClick={saveEdit} className="p-1 text-primary"><Check size={14} /></button>
+                      </>
+                    ) : (
+                      <>
+                        {jerseyEnabled && num && (
+                          <Badge variant="outline" className="rounded-full w-6 h-6 flex items-center justify-center text-[10px] font-black border-primary/30 text-primary bg-primary/10 shrink-0 p-0">
+                            {num}
+                          </Badge>
+                        )}
+                        <span className="flex-1 text-xs font-medium text-foreground truncate">{p.name || '—'}</span>
+                        {!readOnly && (
+                          <>
+                            <button onClick={() => startEdit(p)} className="p-1 text-muted-foreground hover:text-foreground"><Pencil size={12} /></button>
+                            <button onClick={() => removePlayer(p.id)} className="p-1 text-destructive/60 hover:text-destructive"><X size={12} /></button>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -184,6 +267,18 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
           {!readOnly && (
             <div className="relative" ref={suggestionsRef}>
               <div className="flex gap-1.5">
+                {jerseyEnabled && (
+                  <Input
+                    ref={numberRef}
+                    value={newNumber}
+                    onChange={e => setNewNumber(e.target.value.slice(0, 3))}
+                    placeholder={t('players.jerseyNumberPlaceholder')}
+                    className="h-8 w-10 text-xs text-center font-bold px-1"
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') { e.preventDefault(); nameRef.current?.focus(); }
+                    }}
+                  />
+                )}
                 <Input
                   ref={nameRef}
                   value={newName}
@@ -205,15 +300,21 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
               {/* Suggestions dropdown */}
               {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
-                  {suggestions.map(sp => (
-                    <button
-                      key={sp.id}
-                      onClick={() => selectSuggestion(sp)}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary transition-colors text-left"
-                    >
-                      <span className="font-medium text-foreground">{sp.name || '—'}</span>
-                    </button>
-                  ))}
+                  {suggestions.map(sp => {
+                    const savedNum = jerseyEnabled ? getPlayerNumber(sp.id) : undefined;
+                    return (
+                      <button
+                        key={sp.id}
+                        onClick={() => selectSuggestion(sp)}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary transition-colors text-left"
+                      >
+                        {savedNum && (
+                          <span className="text-[10px] font-black text-primary/60">#{savedNum}</span>
+                        )}
+                        <span className="font-medium text-foreground">{sp.name || '—'}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
