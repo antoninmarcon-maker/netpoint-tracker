@@ -154,16 +154,18 @@ export default function ActionsConfig() {
                 )}
                 {isNeutral && (
                   <>
-                    <Input
-                      value={editSigil}
-                      onChange={e => setEditSigil(e.target.value.slice(0, 2).toUpperCase())}
-                      placeholder={t('actionsConfig.sigilPlaceholder')}
-                      className="h-8 text-sm w-16"
-                    />
                     <div className="flex items-center gap-1.5">
                       <Switch checked={editShowOnCourt} onCheckedChange={setEditShowOnCourt} className="scale-75" />
                       <Label className="text-[10px] text-muted-foreground">{t('actionsConfig.showOnCourt')}</Label>
                     </div>
+                    {editShowOnCourt && (
+                      <Input
+                        value={editSigil}
+                        onChange={e => setEditSigil(e.target.value.slice(0, 2).toUpperCase())}
+                        placeholder={t('actionsConfig.sigilPlaceholder')}
+                        className="h-8 text-sm w-20"
+                      />
+                    )}
                   </>
                 )}
                 <button onClick={() => handleUpdate(c.id)} className="p-1 text-primary">
@@ -240,16 +242,18 @@ export default function ActionsConfig() {
             )}
             {isNeutral && (
               <>
-                <Input
-                  value={newSigil}
-                  onChange={e => setNewSigil(e.target.value.slice(0, 2).toUpperCase())}
-                  placeholder={t('actionsConfig.sigilPlaceholder')}
-                  className="h-8 text-sm w-16"
-                />
                 <div className="flex items-center gap-1.5">
                   <Switch checked={newShowOnCourt} onCheckedChange={setNewShowOnCourt} className="scale-75" />
                   <Label className="text-[10px] text-muted-foreground">{t('actionsConfig.showOnCourt')}</Label>
                 </div>
+                {newShowOnCourt && (
+                  <Input
+                    value={newSigil}
+                    onChange={e => setNewSigil(e.target.value.slice(0, 2).toUpperCase())}
+                    placeholder={t('actionsConfig.sigilPlaceholder')}
+                    className="h-8 text-sm w-20"
+                  />
+                )}
               </>
             )}
             <button

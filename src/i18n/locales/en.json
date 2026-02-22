@@ -474,7 +474,7 @@
     "neutral": "📊 Match Events",
     "addAction": "Add",
     "newActionPlaceholder": "Action name",
-    "sigilPlaceholder": "Sigil",
+    "sigilPlaceholder": "Acronym (1-2 ch.)",
     "showOnCourt": "Court",
     "show": "Show",
     "hide": "Hide",

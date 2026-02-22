@@ -474,7 +474,7 @@
     "neutral": "📊 Faits de jeu",
     "addAction": "Ajouter",
     "newActionPlaceholder": "Nom de l'action",
-    "sigilPlaceholder": "Sigil",
+    "sigilPlaceholder": "Sigle (1-2 car.)",
     "showOnCourt": "Terrain",
     "show": "Afficher",
     "hide": "Masquer",
