@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Plus, X, Pencil, Check, Trash2, ChevronDown, ChevronRight, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -20,13 +19,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { User } from '@supabase/supabase-js';
 
-const SPORTS: { key: SportType; icon: string }[] = [
-  { key: 'volleyball', icon: '🏐' },
-  { key: 'basketball', icon: '🏀' },
-  { key: 'tennis', icon: '🎾' },
-  { key: 'padel', icon: '🏓' },
-];
-
 interface PlayerWithStats extends SavedPlayer {
   totalPoints: number;
   totalFaults: number;
@@ -38,25 +30,18 @@ export default function Players() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [sport, setSport] = useState<SportType>('volleyball');
+  const sport: SportType = 'volleyball';
   const [players, setPlayers] = useState<PlayerWithStats[]>([]);
   const [loading, setLoading] = useState(false);
   const [jerseyConfig, setJerseyConfig] = useState(getJerseyConfig);
   const [playerNumbers, setPlayerNumbers] = useState<Record<string, string>>(getPlayerNumbers);
 
-  // Add form
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
-
-  // Edit
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editNumber, setEditNumber] = useState('');
-
-  // Delete confirm
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  // Expand stats
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -72,7 +57,6 @@ export default function Players() {
     const numbers = getPlayerNumbers();
     setPlayerNumbers(numbers);
 
-    // Enrich with stats if logged in
     if (userId) {
       const { data: matches } = await supabase
         .from('matches')
@@ -133,7 +117,7 @@ export default function Players() {
       })));
     }
     setLoading(false);
-  }, [sport, user?.id]);
+  }, [user?.id]);
 
   useEffect(() => {
     loadPlayers();
@@ -226,145 +210,127 @@ export default function Players() {
       </header>
 
       <main className="p-4 max-w-lg mx-auto space-y-4">
-        <Tabs value={sport} onValueChange={v => { setSport(v as SportType); setEditingId(null); setExpandedId(null); }}>
-          <TabsList className="w-full grid grid-cols-4">
-            {SPORTS.map(s => (
-              <TabsTrigger key={s.key} value={s.key} className="text-xs">
-                {s.icon} {t(`savedPlayers.${s.key === 'volleyball' ? 'volley' : s.key === 'basketball' ? 'basket' : s.key}`)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        {/* Jersey number toggle */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium text-foreground">{t('players.useJerseyNumbers')}</Label>
+            <Switch checked={jerseyEnabled} onCheckedChange={handleToggleJersey} />
+          </div>
 
-          {SPORTS.map(s => (
-            <TabsContent key={s.key} value={s.key} className="space-y-4 mt-4">
-              {/* Jersey number toggle */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium text-foreground">{t('players.useJerseyNumbers')}</Label>
-                  <Switch checked={jerseyConfig[s.key]} onCheckedChange={handleToggleJersey} />
-                </div>
+          {jerseyEnabled && (
+            <Alert className="border-primary/20 bg-primary/5">
+              <Info size={16} className="text-primary" />
+              <AlertTitle className="text-sm font-bold">{t('players.jerseyNumbersInfoTitle')}</AlertTitle>
+              <AlertDescription className="text-xs text-muted-foreground">
+                {t('players.jerseyNumbersInfoDesc')}
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
 
-                {jerseyConfig[s.key] && (
-                  <Alert className="border-primary/20 bg-primary/5">
-                    <Info size={16} className="text-primary" />
-                    <AlertTitle className="text-sm font-bold">{t('players.jerseyNumbersInfoTitle')}</AlertTitle>
-                    <AlertDescription className="text-xs text-muted-foreground">
-                      {t('players.jerseyNumbersInfoDesc')}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
+        {/* Add player form */}
+        <div className="flex gap-2">
+          {jerseyEnabled && (
+            <Input
+              value={newNumber}
+              onChange={e => setNewNumber(e.target.value.slice(0, 3))}
+              placeholder={t('players.jerseyNumberPlaceholder')}
+              className="h-9 text-sm w-14 text-center font-bold"
+              onKeyDown={e => e.key === 'Enter' && handleAdd()}
+            />
+          )}
+          <Input
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            placeholder={t('roster.playerNamePlaceholder')}
+            className="h-9 text-sm flex-1"
+            onKeyDown={e => e.key === 'Enter' && handleAdd()}
+          />
+          <button
+            onClick={handleAdd}
+            disabled={!newName.trim()}
+            className="px-3 h-9 rounded-md bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-30 transition-all"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
 
-              {/* Add player form */}
-              <div className="flex gap-2">
-                {jerseyConfig[s.key] && (
-                  <Input
-                    value={newNumber}
-                    onChange={e => setNewNumber(e.target.value.slice(0, 3))}
-                    placeholder={t('players.jerseyNumberPlaceholder')}
-                    className="h-9 text-sm w-14 text-center font-bold"
-                    onKeyDown={e => e.key === 'Enter' && handleAdd()}
-                  />
-                )}
-                <Input
-                  value={newName}
-                  onChange={e => setNewName(e.target.value)}
-                  placeholder={t('roster.playerNamePlaceholder')}
-                  className="h-9 text-sm flex-1"
-                  onKeyDown={e => e.key === 'Enter' && handleAdd()}
-                />
-                <button
-                  onClick={handleAdd}
-                  disabled={!newName.trim()}
-                  className="px-3 h-9 rounded-md bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-30 transition-all"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
+        {/* Player list */}
+        {loading ? (
+          <p className="text-sm text-muted-foreground text-center py-8">{t('savedPlayers.loading')}</p>
+        ) : players.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">{t('savedPlayers.noPlayers')}</p>
+        ) : (
+          <div className="space-y-2">
+            {players.map(p => (
+              <div key={p.id} className="bg-secondary/50 rounded-xl px-3 py-2.5 space-y-1">
+                <div className="flex items-center gap-2">
+                  {user && (
+                    <button
+                      onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
+                      className="p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {expandedId === p.id ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    </button>
+                  )}
 
-              {/* Player list */}
-              {loading ? (
-                <p className="text-sm text-muted-foreground text-center py-8">{t('savedPlayers.loading')}</p>
-              ) : players.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">{t('savedPlayers.noPlayers')}</p>
-              ) : (
-                <div className="space-y-2">
-                  {players.map(p => (
-                    <div key={p.id} className="bg-secondary/50 rounded-xl px-3 py-2.5 space-y-1">
-                      <div className="flex items-center gap-2">
-                        {/* Expand toggle */}
-                        {user && (
-                          <button
-                            onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
-                            className="p-0.5 text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {expandedId === p.id ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                          </button>
-                        )}
-
-                        {editingId === p.id ? (
-                          <div className="flex items-center gap-2 flex-1">
-                            {jerseyEnabled && (
-                              <Input
-                                value={editNumber}
-                                onChange={e => setEditNumber(e.target.value.slice(0, 3))}
-                                placeholder={t('players.jerseyNumberPlaceholder')}
-                                className="h-7 w-12 text-xs text-center font-bold"
-                                onKeyDown={e => e.key === 'Enter' && handleSaveEdit(p.id)}
-                              />
-                            )}
-                            <Input
-                              value={editName}
-                              onChange={e => setEditName(e.target.value)}
-                              className="h-7 flex-1 text-xs"
-                              placeholder="Nom"
-                              onKeyDown={e => e.key === 'Enter' && handleSaveEdit(p.id)}
-                              autoFocus
-                            />
-                            <button onClick={() => handleSaveEdit(p.id)} className="p-1 text-primary"><Check size={14} /></button>
-                            <button onClick={() => setEditingId(null)} className="p-1 text-muted-foreground"><X size={14} /></button>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                              {jerseyEnabled && playerNumbers[p.id] && (
-                                <Badge variant="outline" className="rounded-full w-8 h-8 flex items-center justify-center text-xs font-black border-primary/30 text-primary bg-primary/10 shrink-0">
-                                  {playerNumbers[p.id]}
-                                </Badge>
-                              )}
-                              <span className="text-sm font-medium text-foreground truncate">{p.name || '—'}</span>
-                            </div>
-                            <button onClick={() => { setEditingId(p.id); setEditName(p.name); setEditNumber(playerNumbers[p.id] || ''); }} className="p-1 text-muted-foreground hover:text-foreground"><Pencil size={13} /></button>
-                            <button onClick={() => setDeletingId(p.id)} className="p-1 text-destructive/60 hover:text-destructive"><Trash2 size={13} /></button>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Stats summary */}
-                      {user && editingId !== p.id && (
-                        <div className="flex gap-3 text-[11px] text-muted-foreground pl-6">
-                          <span>{p.matchCount} match{p.matchCount > 1 ? 's' : ''}</span>
-                          <span>⚡ {p.totalPoints} {t('playerStats.pts')}</span>
-                          <span>❌ {p.totalFaults} {t('savedPlayers.faults')}</span>
-                        </div>
+                  {editingId === p.id ? (
+                    <div className="flex items-center gap-2 flex-1">
+                      {jerseyEnabled && (
+                        <Input
+                          value={editNumber}
+                          onChange={e => setEditNumber(e.target.value.slice(0, 3))}
+                          placeholder={t('players.jerseyNumberPlaceholder')}
+                          className="h-7 w-12 text-xs text-center font-bold"
+                          onKeyDown={e => e.key === 'Enter' && handleSaveEdit(p.id)}
+                        />
                       )}
-
-                      {/* Expanded action details */}
-                      {expandedId === p.id && (
-                        <div className="pl-6 pt-1 border-t border-border/50 mt-1">
-                          {renderActionDetails(p)}
-                        </div>
-                      )}
+                      <Input
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        className="h-7 flex-1 text-xs"
+                        placeholder="Nom"
+                        onKeyDown={e => e.key === 'Enter' && handleSaveEdit(p.id)}
+                        autoFocus
+                      />
+                      <button onClick={() => handleSaveEdit(p.id)} className="p-1 text-primary"><Check size={14} /></button>
+                      <button onClick={() => setEditingId(null)} className="p-1 text-muted-foreground"><X size={14} /></button>
                     </div>
-                  ))}
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        {jerseyEnabled && playerNumbers[p.id] && (
+                          <Badge variant="outline" className="rounded-full w-8 h-8 flex items-center justify-center text-xs font-black border-primary/30 text-primary bg-primary/10 shrink-0">
+                            {playerNumbers[p.id]}
+                          </Badge>
+                        )}
+                        <span className="text-sm font-medium text-foreground truncate">{p.name || '—'}</span>
+                      </div>
+                      <button onClick={() => { setEditingId(p.id); setEditName(p.name); setEditNumber(playerNumbers[p.id] || ''); }} className="p-1 text-muted-foreground hover:text-foreground"><Pencil size={13} /></button>
+                      <button onClick={() => setDeletingId(p.id)} className="p-1 text-destructive/60 hover:text-destructive"><Trash2 size={13} /></button>
+                    </>
+                  )}
                 </div>
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
+
+                {user && editingId !== p.id && (
+                  <div className="flex gap-3 text-[11px] text-muted-foreground pl-6">
+                    <span>{p.matchCount} match{p.matchCount > 1 ? 's' : ''}</span>
+                    <span>⚡ {p.totalPoints} {t('playerStats.pts')}</span>
+                    <span>❌ {p.totalFaults} {t('savedPlayers.faults')}</span>
+                  </div>
+                )}
+
+                {expandedId === p.id && (
+                  <div className="pl-6 pt-1 border-t border-border/50 mt-1">
+                    {renderActionDetails(p)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </main>
 
-      {/* Delete confirm */}
       {deletingId && (
         <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4" onClick={() => setDeletingId(null)}>
           <div className="bg-card rounded-2xl p-5 max-w-xs w-full border border-border space-y-3" onClick={e => e.stopPropagation()}>

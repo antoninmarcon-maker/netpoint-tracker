@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { Download, ChevronDown, Copy, Image, FileSpreadsheet, Map, Share2, Link as LinkIcon } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { Point, SetData, Player, isOffensiveAction, isBasketScoredAction, SportType, OFFENSIVE_ACTIONS, FAULT_ACTIONS, BASKET_SCORED_ACTIONS, BASKET_FAULT_ACTIONS, getSportIcon } from '@/types/sports';
+import { Point, SetData, Player, isOffensiveAction, SportType, OFFENSIVE_ACTIONS, FAULT_ACTIONS, getSportIcon } from '@/types/sports';
 import { PointTimeline } from './PointTimeline';
 import { CourtDisplay } from './CourtDisplay';
 import { PlayerStats } from './PlayerStats';
@@ -54,15 +54,14 @@ function createStatRow(label: string, value: string | number, opts?: { bold?: bo
   return row;
 }
 
-function buildExportContainer(teamNames: { blue: string; red: string }, label: string, ds: ReturnType<typeof computeStats>, sport: SportType = 'volleyball'): HTMLElement {
-  const isBasket = sport === 'basketball';
+function buildExportContainer(teamNames: { blue: string; red: string }, label: string, ds: ReturnType<typeof computeStats>): HTMLElement {
   const container = document.createElement('div');
   container.style.cssText = 'position:absolute;left:-9999px;top:0;width:400px;';
   container.className = 'bg-background rounded-2xl p-4 space-y-3';
 
   const header = createStyledEl('div', { textAlign: 'center' });
   const title = createStyledEl('p', { fontSize: '16px', fontWeight: '900', color: 'hsl(var(--foreground))' });
-  title.textContent = `${getSportIcon(sport)} ${teamNames.blue} vs ${teamNames.red}`;
+  title.textContent = `🏐 ${teamNames.blue} vs ${teamNames.red}`;
   header.appendChild(title);
   const subtitle = createStyledEl('p', { fontSize: '10px', color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.1em' }, label);
   header.appendChild(subtitle);
@@ -78,15 +77,16 @@ function buildExportContainer(teamNames: { blue: string; red: string }, label: s
     card.appendChild(teamTitle);
 
     const statsEl = createStyledEl('div', { fontSize: '11px', color: 'hsl(var(--foreground))' });
-    statsEl.appendChild(createStatRow(isBasket ? '🏀 Points' : '⚡ Gagnés', ds[team].scored, { bold: true }));
-    const scoredRows = isBasket
-      ? [['LF (1pt)', ds[team].freeThrows], ['Int. (2pts)', ds[team].twoPoints], ['Ext. (3pts)', ds[team].threePoints]] as [string, number][]
-      : [['Attaques', ds[team].attacks], ['Aces', ds[team].aces], ['Blocks', ds[team].blocks], ['Bidouilles', ds[team].bidouilles], ['2ndes mains', ds[team].secondeMains], ['Autres', ds[team].otherOffensive]] as [string, number][];
+    statsEl.appendChild(createStatRow('⚡ Gagnés', ds[team].scored, { bold: true }));
+    const scoredRows: [string, number][] = [
+      ['Attaques', ds[team].attacks], ['Aces', ds[team].aces], ['Blocks', ds[team].blocks],
+      ['Bidouilles', ds[team].bidouilles], ['2ndes mains', ds[team].secondeMains], ['Autres', ds[team].otherOffensive],
+    ];
     for (const [l, v] of scoredRows) statsEl.appendChild(createStatRow(l, v, { indent: true }));
-    statsEl.appendChild(createStatRow('❌ ' + (isBasket ? 'Négatifs' : 'Fautes adv.'), ds[team].faults, { bold: true, borderTop: true, valueColor: 'hsl(var(--destructive))' }));
-    const faultRows = isBasket
-      ? [['Tirs manqués', ds[team].missedShots], ['Pertes', ds[team].turnovers], ['Fautes', ds[team].foulsCommitted]] as [string, number][]
-      : [['Out', ds[team].outs], ['Filet', ds[team].netFaults], ['Srv loupés', ds[team].serviceMisses], ['Block Out', ds[team].blockOuts]] as [string, number][];
+    statsEl.appendChild(createStatRow('❌ Fautes adv.', ds[team].faults, { bold: true, borderTop: true, valueColor: 'hsl(var(--destructive))' }));
+    const faultRows: [string, number][] = [
+      ['Out', ds[team].outs], ['Filet', ds[team].netFaults], ['Srv loupés', ds[team].serviceMisses], ['Block Out', ds[team].blockOuts],
+    ];
     for (const [l, v] of faultRows) statsEl.appendChild(createStatRow(l, v, { indent: true }));
     if (ds[team].neutral > 0) {
       statsEl.appendChild(createStatRow('📊 Faits de jeu', ds[team].neutral, { borderTop: true }));
@@ -110,21 +110,18 @@ interface TeamStats {
   scored: number; faults: number; neutral: number;
   attacks: number; aces: number; blocks: number; bidouilles: number; secondeMains: number; otherOffensive: number;
   outs: number; netFaults: number; serviceMisses: number; blockOuts: number;
-  scoredPoints: number; freeThrows: number; twoPoints: number; threePoints: number;
-  missedShots: number; turnovers: number; foulsCommitted: number;
 }
 
-function computeStats(pts: Point[], sport: SportType = 'volleyball'): { blue: TeamStats; red: TeamStats; total: number; sport: SportType } {
+function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: number } {
   const byTeam = (team: 'blue' | 'red'): TeamStats => {
     const opponent = team === 'blue' ? 'red' : 'blue';
     const scored = pts.filter(p => p.team === team && p.type === 'scored');
     const opponentFaults = pts.filter(p => p.team === opponent && p.type === 'fault');
-    const teamFaults = pts.filter(p => p.team === team && p.type === 'fault');
     const neutralPts = pts.filter(p => p.team === team && p.type === 'neutral');
     return {
-      scored: sport === 'basketball' ? scored.reduce((s, p) => s + (p.pointValue ?? 0), 0) : scored.length,
+      scored: scored.length,
       neutral: neutralPts.length,
-      faults: sport === 'basketball' ? teamFaults.length : opponentFaults.length,
+      faults: opponentFaults.length,
       attacks: scored.filter(p => p.action === 'attack').length,
       aces: scored.filter(p => p.action === 'ace').length,
       blocks: scored.filter(p => p.action === 'block').length,
@@ -135,21 +132,13 @@ function computeStats(pts: Point[], sport: SportType = 'volleyball'): { blue: Te
       netFaults: opponentFaults.filter(p => p.action === 'net_fault').length,
       serviceMisses: opponentFaults.filter(p => p.action === 'service_miss').length,
       blockOuts: opponentFaults.filter(p => p.action === 'block_out').length,
-      scoredPoints: scored.reduce((s, p) => s + (p.pointValue ?? 0), 0),
-      freeThrows: scored.filter(p => p.action === 'free_throw').length,
-      twoPoints: scored.filter(p => p.action === 'two_points').length,
-      threePoints: scored.filter(p => p.action === 'three_points').length,
-      missedShots: teamFaults.filter(p => p.action === 'missed_shot').length,
-      turnovers: teamFaults.filter(p => p.action === 'turnover').length,
-      foulsCommitted: teamFaults.filter(p => p.action === 'foul_committed').length,
     };
   };
-  return { blue: byTeam('blue'), red: byTeam('red'), total: pts.length, sport };
+  return { blue: byTeam('blue'), red: byTeam('red'), total: pts.length };
 }
 
 export function HeatmapView({ points, completedSets, currentSetPoints, currentSetNumber, stats, teamNames, players = [], sport = 'volleyball', matchId, isLoggedIn, hasCourt = true }: HeatmapViewProps) {
   const { t } = useTranslation();
-  const isBasketball = sport === 'basketball';
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [setFilter_, setSetFilter] = useState<SetFilter>('all');
   const [showHeatmap, setShowHeatmap] = useState(false);
@@ -172,8 +161,8 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         ? t('heatmap.allSets')
         : `Set ${setFilter_}${setFilter_ === currentSetNumber && !completedSets.some(s => s.number === setFilter_) ? ` (${t('home.setInProgress')})` : ''}`;
       const filename = `stats-${teamNames.blue}-vs-${teamNames.red}-${setFilter_ === 'all' ? 'global' : `set${setFilter_}`}`;
-      const ds = computeStats(filteredPoints, sport);
-      const container = buildExportContainer(teamNames, label, ds, sport);
+      const ds = computeStats(filteredPoints);
+      const container = buildExportContainer(teamNames, label, ds);
       document.body.appendChild(container);
       const canvas = await html2canvas(container, { backgroundColor: '#1a1a2e', scale: 2 });
       document.body.removeChild(container);
@@ -186,13 +175,13 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     } finally {
       setExporting(false);
     }
-  }, [teamNames, filteredPoints, setFilter_, currentSetNumber, completedSets, sport, t]);
+  }, [teamNames, filteredPoints, setFilter_, currentSetNumber, completedSets, t]);
 
   const exportCourtPng = useCallback(async (pts: Point[], label: string) => {
-    const isBasket = sport === 'basketball';
-    const ACTION_SHORT: Record<string, string> = isBasket
-      ? { free_throw: '1', two_points: '2', three_points: '3', missed_shot: 'X', turnover: 'T', foul_committed: 'F' }
-      : { attack: 'A', ace: 'As', block: 'B', bidouille: 'Bi', seconde_main: '2M', out: 'O', net_fault: 'F', service_miss: 'SL', block_out: 'BO', other_offensive: '' };
+    const ACTION_SHORT: Record<string, string> = {
+      attack: 'A', ace: 'As', block: 'B', bidouille: 'Bi', seconde_main: '2M',
+      out: 'O', net_fault: 'F', service_miss: 'SL', block_out: 'BO', other_offensive: '',
+    };
 
     const container = document.createElement('div');
     container.style.cssText = 'position:absolute;left:-9999px;top:0;width:600px;';
@@ -213,19 +202,13 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     titleText.setAttribute('text-anchor', 'middle');
     titleText.setAttribute('fill', 'white'); titleText.setAttribute('font-size', '14');
     titleText.setAttribute('font-weight', 'bold');
-    titleText.textContent = `${isBasket ? '🏀' : '🏐'} ${teamNames.blue} vs ${teamNames.red} — ${label}`;
+    titleText.textContent = `🏐 ${teamNames.blue} vs ${teamNames.red} — ${label}`;
     svg.appendChild(titleText);
 
     const bg = document.createElementNS(svgNS, 'rect');
     bg.setAttribute('x', '0'); bg.setAttribute('y', '40');
     bg.setAttribute('width', '600'); bg.setAttribute('height', '400');
-    const courtFills: Record<string, string> = {
-      volleyball: 'hsl(142, 40%, 28%)',
-      basketball: 'hsl(30, 50%, 35%)',
-      tennis: 'hsl(15, 60%, 40%)',
-      padel: 'hsl(210, 55%, 30%)',
-    };
-    bg.setAttribute('fill', courtFills[sport] || courtFills.volleyball);
+    bg.setAttribute('fill', 'hsl(142, 40%, 28%)');
     svg.appendChild(bg);
 
     const border = document.createElementNS(svgNS, 'rect');
@@ -244,39 +227,10 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
       return l;
     };
 
-    if (isBasket) {
-      svg.appendChild(makeLine(300, 60, 300, 420, '2', '0.8'));
-      const cc = document.createElementNS(svgNS, 'circle');
-      cc.setAttribute('cx', '300'); cc.setAttribute('cy', '240');
-      cc.setAttribute('r', '40'); cc.setAttribute('fill', 'none');
-      cc.setAttribute('stroke', 'white'); cc.setAttribute('stroke-width', '1.5'); cc.setAttribute('opacity', '0.5');
-      svg.appendChild(cc);
-      const arcLeft = document.createElementNS(svgNS, 'path');
-      arcLeft.setAttribute('d', 'M 70 120 A 120 120 0 0 1 70 360');
-      arcLeft.setAttribute('fill', 'none'); arcLeft.setAttribute('stroke', 'white');
-      arcLeft.setAttribute('stroke-width', '1.5'); arcLeft.setAttribute('opacity', '0.7');
-      svg.appendChild(arcLeft);
-      svg.appendChild(makeLine(20, 120, 70, 120, '1.5', '0.7'));
-      svg.appendChild(makeLine(20, 360, 70, 360, '1.5', '0.7'));
-      const arcRight = document.createElementNS(svgNS, 'path');
-      arcRight.setAttribute('d', 'M 530 360 A 120 120 0 0 1 530 120');
-      arcRight.setAttribute('fill', 'none'); arcRight.setAttribute('stroke', 'white');
-      arcRight.setAttribute('stroke-width', '1.5'); arcRight.setAttribute('opacity', '0.7');
-      svg.appendChild(arcRight);
-      svg.appendChild(makeLine(530, 120, 580, 120, '1.5', '0.7'));
-      svg.appendChild(makeLine(530, 360, 580, 360, '1.5', '0.7'));
-      for (const bx of [50, 550]) {
-        const basket = document.createElementNS(svgNS, 'circle');
-        basket.setAttribute('cx', String(bx)); basket.setAttribute('cy', '240');
-        basket.setAttribute('r', '8'); basket.setAttribute('fill', 'none');
-        basket.setAttribute('stroke', 'orange'); basket.setAttribute('stroke-width', '2'); basket.setAttribute('opacity', '0.8');
-        svg.appendChild(basket);
-      }
-    } else {
-      svg.appendChild(makeLine(300, 60, 300, 420, '3', '1'));
-      svg.appendChild(makeLine(200, 60, 200, 420, '1.5', '0.6'));
-      svg.appendChild(makeLine(400, 60, 400, 420, '1.5', '0.6'));
-    }
+    // Volleyball court lines
+    svg.appendChild(makeLine(300, 60, 300, 420, '3', '1'));
+    svg.appendChild(makeLine(200, 60, 200, 420, '1.5', '0.6'));
+    svg.appendChild(makeLine(400, 60, 400, 420, '1.5', '0.6'));
 
     pts.forEach(p => {
       const cx = p.x * 600;
@@ -313,15 +267,14 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     } finally {
       document.body.removeChild(container);
     }
-  }, [teamNames, sport]);
+  }, [teamNames]);
 
   const getScoreText = useCallback(() => {
     const allSets = [...completedSets];
     const setsBlue = allSets.filter(s => s.winner === 'blue').length;
     const setsRed = allSets.filter(s => s.winner === 'red').length;
     const details = allSets.map(s => `${s.score.blue}-${s.score.red}`).join(', ');
-    const icon = getSportIcon(sport);
-    let text = `${icon} Match : ${teamNames.blue} vs ${teamNames.red}\n📊 Score Sets : ${setsBlue}-${setsRed}`;
+    let text = `🏐 Match : ${teamNames.blue} vs ${teamNames.red}\n📊 Score Sets : ${setsBlue}-${setsRed}`;
     if (details) text += `\n📋 Détails : ${details}`;
     if (currentSetPoints.length > 0) {
       const blueNow = currentSetPoints.filter(p => p.team === 'blue').length;
@@ -329,7 +282,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
       text += `\n⏳ Set ${currentSetNumber} en cours : ${blueNow}-${redNow}`;
     }
     return text;
-  }, [completedSets, currentSetPoints, currentSetNumber, teamNames, sport]);
+  }, [completedSets, currentSetPoints, currentSetNumber, teamNames]);
 
   const copyScoreText = useCallback(() => {
     navigator.clipboard.writeText(getScoreText());
@@ -372,7 +325,6 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
   }, [matchId, isLoggedIn, t]);
 
   const heatmapPoints = useMemo(() => {
-    // Exclude neutral points from heatmap
     const scoredOnly = filteredPoints.filter(p => p.type === 'scored');
     return scoredOnly.map(p => {
       const isBlue = p.team === 'blue';
@@ -383,7 +335,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     });
   }, [filteredPoints]);
 
-  const displayStats = useMemo(() => computeStats(filteredPoints, sport), [filteredPoints, sport]);
+  const displayStats = useMemo(() => computeStats(filteredPoints), [filteredPoints]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -394,13 +346,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     const height = canvas.height;
 
     ctx.clearRect(0, 0, width, height);
-    const courtColors: Record<SportType, string> = {
-      volleyball: 'hsl(142, 40%, 28%)',
-      basketball: 'hsl(30, 50%, 35%)',
-      tennis: 'hsl(15, 60%, 40%)',
-      padel: 'hsl(210, 55%, 30%)',
-    };
-    ctx.fillStyle = courtColors[sport] || courtColors.volleyball;
+    ctx.fillStyle = 'hsl(142, 40%, 28%)';
     ctx.beginPath();
     ctx.roundRect(0, 0, width, height, 8);
     ctx.fill();
@@ -456,7 +402,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
       <div className="space-y-4 bg-background rounded-2xl p-4">
         <div className="text-center space-y-1">
           <p className="text-base font-black text-foreground">
-            {isBasketball ? '🏀' : '🏐'} {teamNames.blue} vs {teamNames.red}
+            🏐 {teamNames.blue} vs {teamNames.red}
           </p>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{t('heatmap.matchStats')}</p>
         </div>
@@ -485,72 +431,38 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
               </p>
               <div className="space-y-0.5 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground font-semibold text-xs">{isBasketball ? t('heatmap.scoredBasket') : t('heatmap.scored')}</span>
+                  <span className="text-muted-foreground font-semibold text-xs">{t('heatmap.scored')}</span>
                   <span className="font-bold text-foreground text-xs">{ds[team].scored}</span>
                 </div>
-                {isBasketball ? (
-                  <>
-                    {[
-                      [t('heatmap.freeThrows'), ds[team].freeThrows],
-                      [t('heatmap.twoPoints'), ds[team].twoPoints],
-                      [t('heatmap.threePoints'), ds[team].threePoints],
-                    ].map(([label, val]) => (
-                      <div key={label as string} className="flex justify-between pl-2">
-                        <span className="text-muted-foreground text-[11px]">{label}</span>
-                        <span className="font-bold text-foreground text-[11px]">{val as number}</span>
-                      </div>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    {[
-                      [t('heatmap.attacks'), ds[team].attacks],
-                      [t('heatmap.aces'), ds[team].aces],
-                      [t('heatmap.blocks'), ds[team].blocks],
-                      [t('heatmap.bidouilles'), ds[team].bidouilles],
-                      [t('heatmap.secondeMains'), ds[team].secondeMains],
-                      [t('heatmap.others'), ds[team].otherOffensive],
-                    ].map(([label, val]) => (
-                      <div key={label as string} className="flex justify-between pl-2">
-                        <span className="text-muted-foreground text-[11px]">{label}</span>
-                        <span className="font-bold text-foreground text-[11px]">{val as number}</span>
-                      </div>
-                    ))}
-                  </>
-                )}
+                {[
+                  [t('heatmap.attacks'), ds[team].attacks],
+                  [t('heatmap.aces'), ds[team].aces],
+                  [t('heatmap.blocks'), ds[team].blocks],
+                  [t('heatmap.bidouilles'), ds[team].bidouilles],
+                  [t('heatmap.secondeMains'), ds[team].secondeMains],
+                  [t('heatmap.others'), ds[team].otherOffensive],
+                ].map(([label, val]) => (
+                  <div key={label as string} className="flex justify-between pl-2">
+                    <span className="text-muted-foreground text-[11px]">{label}</span>
+                    <span className="font-bold text-foreground text-[11px]">{val as number}</span>
+                  </div>
+                ))}
 
                 <div className="flex justify-between border-t border-border pt-1 mt-1">
-                  <span className="text-muted-foreground font-semibold text-xs">{isBasketball ? t('heatmap.faultsBasket') : t('heatmap.faults')}</span>
+                  <span className="text-muted-foreground font-semibold text-xs">{t('heatmap.faults')}</span>
                   <span className="font-bold text-destructive text-xs">{ds[team].faults}</span>
                 </div>
-                {isBasketball ? (
-                  <>
-                    {[
-                      [t('heatmap.missedShots'), ds[team].missedShots],
-                      [t('heatmap.turnovers'), ds[team].turnovers],
-                      [t('heatmap.foulsCommitted'), ds[team].foulsCommitted],
-                    ].map(([label, val]) => (
-                      <div key={label as string} className="flex justify-between pl-2">
-                        <span className="text-muted-foreground text-[11px]">{label}</span>
-                        <span className="font-bold text-foreground text-[11px]">{val as number}</span>
-                      </div>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    {[
-                      [t('heatmap.outs'), ds[team].outs],
-                      [t('heatmap.netFaults'), ds[team].netFaults],
-                      [t('heatmap.serviceMisses'), ds[team].serviceMisses],
-                      [t('heatmap.blockOuts'), ds[team].blockOuts],
-                    ].map(([label, val]) => (
-                      <div key={label as string} className="flex justify-between pl-2">
-                        <span className="text-muted-foreground text-[11px]">{label}</span>
-                        <span className="font-bold text-foreground text-[11px]">{val as number}</span>
-                      </div>
-                    ))}
-                  </>
-                )}
+                {[
+                  [t('heatmap.outs'), ds[team].outs],
+                  [t('heatmap.netFaults'), ds[team].netFaults],
+                  [t('heatmap.serviceMisses'), ds[team].serviceMisses],
+                  [t('heatmap.blockOuts'), ds[team].blockOuts],
+                ].map(([label, val]) => (
+                  <div key={label as string} className="flex justify-between pl-2">
+                    <span className="text-muted-foreground text-[11px]">{label}</span>
+                    <span className="font-bold text-foreground text-[11px]">{val as number}</span>
+                  </div>
+                ))}
 
                 <div className="flex justify-between border-t border-border pt-1 mt-1">
                   <span className="text-muted-foreground text-xs">{t('common.total')}</span>

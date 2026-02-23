@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Heart, ExternalLink, Dribbble, Circle, Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export default function Credits() {
   const navigate = useNavigate();
@@ -45,6 +47,51 @@ export default function Credits() {
             {t('credits.supportButton')}
             <ExternalLink size={14} className="opacity-60" />
           </a>
+        </section>
+
+        {/* Écosystème */}
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold text-foreground">{t('credits.ecosystemTitle')}</h2>
+          <div className="grid gap-3">
+            <Card className="relative overflow-hidden">
+              <CardContent className="flex items-start gap-3 p-4">
+                <Dribbble size={24} className="text-orange-500 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-bold text-foreground">My Basket</p>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('credits.comingSoon')}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t('credits.basketDesc')}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="relative overflow-hidden">
+              <CardContent className="flex items-start gap-3 p-4">
+                <Circle size={24} className="text-yellow-400 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-bold text-foreground">My Tennis</p>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('credits.comingSoon')}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t('credits.tennisDesc')}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="relative overflow-hidden">
+              <CardContent className="flex items-start gap-3 p-4">
+                <Activity size={24} className="text-blue-500 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-bold text-foreground">My Padel</p>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('credits.comingSoon')}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t('credits.padelDesc')}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </section>
 
         {/* Crédit technique */}
