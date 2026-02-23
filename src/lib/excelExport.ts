@@ -7,8 +7,21 @@ function formatDuration(seconds: number): string {
   return `${m}min ${s.toString().padStart(2, '0')}s`;
 }
 
+function mergeGhostPlayers(pts: Point[], players: Player[]): Player[] {
+  const knownIds = new Set(players.map(p => p.id));
+  const ghosts: Player[] = [];
+  pts.forEach(p => {
+    if (p.playerId && !knownIds.has(p.playerId)) {
+      knownIds.add(p.playerId);
+      ghosts.push({ id: p.playerId, name: `#${p.playerId.slice(0, 4)}` });
+    }
+  });
+  return [...players, ...ghosts];
+}
+
 function playerSetStats(pts: Point[], players: Player[]) {
-  return players.map(player => {
+  const allPlayers = mergeGhostPlayers(pts, players);
+  return allPlayers.map(player => {
     const pp = pts.filter(p => p.playerId === player.id);
     const scored = pp.filter(p => p.team === 'blue' && p.type === 'scored');
     const faultWins = pp.filter(p => p.team === 'blue' && p.type === 'fault');
