@@ -24,12 +24,8 @@ export default function Credits() {
         {/* Histoire */}
         <section className="space-y-4">
           <h2 className="text-2xl font-black text-foreground tracking-tight">{t('credits.storyTitle')}</h2>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {t('credits.storyP1')}
-          </p>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {t('credits.storyP2')}
-          </p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{t('credits.storyP1')}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{t('credits.storyP2')}</p>
         </section>
 
         {/* Soutenir */}
@@ -53,52 +49,59 @@ export default function Credits() {
         <section className="space-y-4">
           <h2 className="text-lg font-bold text-foreground">{t('credits.ecosystemTitle')}</h2>
           <div className="grid gap-3">
-            <Card className="relative overflow-hidden">
-              <CardContent className="flex items-start gap-3 p-4">
-                <Dribbble size={24} className="text-orange-500 shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-bold text-foreground">My Basket</p>
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('credits.comingSoon')}</Badge>
+            <a href="https://sport-tracker-global.lovable.app/" target="_blank" rel="noopener noreferrer">
+              <Card className="relative overflow-hidden hover:bg-accent/50 transition-colors">
+                <CardContent className="flex items-start gap-3 p-4">
+                  <Dribbble size={24} className="text-orange-500 shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm font-bold text-foreground">My Basket</p>
+                      <Badge className="text-[10px] px-1.5 py-0 bg-primary text-primary-foreground">{t('credits.new')}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t('credits.basketDesc')}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">{t('credits.basketDesc')}</p>
-                </div>
-              </CardContent>
-            </Card>
+                  <ExternalLink size={14} className="text-muted-foreground shrink-0 mt-1" />
+                </CardContent>
+              </Card>
+            </a>
 
-            <Card className="relative overflow-hidden">
-              <CardContent className="flex items-start gap-3 p-4">
-                <Circle size={24} className="text-yellow-400 shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-bold text-foreground">My Tennis</p>
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('credits.comingSoon')}</Badge>
+            <a href="https://sport-tracker-global.lovable.app/" target="_blank" rel="noopener noreferrer">
+              <Card className="relative overflow-hidden hover:bg-accent/50 transition-colors">
+                <CardContent className="flex items-start gap-3 p-4">
+                  <Circle size={24} className="text-yellow-400 shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm font-bold text-foreground">My Tennis</p>
+                      <Badge className="text-[10px] px-1.5 py-0 bg-primary text-primary-foreground">{t('credits.new')}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t('credits.tennisDesc')}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">{t('credits.tennisDesc')}</p>
-                </div>
-              </CardContent>
-            </Card>
+                  <ExternalLink size={14} className="text-muted-foreground shrink-0 mt-1" />
+                </CardContent>
+              </Card>
+            </a>
 
-            <Card className="relative overflow-hidden">
-              <CardContent className="flex items-start gap-3 p-4">
-                <Activity size={24} className="text-blue-500 shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-bold text-foreground">My Padel</p>
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('credits.comingSoon')}</Badge>
+            <a href="https://sport-tracker-global.lovable.app/" target="_blank" rel="noopener noreferrer">
+              <Card className="relative overflow-hidden hover:bg-accent/50 transition-colors">
+                <CardContent className="flex items-start gap-3 p-4">
+                  <Activity size={24} className="text-blue-500 shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm font-bold text-foreground">My Padel</p>
+                      <Badge className="text-[10px] px-1.5 py-0 bg-primary text-primary-foreground">{t('credits.new')}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t('credits.padelDesc')}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">{t('credits.padelDesc')}</p>
-                </div>
-              </CardContent>
-            </Card>
+                  <ExternalLink size={14} className="text-muted-foreground shrink-0 mt-1" />
+                </CardContent>
+              </Card>
+            </a>
           </div>
         </section>
 
         {/* Crédit technique */}
         <section className="pt-4 border-t border-border">
-          <p className="text-xs text-muted-foreground text-center">
-            {t('credits.techNote')}
-          </p>
+          <p className="text-xs text-muted-foreground text-center">{t('credits.techNote')}</p>
         </section>
       </main>
     </div>
