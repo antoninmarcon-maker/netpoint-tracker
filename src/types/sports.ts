@@ -117,6 +117,7 @@ export interface MatchSummary {
   players?: Player[];
   sport?: SportType;
   metadata?: MatchMetadata;
+  aiAnalysis?: string;
 }
 
 export type CourtZone = 'opponent_court' | 'outside_opponent' | 'net_line' | 'outside_own';
