@@ -122,14 +122,21 @@ const Index = () => {
 
   // Tennis/Padel: opponent faults are registered immediately without court click
   // All sports: service faults (service_miss, double_fault, padel_double_fault) skip court placement
+  // Custom actions with placeOnCourt=false skip court placement
   const SERVICE_FAULT_ACTIONS = ['service_miss', 'double_fault', 'padel_double_fault'];
   useEffect(() => {
-    if (!selectedTeam || !selectedAction) return;
+    if (!selectedTeam || !selectedAction) {
+      // Clean up placeOnCourt flag when selection is cleared (e.g. cancel)
+      delete (window as any).__pendingPlaceOnCourt;
+      return;
+    }
     const isAutoPoint =
       metadata?.hasCourt === false ||
       (isTennisOrPadel && matchState.selectedPointType === 'fault') ||
-      SERVICE_FAULT_ACTIONS.includes(selectedAction);
+      SERVICE_FAULT_ACTIONS.includes(selectedAction) ||
+      (window as any).__pendingPlaceOnCourt === false;
     if (isAutoPoint) {
+      delete (window as any).__pendingPlaceOnCourt;
       addPoint(0.5, 0.5);
     }
   }, [isTennisOrPadel, matchState.selectedPointType, selectedTeam, selectedAction, addPoint]);
@@ -137,8 +144,8 @@ const Index = () => {
   useEffect(() => {
     if (!pendingPoint || players.length === 0) return;
 
-    // Respect assignToPlayer=false for neutral custom actions
-    if (pendingPoint.type === 'neutral' && (window as any).__pendingCustomAssignToPlayer === false) {
+    // Respect explicit assignToPlayer=false from custom action config (all types)
+    if ((window as any).__pendingCustomAssignToPlayer === false) {
       delete (window as any).__pendingCustomAssignToPlayer;
       skipPlayerAssignment();
       return;

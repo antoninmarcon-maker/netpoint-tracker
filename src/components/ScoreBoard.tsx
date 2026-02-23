@@ -81,7 +81,14 @@ export function ScoreBoard({
   const handleActionSelect = (action: ActionType, customLabel?: string, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean) => {
     if (!menuTeam) return;
     const type: PointType = menuTab;
-    onSelectAction(menuTeam, type, action);
+
+    // Determine placeOnCourt: for neutral, use showOnCourt (default false); for scored/fault, always true
+    const placeOnCourt = type === 'neutral' ? (showOnCourt ?? false) : true;
+    (window as any).__pendingPlaceOnCourt = placeOnCourt;
+
+    // Store assignToPlayer preference for ALL action types (default true)
+    (window as any).__pendingCustomAssignToPlayer = assignToPlayer ?? true;
+
     if (customLabel) {
       (window as any).__pendingCustomActionLabel = customLabel;
     }
@@ -91,10 +98,9 @@ export function ScoreBoard({
     if (showOnCourt) {
       (window as any).__pendingCustomShowOnCourt = true;
     }
-    // Store assignToPlayer preference (default true for neutral actions)
-    if (type === 'neutral') {
-      (window as any).__pendingCustomAssignToPlayer = assignToPlayer ?? true;
-    }
+
+    // Call onSelectAction AFTER setting window globals so useEffects see them
+    onSelectAction(menuTeam, type, action);
     setMenuTeam(null);
   };
 
@@ -456,8 +462,8 @@ export function ScoreBoard({
         </div>
       )}
 
-      {/* Active selection indicator */}
-      {selectedTeam && selectedAction && (
+      {/* Active selection indicator — hidden when placeOnCourt is false (point added instantly) */}
+      {selectedTeam && selectedAction && (window as any).__pendingPlaceOnCourt !== false && (
         <div className="flex items-center justify-between bg-accent/50 rounded-lg p-2.5 border border-accent">
           <p className="text-sm text-foreground">
             <span className="font-bold">{teamNames[selectedTeam]}</span> — {
