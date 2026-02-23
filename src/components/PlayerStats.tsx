@@ -16,8 +16,21 @@ export function PlayerStats({ points, players, teamName }: PlayerStatsProps) {
   const [expandedSections, setExpandedSections] = useState<Record<string, { scored?: boolean; faults?: boolean; neutral?: boolean }>>({});
   const [sectionOpen, setSectionOpen] = useState(true);
 
+  // Merge current roster with "ghost" players found in points but missing from roster
+  const allPlayers = useMemo(() => {
+    const knownIds = new Set(players.map(p => p.id));
+    const ghostPlayers: Player[] = [];
+    points.forEach(p => {
+      if (p.playerId && !knownIds.has(p.playerId)) {
+        knownIds.add(p.playerId);
+        ghostPlayers.push({ id: p.playerId, name: `#${p.playerId.slice(0, 4)}` });
+      }
+    });
+    return [...players, ...ghostPlayers];
+  }, [players, points]);
+
   const stats = useMemo(() => {
-    return players.map(player => {
+    return allPlayers.map(player => {
       const playerPoints = points.filter(p => p.playerId === player.id);
       const scored = playerPoints.filter(p => p.team === 'blue' && p.type === 'scored');
       const faultWins = playerPoints.filter(p => p.team === 'blue' && p.type === 'fault');
@@ -64,7 +77,7 @@ export function PlayerStats({ points, players, teamName }: PlayerStatsProps) {
         total: total, efficiency, scoredBreakdown, faultBreakdown, neutralBreakdown,
       };
     }).filter(s => s.total > 0).sort((a, b) => b.scored - a.scored);
-  }, [points, players, t]);
+  }, [points, allPlayers, t]);
 
   const togglePlayer = (playerId: string) => { setExpandedPlayers(prev => ({ ...prev, [playerId]: !prev[playerId] })); };
   const toggleSection = (playerId: string, section: 'scored' | 'faults' | 'neutral') => {
