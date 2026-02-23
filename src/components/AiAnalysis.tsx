@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, X, Loader2, Copy, Check, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +7,7 @@ import { Point, SetData, Player, SportType, OFFENSIVE_ACTIONS, FAULT_ACTIONS } f
 import ReactMarkdown from 'react-markdown';
 import { useTranslation } from 'react-i18next';
 import { updateTutorialStep } from '@/lib/pushNotifications';
+import { getMatch, saveMatch } from '@/lib/matchStorage';
 
 interface AiAnalysisProps {
   points: Point[];
@@ -18,6 +19,7 @@ interface AiAnalysisProps {
   isLoggedIn: boolean;
   onLoginRequired: () => void;
   finished?: boolean;
+  matchId?: string;
 }
 
 function getZoneName(x: number, y: number): string {
@@ -75,13 +77,22 @@ function buildMatchStatsText(points: Point[], completedSets: SetData[], currentS
   return text;
 }
 
-export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames, players, sport, isLoggedIn, onLoginRequired, finished = false }: AiAnalysisProps) {
+export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames, players, sport, isLoggedIn, onLoginRequired, finished = false, matchId }: AiAnalysisProps) {
   const { t } = useTranslation();
   const [showDialog, setShowDialog] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Load cached analysis from match data
+  useEffect(() => {
+    if (!matchId) return;
+    const match = getMatch(matchId);
+    if (match?.aiAnalysis) {
+      setAnalysis(match.aiAnalysis);
+    }
+  }, [matchId]);
 
   const handleClick = () => {
     if (!isLoggedIn) { onLoginRequired(); return; }
@@ -98,6 +109,14 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       setAnalysis(data.analysis);
+      // Cache analysis in match data
+      if (matchId) {
+        const match = getMatch(matchId);
+        if (match) {
+          match.aiAnalysis = data.analysis;
+          saveMatch(match);
+        }
+      }
       updateTutorialStep(3).catch(() => {});
     } catch (err: any) {
       toast.error(err.message || t('analysis.analysisError'));
