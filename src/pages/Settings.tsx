@@ -297,20 +297,41 @@ export default function Settings() {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
-                    if (file.size > 2 * 1024 * 1024) {
+                    if (file.size > 5 * 1024 * 1024) {
                       toast.error(t('settings.logoTooLarge'));
                       return;
                     }
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                      const dataUrl = ev.target?.result as string;
-                      localStorage.setItem('customLogo', dataUrl);
-                      setCustomLogo(dataUrl);
-                      
-                      toast.success(t('settings.logoUpdated'));
-                      navigate('/');
+                    // Resize image via canvas to avoid QuotaExceededError
+                    const img = new Image();
+                    const objectUrl = URL.createObjectURL(file);
+                    img.onload = () => {
+                      URL.revokeObjectURL(objectUrl);
+                      const MAX = 500;
+                      let w = img.width, h = img.height;
+                      if (w > MAX || h > MAX) {
+                        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                        else { w = Math.round(w * MAX / h); h = MAX; }
+                      }
+                      const canvas = document.createElement('canvas');
+                      canvas.width = w;
+                      canvas.height = h;
+                      const ctx = canvas.getContext('2d')!;
+                      ctx.drawImage(img, 0, 0, w, h);
+                      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                      try {
+                        localStorage.setItem('customLogo', dataUrl);
+                        setCustomLogo(dataUrl);
+                        toast.success(t('settings.logoUpdated'));
+                        navigate('/');
+                      } catch {
+                        toast.error(t('settings.logoTooLarge'));
+                      }
                     };
-                    reader.readAsDataURL(file);
+                    img.onerror = () => {
+                      URL.revokeObjectURL(objectUrl);
+                      toast.error(t('settings.logoTooLarge'));
+                    };
+                    img.src = objectUrl;
                   }}
                 />
                 {customLogo && (

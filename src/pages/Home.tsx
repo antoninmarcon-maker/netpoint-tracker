@@ -85,6 +85,19 @@ export default function Home() {
   const [customLogo, setCustomLogo] = useState<string | null>(null);
   const [savedPlayersList, setSavedPlayersList] = useState<{ id: string; name: string }[]>([]);
   const [showPushPrompt, setShowPushPrompt] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  // Welcome modal on first visit
+  useEffect(() => {
+    if (localStorage.getItem('welcomeSeen') !== 'true') {
+      setShowWelcome(true);
+    }
+  }, []);
+
+  const handleWelcomeDismiss = () => {
+    localStorage.setItem('welcomeSeen', 'true');
+    setShowWelcome(false);
+  };
 
   // Load saved players for auto-completion when dialog opens for racket sports
   useEffect(() => {
@@ -172,21 +185,29 @@ export default function Home() {
     };
   }, [loadMatches]);
 
+  // AuthDialog: show once per session when user has matches but is not logged in
   useEffect(() => {
     if (!authLoaded) return;
     if (user) {
       setShowAuth(false);
       return;
     }
-    if (!guestDismissed) {
-      const timer = setTimeout(() => setShowAuth(true), 500);
-      return () => clearTimeout(timer);
+    // Only show if user has created at least one match and hasn't dismissed this session
+    if (!guestDismissed && getAllMatches().length > 0) {
+      const alreadyShownThisSession = sessionStorage.getItem('authPromptShown');
+      if (!alreadyShownThisSession) {
+        sessionStorage.setItem('authPromptShown', 'true');
+        const timer = setTimeout(() => setShowAuth(true), 500);
+        return () => clearTimeout(timer);
+      }
     }
   }, [user, guestDismissed, authLoaded]);
 
-  // Push notification prompt
+  // Push notification prompt — only in standalone (PWA) mode
   useEffect(() => {
     if (!user || !authLoaded) return;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    if (!isStandalone) return;
     const hasCreated = localStorage.getItem('hasCreatedMatch');
     const hasDeclined = localStorage.getItem('hasDeclinedPushPrompt');
     if (!hasCreated || hasDeclined) return;
@@ -374,6 +395,24 @@ export default function Home() {
           <p className="text-sm text-muted-foreground text-center mt-1">{t('home.subtitle')}</p>
         </div>
       </header>
+
+      {/* Welcome onboarding modal */}
+      <Dialog open={showWelcome} onOpenChange={(open) => { if (!open) handleWelcomeDismiss(); }}>
+        <DialogContent className="max-w-xs rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-center text-lg">👋 {t('home.welcomeTitle')}</DialogTitle>
+            <DialogDescription className="text-center text-sm text-muted-foreground">
+              {t('home.welcomeText')}
+            </DialogDescription>
+          </DialogHeader>
+          <button
+            onClick={handleWelcomeDismiss}
+            className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm"
+          >
+            {t('home.welcomeStart')}
+          </button>
+        </DialogContent>
+      </Dialog>
 
       <AuthDialog
         open={showAuth}

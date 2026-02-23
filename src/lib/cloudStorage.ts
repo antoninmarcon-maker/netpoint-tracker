@@ -24,6 +24,8 @@ export async function syncLocalMatchesToCloud(userId: string) {
       await saveCloudMatch(userId, match);
     }
   }
+  // Clean up local storage after successful sync to avoid duplicates
+  localStorage.removeItem('volley-tracker-matches');
 }
 
 // Get all matches from cloud — read from match_data JSON (always available)

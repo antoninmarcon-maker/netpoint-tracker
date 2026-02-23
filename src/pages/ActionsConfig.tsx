@@ -32,11 +32,13 @@ export default function ActionsConfig() {
   const [newPoints, setNewPoints] = useState<number>(2);
   const [newSigil, setNewSigil] = useState('');
   const [newShowOnCourt, setNewShowOnCourt] = useState(false);
+  const [newAssignToPlayer, setNewAssignToPlayer] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState('');
   const [editPoints, setEditPoints] = useState<number>(2);
   const [editSigil, setEditSigil] = useState('');
   const [editShowOnCourt, setEditShowOnCourt] = useState(false);
+  const [editAssignToPlayer, setEditAssignToPlayer] = useState(true);
 
   const handleToggle = useCallback((key: string) => {
     setConfig(toggleActionVisibility(key));
@@ -47,19 +49,21 @@ export default function ActionsConfig() {
     const pts = (sport === 'basketball' && addingCategory === 'scored') ? newPoints : undefined;
     const sigil = addingCategory === 'neutral' ? newSigil : undefined;
     const showOnCourt = addingCategory === 'neutral' ? newShowOnCourt : undefined;
-    setConfig(addCustomAction(newLabel, sport, addingCategory, pts, sigil, showOnCourt));
+    const assignToPlayer = addingCategory === 'neutral' ? newAssignToPlayer : undefined;
+    setConfig(addCustomAction(newLabel, sport, addingCategory, pts, sigil, showOnCourt, assignToPlayer));
     setNewLabel('');
     setNewPoints(2);
     setNewSigil('');
     setNewShowOnCourt(false);
+    setNewAssignToPlayer(true);
     setAddingCategory(null);
-  }, [newLabel, sport, addingCategory, newPoints, newSigil, newShowOnCourt]);
+  }, [newLabel, sport, addingCategory, newPoints, newSigil, newShowOnCourt, newAssignToPlayer]);
 
   const handleUpdate = useCallback((id: string) => {
     if (!editLabel.trim()) return;
-    setConfig(updateCustomAction(id, editLabel, editPoints, editSigil || undefined, editShowOnCourt));
+    setConfig(updateCustomAction(id, editLabel, editPoints, editSigil || undefined, editShowOnCourt, editAssignToPlayer));
     setEditingId(null);
-  }, [editLabel, editPoints, editSigil, editShowOnCourt]);
+  }, [editLabel, editPoints, editSigil, editShowOnCourt, editAssignToPlayer]);
 
   const handleDelete = useCallback((id: string) => {
     setConfig(deleteCustomAction(id));
@@ -90,7 +94,7 @@ export default function ActionsConfig() {
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-foreground">{categoryLabel}</h3>
           <button
-            onClick={() => { setAddingCategory(category); setNewLabel(''); setNewSigil(''); setNewShowOnCourt(false); }}
+            onClick={() => { setAddingCategory(category); setNewLabel(''); setNewSigil(''); setNewShowOnCourt(false); setNewAssignToPlayer(true); }}
             className={`flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium ${isNeutral && customs.length === 0 ? 'animate-pulse' : ''}`}
           >
             <Plus size={14} /> {t('actionsConfig.addAction')}
@@ -160,6 +164,10 @@ export default function ActionsConfig() {
                       <Switch checked={editShowOnCourt} onCheckedChange={setEditShowOnCourt} className="scale-75" />
                       <Label className="text-[10px] text-muted-foreground">{t('actionsConfig.showOnCourt')}</Label>
                     </div>
+                    <div className="flex items-center gap-1.5">
+                      <Switch checked={editAssignToPlayer} onCheckedChange={setEditAssignToPlayer} className="scale-75" />
+                      <Label className="text-[10px] text-muted-foreground">{t('actionsConfig.assignToPlayer')}</Label>
+                    </div>
                     {editShowOnCourt && (
                       <div className="flex items-center gap-1.5">
                         <Input
@@ -207,7 +215,7 @@ export default function ActionsConfig() {
                     )}
                   </button>
                   <button
-                    onClick={() => { setEditingId(c.id); setEditLabel(c.label); setEditPoints(c.points ?? 2); setEditSigil(c.sigil ?? ''); setEditShowOnCourt(c.showOnCourt ?? false); }}
+                    onClick={() => { setEditingId(c.id); setEditLabel(c.label); setEditPoints(c.points ?? 2); setEditSigil(c.sigil ?? ''); setEditShowOnCourt(c.showOnCourt ?? false); setEditAssignToPlayer(c.assignToPlayer ?? true); }}
                     className="p-1.5 rounded-md hover:bg-secondary transition-colors"
                   >
                     <Pencil size={14} className="text-muted-foreground" />
@@ -258,10 +266,14 @@ export default function ActionsConfig() {
               </button>
             </div>
             {isNeutral && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex items-center gap-1.5">
                   <Switch checked={newShowOnCourt} onCheckedChange={setNewShowOnCourt} className="scale-75" />
                   <Label className="text-[10px] text-muted-foreground">{t('actionsConfig.showOnCourt')}</Label>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Switch checked={newAssignToPlayer} onCheckedChange={setNewAssignToPlayer} className="scale-75" />
+                  <Label className="text-[10px] text-muted-foreground">{t('actionsConfig.assignToPlayer')}</Label>
                 </div>
                 {newShowOnCourt && (
                   <div className="flex items-center gap-1.5">

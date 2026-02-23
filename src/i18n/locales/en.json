@@ -85,7 +85,10 @@
     "errorFinishing": "Error finishing the match.",
     "feedback": "Feedback",
     "story": "Credits",
-    "customizeLogo": "Customize logo"
+    "customizeLogo": "Customize logo",
+    "welcomeTitle": "Welcome to My Volley",
+    "welcomeText": "The app dedicated to coaches and players to improve their game with data. Create your first offline match to try it out.",
+    "welcomeStart": "Get Started"
   },
   "credits": {
     "title": "Project Story",
@@ -253,7 +256,8 @@
     "scoredTennis": "Winners",
     "faultTennis": "Opponent Faults",
     "whoServes": "Who serves first?",
-    "neutralTab": "Stats"
+    "neutralTab": "Stats",
+    "touchCourtNeutral": "Tap the court where the action occurred"
   },
   "roster": {
     "defineRoster": "Set roster {{team}}",
@@ -264,6 +268,7 @@
   "playerSelector": {
     "whoScored": "Which player scored?",
     "whoFaulted": "Which player committed the fault?",
+    "whoDidAction": "Who performed this action?",
     "skip": "Skip (no attribution)"
   },
   "playerStats": {
@@ -494,6 +499,7 @@
     "sigilPlaceholder": "XX",
     "sigilHelp": "1-2 chars shown on court",
     "showOnCourt": "Court",
+    "assignToPlayer": "Player",
     "show": "Show",
     "hide": "Hide",
     "advantageRule": "Advantage Rule (Deuce)",

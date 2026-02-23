@@ -11,6 +11,7 @@ export interface CustomAction {
   points?: number; // For basketball scored actions: 1, 2 or 3
   sigil?: string; // Max 2 chars for neutral court display
   showOnCourt?: boolean; // Whether to display neutral point on court
+  assignToPlayer?: boolean; // Whether to show player selector for this action
 }
 
 export interface ActionsConfig {
@@ -91,7 +92,7 @@ export function toggleActionVisibility(actionKey: string): ActionsConfig {
 
 export function addCustomAction(
   label: string, sport: SportType, category: PointType,
-  points?: number, sigil?: string, showOnCourt?: boolean
+  points?: number, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean
 ): ActionsConfig {
   const config = getConfig();
   config.customActions.push({
@@ -102,12 +103,13 @@ export function addCustomAction(
     ...(points != null && { points }),
     ...(category === 'neutral' && sigil ? { sigil: sigil.slice(0, 2).toUpperCase() } : {}),
     ...(category === 'neutral' ? { showOnCourt: showOnCourt ?? false } : {}),
+    ...(category === 'neutral' ? { assignToPlayer: assignToPlayer ?? true } : {}),
   });
   saveConfig(config);
   return config;
 }
 
-export function updateCustomAction(id: string, newLabel: string, points?: number, sigil?: string, showOnCourt?: boolean): ActionsConfig {
+export function updateCustomAction(id: string, newLabel: string, points?: number, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean): ActionsConfig {
   const config = getConfig();
   const action = config.customActions.find(a => a.id === id);
   if (action) {
@@ -118,6 +120,7 @@ export function updateCustomAction(id: string, newLabel: string, points?: number
     if (action.category === 'neutral') {
       if (sigil !== undefined) action.sigil = sigil.slice(0, 2).toUpperCase();
       if (showOnCourt !== undefined) action.showOnCourt = showOnCourt;
+      if (assignToPlayer !== undefined) action.assignToPlayer = assignToPlayer;
     }
   }
   saveConfig(config);
@@ -205,6 +208,7 @@ export function getVisibleActions(
       ...(c.points != null && { points: c.points }),
       ...(c.sigil ? { sigil: c.sigil } : {}),
       ...(c.showOnCourt != null ? { showOnCourt: c.showOnCourt } : {}),
+      ...(c.assignToPlayer != null ? { assignToPlayer: c.assignToPlayer } : {}),
     }));
 
   return [...visible, ...customs];

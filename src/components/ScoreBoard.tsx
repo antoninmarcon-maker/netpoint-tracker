@@ -11,6 +11,7 @@ interface ScoreBoardProps {
   score: { blue: number; red: number };
   points: Point[];
   selectedTeam: Team | null;
+  selectedPointType: PointType | null;
   selectedAction: ActionType | null;
   currentSetNumber: number;
   teamNames: { blue: string; red: string };
@@ -46,7 +47,7 @@ function formatTime(seconds: number) {
 type MenuTab = 'scored' | 'fault' | 'neutral';
 
 export function ScoreBoard({
-  score, points, selectedTeam, selectedAction,
+  score, points, selectedTeam, selectedPointType, selectedAction,
   onSelectAction, onCancelSelection, onUndo, onReset, onEndSet, onSwitchSides,
   onStartChrono, onPauseChrono, onSetTeamNames, canUndo,
   currentSetNumber, teamNames, sidesSwapped, chronoRunning, chronoSeconds,
@@ -77,7 +78,7 @@ export function ScoreBoard({
     setEditingNames(false);
   };
 
-  const handleActionSelect = (action: ActionType, customLabel?: string, sigil?: string, showOnCourt?: boolean) => {
+  const handleActionSelect = (action: ActionType, customLabel?: string, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean) => {
     if (!menuTeam) return;
     const type: PointType = menuTab;
     onSelectAction(menuTeam, type, action);
@@ -89,6 +90,10 @@ export function ScoreBoard({
     }
     if (showOnCourt) {
       (window as any).__pendingCustomShowOnCourt = true;
+    }
+    // Store assignToPlayer preference (default true for neutral actions)
+    if (type === 'neutral') {
+      (window as any).__pendingCustomAssignToPlayer = assignToPlayer ?? true;
     }
     setMenuTeam(null);
   };
@@ -160,7 +165,9 @@ export function ScoreBoard({
           <span className="text-sm font-mono font-bold text-foreground tabular-nums">{formatTime(chronoSeconds)}</span>
           <button
             onClick={chronoRunning ? onPauseChrono : onStartChrono}
-            className="p-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
+            className={`p-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all ${
+              !chronoRunning && !isFinished ? 'animate-pulse ring-2 ring-primary/40' : ''
+            }`}
           >
             {chronoRunning ? <Pause size={12} /> : <Play size={12} />}
           </button>
@@ -432,7 +439,7 @@ export function ScoreBoard({
             ).map(a => (
               <button
                 key={a.customId ?? a.key}
-                onClick={() => handleActionSelect(a.key as ActionType, a.customId ? a.label : undefined, a.sigil, a.showOnCourt)}
+                onClick={() => handleActionSelect(a.key as ActionType, a.customId ? a.label : undefined, a.sigil, a.showOnCourt, (a as any).assignToPlayer)}
                 className={`py-2.5 px-2 text-xs font-semibold rounded-lg transition-all active:scale-95 ${
                   menuTab === 'scored'
                     ? 'bg-action-scored/10 text-action-scored hover:bg-action-scored/20 border border-action-scored/20'
@@ -458,7 +465,7 @@ export function ScoreBoard({
             }
           </p>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground animate-pulse">{t('scoreboard.touchCourt')}</span>
+            <span className="text-xs text-muted-foreground animate-pulse">{selectedPointType === 'neutral' ? t('scoreboard.touchCourtNeutral') : t('scoreboard.touchCourt')}</span>
             <button onClick={onCancelSelection} className="p-1 rounded-md text-muted-foreground hover:text-foreground">
               <X size={14} />
             </button>

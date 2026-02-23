@@ -90,7 +90,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
 
   const addPoint = useCallback((x: number, y: number) => {
     if (!selectedTeam || !selectedPointType || !selectedAction) return;
-    if (!chronoRunning && points.length === 0) {
+    if (!chronoRunning) {
       setChronoRunning(true);
     }
     const pointValue = sport === 'basketball' && isBasketScoredAction(selectedAction)

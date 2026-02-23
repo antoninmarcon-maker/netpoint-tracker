@@ -136,10 +136,23 @@ const Index = () => {
 
   useEffect(() => {
     if (!pendingPoint || players.length === 0) return;
+
+    // Respect assignToPlayer=false for neutral custom actions
+    if (pendingPoint.type === 'neutral' && (window as any).__pendingCustomAssignToPlayer === false) {
+      delete (window as any).__pendingCustomAssignToPlayer;
+      skipPlayerAssignment();
+      return;
+    }
+    // Clean up the flag
+    if ((window as any).__pendingCustomAssignToPlayer !== undefined) {
+      delete (window as any).__pendingCustomAssignToPlayer;
+    }
+
     if (isBasketball) {
       const isBlueFault = pendingPoint.team === 'blue' && pendingPoint.type === 'fault';
       const isBlueScored = pendingPoint.team === 'blue' && pendingPoint.type === 'scored';
-      if (!isBlueFault && !isBlueScored) {
+      const isNeutral = pendingPoint.type === 'neutral';
+      if (!isBlueFault && !isBlueScored && !isNeutral) {
         skipPlayerAssignment();
       }
       return;
@@ -157,6 +170,8 @@ const Index = () => {
       } else if (pendingPoint.team === 'red' && pendingPoint.type === 'fault') {
         // Blue committed a fault → attribute to blue player
         relevantPlayers = getPlayersForTeam('blue');
+      } else if (pendingPoint.type === 'neutral') {
+        relevantPlayers = getPlayersForTeam(pendingPoint.team);
       } else {
         // Opponent fault → skip
         skipPlayerAssignment();
@@ -171,7 +186,8 @@ const Index = () => {
     const isBlueScored = pendingPoint.team === 'blue' && pendingPoint.type === 'scored';
     const isRedScored = pendingPoint.team === 'red' && pendingPoint.type === 'scored';
     const isRedFault = pendingPoint.team === 'red' && pendingPoint.type === 'fault';
-    if (!isBlueScored && !isRedScored && !isRedFault) {
+    const isNeutral = pendingPoint.type === 'neutral';
+    if (!isBlueScored && !isRedScored && !isRedFault && !isNeutral) {
       skipPlayerAssignment();
     }
   }, [pendingPoint, players, skipPlayerAssignment, isBasketball, isTennisOrPadel, effectiveServingTeam, getPlayersForTeam, assignPlayer]);
@@ -296,6 +312,7 @@ const Index = () => {
               score={score}
               points={points}
               selectedTeam={selectedTeam}
+              selectedPointType={selectedPointType}
               selectedAction={selectedAction}
               currentSetNumber={currentSetNumber}
               teamNames={teamNames}
@@ -362,7 +379,7 @@ const Index = () => {
             return (
               <PlayerSelector
                 players={players}
-                prompt={t('playerSelector.whoScored')}
+                prompt={t('playerSelector.whoDidAction')}
                 onSelect={assignPlayer}
                 onSkip={skipPlayerAssignment}
                 sport={sport}

@@ -85,7 +85,10 @@
     "errorFinishing": "Erreur lors de la finalisation du match.",
     "feedback": "Feedback",
     "story": "Crédits",
-    "customizeLogo": "Personnaliser le logo"
+    "customizeLogo": "Personnaliser le logo",
+    "welcomeTitle": "Bienvenue sur My Volley",
+    "welcomeText": "L'application dédiée aux coachs et aux joueurs pour améliorer leur jeu avec la data. Créez votre premier match hors-ligne pour tester.",
+    "welcomeStart": "Commencer"
   },
   "credits": {
     "title": "Histoire du projet",
@@ -253,7 +256,8 @@
     "scoredTennis": "Coups Gagnants",
     "faultTennis": "Fautes adverses",
     "whoServes": "Qui sert en premier ?",
-    "neutralTab": "Stats"
+    "neutralTab": "Stats",
+    "touchCourtNeutral": "Touchez le terrain où l'action a eu lieu"
   },
   "roster": {
     "defineRoster": "Définir le roster {{team}}",
@@ -264,6 +268,7 @@
   "playerSelector": {
     "whoScored": "Quel joueur a marqué ?",
     "whoFaulted": "Quel joueur a commis la faute ?",
+    "whoDidAction": "Qui a réalisé cette action ?",
     "skip": "Passer (pas d'attribution)"
   },
   "playerStats": {
@@ -494,6 +499,7 @@
     "sigilPlaceholder": "XX",
     "sigilHelp": "1-2 car. affiché sur le terrain",
     "showOnCourt": "Terrain",
+    "assignToPlayer": "Joueur",
     "show": "Afficher",
     "hide": "Masquer",
     "advantageRule": "Règle des Avantages (Deuce)",
