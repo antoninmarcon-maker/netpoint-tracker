@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Team, Point, PointType, ActionType, SetData, Player, SportType, isBasketScoredAction, getBasketPointValue, MatchMetadata } from '@/types/sports';
+import { Team, Point, PointType, ActionType, SetData, Player, SportType, MatchMetadata } from '@/types/sports';
 import { getMatch, saveMatch, saveLastRoster } from '@/lib/matchStorage';
 
 export function useMatchState(matchId: string, ready: boolean = true) {
@@ -20,10 +20,8 @@ export function useMatchState(matchId: string, ready: boolean = true) {
   const [sidesSwapped, setSidesSwapped] = useState(loaded?.sidesSwapped ?? false);
   const [players, setPlayers] = useState<Player[]>(loaded?.players ?? []);
   const [pendingPoint, setPendingPoint] = useState<Omit<Point, 'playerId'> | null>(null);
-  const [initialServer, setInitialServer] = useState<Team | null>((loaded?.metadata as MatchMetadata | undefined)?.initialServer ?? null);
-  const sport: SportType = loaded?.sport ?? 'volleyball';
+  const sport: SportType = 'volleyball';
 
-  // When ready becomes true after initial empty render, reload state from localStorage
   useEffect(() => {
     if (!ready || hasInitialized.current) return;
     hasInitialized.current = true;
@@ -33,14 +31,9 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     const sets = match.completedSets ?? [];
     let setNum = match.currentSetNumber ?? 1;
     let swapped = match.sidesSwapped ?? false;
-    // Fix: if completed sets already cover currentSetNumber, auto-increment
-    // This handles the case where waitingForNewSet was lost on reload
     if (sets.length > 0 && sets.some(s => s.number === setNum) && (match.points ?? []).length === 0) {
       setNum = sets.length + 1;
-      // Recalculate sidesSwapped based on number of completed sets (volleyball swaps each set)
-      if ((match.sport ?? 'volleyball') === 'volleyball') {
-        swapped = sets.length % 2 !== 0;
-      }
+      swapped = sets.length % 2 !== 0;
     }
     setCompletedSets(sets);
     setCurrentSetNumber(setNum);
@@ -93,10 +86,6 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     if (!chronoRunning) {
       setChronoRunning(true);
     }
-    const pointValue = sport === 'basketball' && isBasketScoredAction(selectedAction)
-      ? getBasketPointValue(selectedAction)
-      : undefined;
-    // Read and clear pending custom action label
     const customLabel = (window as any).__pendingCustomActionLabel;
     if (customLabel) delete (window as any).__pendingCustomActionLabel;
     const customSigil = (window as any).__pendingCustomSigil;
@@ -111,39 +100,12 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       x,
       y,
       timestamp: Date.now(),
-      pointValue,
       ...(customLabel ? { customActionLabel: customLabel } : {}),
       ...(customSigil ? { sigil: customSigil } : {}),
       ...(customShowOnCourt ? { showOnCourt: true } : {}),
     };
     // Show player selector for blue team actions + red team fault points + neutral points
     if (players.length > 0 && (point.type === 'neutral' || point.team === 'blue' || (point.team === 'red' && point.type === 'fault'))) {
-      setPendingPoint(point);
-    } else {
-      setPoints(prev => [...prev, point]);
-    }
-    setSelectedTeam(null);
-    setSelectedPointType(null);
-    setSelectedAction(null);
-  }, [selectedTeam, selectedPointType, selectedAction, chronoRunning, points.length, players.length, sport]);
-
-  // Basketball free throw: add point directly without court placement
-  const addFreeThrow = useCallback(() => {
-    if (!selectedTeam || !selectedPointType || !selectedAction) return;
-    if (!chronoRunning && points.length === 0) {
-      setChronoRunning(true);
-    }
-    const point: Point = {
-      id: crypto.randomUUID(),
-      team: selectedTeam,
-      type: selectedPointType,
-      action: selectedAction,
-      x: 0.5,
-      y: 0.5,
-      timestamp: Date.now(),
-      pointValue: 1,
-    };
-    if (players.length > 0 && point.team === 'blue') {
       setPendingPoint(point);
     } else {
       setPoints(prev => [...prev, point]);
@@ -169,28 +131,21 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     setPoints(prev => prev.slice(0, -1));
   }, []);
 
-  // Score calculation: basketball uses pointValue, volleyball uses count — always exclude neutral
+  // Score calculation: volleyball rally scoring — exclude neutral
   const score = useMemo(() => {
     const scoringPoints = points.filter(p => p.type !== 'neutral');
-    if (sport === 'basketball') {
-      return {
-        blue: scoringPoints.filter(p => p.team === 'blue' && p.type === 'scored').reduce((sum, p) => sum + (p.pointValue ?? 0), 0),
-        red: scoringPoints.filter(p => p.team === 'red' && p.type === 'scored').reduce((sum, p) => sum + (p.pointValue ?? 0), 0),
-      };
-    }
     return {
       blue: scoringPoints.filter(p => p.team === 'blue').length,
       red: scoringPoints.filter(p => p.team === 'red').length,
     };
-  }, [points, sport]);
+  }, [points]);
 
-  // Serving team (volleyball only) — ignore neutral points
+  // Serving team — ignore neutral points
   const servingTeam: Team | null = useMemo(() => {
-    if (sport !== 'volleyball') return null;
     const scoringPts = points.filter(p => p.type !== 'neutral');
     if (scoringPts.length === 0) return null;
     return scoringPts[scoringPts.length - 1].team;
-  }, [points, sport]);
+  }, [points]);
 
   const stats = useMemo(() => {
     const allPoints = [...completedSets.flatMap(s => s.points), ...points];
@@ -240,12 +195,9 @@ export function useMatchState(matchId: string, ready: boolean = true) {
 
   const startNewSet = useCallback(() => {
     setCurrentSetNumber(prev => prev + 1);
-    // All sports: swap sides at new set
-    if (sport === 'volleyball' || sport === 'tennis' || sport === 'padel') {
-      setSidesSwapped(prev => !prev);
-    }
+    setSidesSwapped(prev => !prev);
     setWaitingForNewSet(false);
-  }, [sport]);
+  }, []);
 
   const finishMatch = useCallback(() => {
     if (points.length > 0) {
@@ -283,13 +235,9 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     resetChrono();
   }, [resetChrono]);
 
-  // Auto-save (include initialServer in metadata)
+  // Auto-save
   useEffect(() => {
     if (!loaded) return;
-    const updatedMetadata = {
-      ...(loaded.metadata as Record<string, unknown> ?? {}),
-      initialServer: initialServer,
-    };
     saveMatch({
       ...loaded,
       completedSets,
@@ -299,11 +247,10 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       sidesSwapped,
       chronoSeconds,
       players,
-      metadata: updatedMetadata as any,
       updatedAt: Date.now(),
     });
     saveLastRoster(players);
-  }, [completedSets, currentSetNumber, points, teamNames, sidesSwapped, chronoSeconds, players, loaded, initialServer]);
+  }, [completedSets, currentSetNumber, points, teamNames, sidesSwapped, chronoSeconds, players, loaded]);
 
   return {
     points,
@@ -324,14 +271,11 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     pendingPoint,
     servingTeam,
     sport,
-    initialServer,
-    setInitialServer,
     setTeamNames,
     setPlayers,
     selectAction,
     cancelSelection,
     addPoint,
-    addFreeThrow,
     assignPlayer,
     skipPlayerAssignment,
     undo,

@@ -16,12 +16,6 @@ const ACTION_LABELS: Partial<Record<ActionType, { abbr: string; full: string }>>
   net_fault: { abbr: 'FIL', full: 'Filet' },
   service_miss: { abbr: 'SRV', full: 'Service loupé' },
   block_out: { abbr: 'BKO', full: 'Block Out' },
-  free_throw: { abbr: '1PT', full: 'Lancer franc' },
-  two_points: { abbr: '2PT', full: 'Intérieur' },
-  three_points: { abbr: '3PT', full: 'Extérieur' },
-  missed_shot: { abbr: 'MIS', full: 'Tir manqué' },
-  turnover: { abbr: 'TOV', full: 'Perte de balle' },
-  foul_committed: { abbr: 'FOU', full: 'Faute commise' },
 };
 
 interface PointTimelineProps {
@@ -100,25 +94,13 @@ export function PointTimeline({ points, teamNames }: PointTimelineProps) {
 
   return (
     <div className="bg-card rounded-xl p-4 border border-border space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground text-center">
-        {t('timeline.title')}
-      </p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground text-center">{t('timeline.title')}</p>
       <div className="w-full" style={{ height: 260 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 30 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="timeLabel"
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-              label={{ value: t('timeline.time'), position: 'insideBottom', offset: -20, fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-            />
-            <YAxis
-              allowDecimals={false}
-              domain={[0, maxScore]}
-              ticks={yTicks}
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-              label={{ value: t('timeline.points'), angle: -90, position: 'insideLeft', offset: 20, fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-            />
+            <XAxis dataKey="timeLabel" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} label={{ value: t('timeline.time'), position: 'insideBottom', offset: -20, fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+            <YAxis allowDecimals={false} domain={[0, maxScore]} ticks={yTicks} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} label={{ value: t('timeline.points'), angle: -90, position: 'insideLeft', offset: 20, fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
             <Tooltip content={<CustomTooltip teamNames={teamNames} />} />
             <Line type="stepAfter" dataKey="blue" stroke="hsl(217, 91%, 60%)" strokeWidth={2} dot={<CustomDot color="hsl(217, 91%, 60%)" />} name={teamNames.blue} />
             <Line type="stepAfter" dataKey="red" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={<CustomDot color="hsl(0, 84%, 60%)" />} name={teamNames.red} />
@@ -126,12 +108,8 @@ export function PointTimeline({ points, teamNames }: PointTimelineProps) {
         </ResponsiveContainer>
       </div>
       <div className="flex justify-center gap-4 text-xs">
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-0.5 rounded bg-team-blue inline-block" /> {teamNames.blue}
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-0.5 rounded bg-team-red inline-block" /> {teamNames.red}
-        </span>
+        <span className="flex items-center gap-1"><span className="w-3 h-0.5 rounded bg-team-blue inline-block" /> {teamNames.blue}</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-0.5 rounded bg-team-red inline-block" /> {teamNames.red}</span>
       </div>
     </div>
   );
@@ -143,9 +121,7 @@ function CustomDot({ cx, cy, color, payload }: any) {
   return (
     <g>
       <circle cx={cx} cy={cy} r={4} fill={color} stroke="hsl(var(--card))" strokeWidth={1.5} />
-      <text x={cx} y={cy - 8} textAnchor="middle" fontSize={8} fontWeight="bold" fill="hsl(var(--foreground))">
-        {label?.abbr ?? '?'}
-      </text>
+      <text x={cx} y={cy - 8} textAnchor="middle" fontSize={8} fontWeight="bold" fill="hsl(var(--foreground))">{label?.abbr ?? '?'}</text>
     </g>
   );
 }
@@ -154,21 +130,15 @@ function CustomTooltip({ active, payload, teamNames }: any) {
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload as DataPoint | undefined;
   if (!d || d.index === 0) return null;
-
   const actionInfo = ACTION_LABELS[d.action];
   const teamName = d.team === 'blue' ? teamNames.blue : teamNames.red;
-
   return (
     <div className="bg-popover border border-border rounded-lg p-2.5 shadow-lg text-xs space-y-1">
       <p className="font-bold text-foreground">Point #{d.index} — {d.timeLabel}</p>
       <p className={`font-semibold ${d.team === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{teamName}</p>
       <p className="text-muted-foreground">{d.type === 'scored' ? 'Point ✓' : 'Fault ✗'}</p>
-      <p className="text-foreground">
-        <span className="font-bold">{actionInfo?.abbr}</span> — {actionInfo?.full}
-      </p>
-      <p className="text-muted-foreground">
-        {teamNames.blue} {d.blue} - {d.red} {teamNames.red}
-      </p>
+      <p className="text-foreground"><span className="font-bold">{actionInfo?.abbr}</span> — {actionInfo?.full}</p>
+      <p className="text-muted-foreground">{teamNames.blue} {d.blue} - {d.red} {teamNames.red}</p>
     </div>
   );
 }
