@@ -5,9 +5,6 @@ import { getMatchByShareToken } from '@/lib/cloudStorage';
 import { MatchSummary } from '@/types/sports';
 import { SetHistory } from '@/components/SetHistory';
 import { VolleyballCourt } from '@/components/VolleyballCourt';
-import { BasketballCourt } from '@/components/BasketballCourt';
-import { TennisCourt } from '@/components/TennisCourt';
-import { PadelCourt } from '@/components/PadelCourt';
 import { HeatmapView } from '@/components/HeatmapView';
 import { useTranslation } from 'react-i18next';
 
@@ -50,9 +47,6 @@ export default function SharedMatch() {
     );
   }
 
-  const isBasketball = match.sport === 'basketball';
-  const sport = match.sport ?? 'volleyball';
-  const sportIcon = sport === 'basketball' ? '🏀' : sport === 'tennis' ? '🎾' : sport === 'padel' ? '🏓' : '🏐';
   const allPoints = [...match.completedSets.flatMap(s => s.points), ...match.points];
   const blueScored = allPoints.filter(p => p.team === 'blue' && p.type === 'scored').length;
   const redScored = allPoints.filter(p => p.team === 'red' && p.type === 'scored').length;
@@ -61,15 +55,10 @@ export default function SharedMatch() {
     red: match.completedSets.filter(s => s.winner === 'red').length,
   };
 
-  const score = isBasketball
-    ? {
-        blue: match.points.filter(p => p.team === 'blue' && p.type === 'scored').reduce((s, p) => s + (p.pointValue ?? 0), 0),
-        red: match.points.filter(p => p.team === 'red' && p.type === 'scored').reduce((s, p) => s + (p.pointValue ?? 0), 0),
-      }
-    : {
-        blue: match.points.filter(p => p.team === 'blue').length,
-        red: match.points.filter(p => p.team === 'red').length,
-      };
+  const score = {
+    blue: match.points.filter(p => p.team === 'blue').length,
+    red: match.points.filter(p => p.team === 'red').length,
+  };
 
   const stats = {
     blue: { scored: blueScored, faults: allPoints.filter(p => p.team === 'blue' && p.type === 'fault').length },
@@ -84,7 +73,7 @@ export default function SharedMatch() {
           <ArrowLeft size={18} />
         </Link>
         <h1 className="text-lg font-black text-foreground tracking-tight text-center flex-1 mx-2">
-          {sportIcon} {match.teamNames.blue} vs {match.teamNames.red}
+          🏐 {match.teamNames.blue} vs {match.teamNames.red}
         </h1>
         <div className="flex items-center gap-2">
           <button
@@ -145,18 +134,10 @@ export default function SharedMatch() {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                {match.finished ? t('shared.matchFinished') : t('shared.setInProgress', { period: isBasketball ? 'QT' : 'Set', number: match.currentSetNumber })}
+                {match.finished ? t('shared.matchFinished') : t('shared.setInProgress', { period: 'Set', number: match.currentSetNumber })}
               </p>
             </div>
-            {sport === 'basketball' ? (
-              <BasketballCourt points={match.points} selectedTeam={null} selectedAction="attack" selectedPointType="scored" sidesSwapped={match.sidesSwapped} teamNames={match.teamNames} onCourtClick={() => {}} />
-            ) : sport === 'tennis' ? (
-              <TennisCourt points={match.points} selectedTeam={null} selectedAction="attack" selectedPointType="scored" sidesSwapped={match.sidesSwapped} teamNames={match.teamNames} onCourtClick={() => {}} />
-            ) : sport === 'padel' ? (
-              <PadelCourt points={match.points} selectedTeam={null} selectedAction="attack" selectedPointType="scored" sidesSwapped={match.sidesSwapped} teamNames={match.teamNames} onCourtClick={() => {}} />
-            ) : (
-              <VolleyballCourt points={match.points} selectedTeam={null} selectedAction="attack" selectedPointType="scored" sidesSwapped={match.sidesSwapped} teamNames={match.teamNames} onCourtClick={() => {}} />
-            )}
+            <VolleyballCourt points={match.points} selectedTeam={null} selectedAction="attack" selectedPointType="scored" sidesSwapped={match.sidesSwapped} teamNames={match.teamNames} onCourtClick={() => {}} />
           </div>
         ) : (
           <HeatmapView

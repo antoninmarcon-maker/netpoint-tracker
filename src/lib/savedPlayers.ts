@@ -16,9 +16,6 @@ export interface SavedPlayer {
 
 const DEFAULT_JERSEY_CONFIG: Record<SportType, boolean> = {
   volleyball: true,
-  basketball: true,
-  tennis: false,
-  padel: false,
 };
 
 export function getJerseyConfig(): Record<SportType, boolean> {
@@ -35,7 +32,6 @@ export function setJerseyEnabled(sport: SportType, enabled: boolean): Record<Spo
   const config = getJerseyConfig();
   config[sport] = enabled;
   localStorage.setItem(JERSEY_CONFIG_KEY, JSON.stringify(config));
-  // Fire-and-forget cloud sync
   getCurrentUserId().then(uid => {
     if (uid) patchCloudSettings(uid, { jerseyConfig: config }).catch(() => {});
   });
@@ -57,7 +53,6 @@ function saveLocalSavedPlayers(players: SavedPlayer[]) {
   try {
     const raw = localStorage.getItem(SAVED_PLAYERS_KEY);
     const existing: SavedPlayer[] = raw ? JSON.parse(raw) : [];
-    // Keep other sports, replace current sport
     const sport = players[0]?.sport;
     const others = sport ? existing.filter(p => p.sport !== sport) : existing;
     localStorage.setItem(SAVED_PLAYERS_KEY, JSON.stringify([...others, ...players]));
@@ -153,7 +148,6 @@ export async function addSavedPlayer(name: string, sport: SportType, userId?: st
     const existing = getLocalSavedPlayers(sport);
     saveLocalSavedPlayers([...existing, player]);
   }
-  // Save number in local jersey map
   if (number) savePlayerNumber(player.id, number);
   return player;
 }
@@ -170,7 +164,6 @@ export async function updateSavedPlayerName(id: string, newName: string, sport: 
 
 export async function updateSavedPlayerNumber(id: string, number: string, userId?: string | null) {
   savePlayerNumber(id, number);
-  // Also persist to cloud
   if (userId) {
     await supabase.from('saved_players').update({ jersey_number: number.trim() || null } as any).eq('id', id);
   }
