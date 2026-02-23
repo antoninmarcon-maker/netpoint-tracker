@@ -76,9 +76,9 @@
     "techNote": "Développé avec ❤️ dans le Sud-Ouest",
     "ecosystemTitle": "🌐 Découvrez notre écosystème",
     "comingSoon": "Bientôt disponible",
-    "basketDesc": "Scouting avancé et Shot Charts interactives.",
-    "tennisDesc": "Suivi des points par rallye et heatmaps d'impact.",
-    "padelDesc": "Gestion du Punto de Oro et analyses de positionnement."
+    "basketDesc": "Scouting complet, feuilles de match et statistiques d'équipe en direct.",
+    "tennisDesc": "Suivi ultra-précis par set, dynamique de match et zones de rebond.",
+    "padelDesc": "Scouting 100% Padel : Cartographie des points, fautes et analyse des paires."
   },
   "auth": {
     "login": "Connexion",
