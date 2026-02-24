@@ -12,6 +12,13 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   DropdownMenuSeparator, DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useTranslation } from 'react-i18next';
 
 interface HeatmapViewProps {
@@ -307,6 +314,21 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
   }, [getScoreText, copyScoreText]);
 
   const [generatingLink, setGeneratingLink] = useState(false);
+  const [shareLinkUrl, setShareLinkUrl] = useState('');
+  const [shareLinkDialogOpen, setShareLinkDialogOpen] = useState(false);
+
+  const copyGeneratedLink = useCallback(async () => {
+    if (!shareLinkUrl) return;
+
+    try {
+      await navigator.clipboard.writeText(shareLinkUrl);
+      toast.success(t('heatmap.linkCopied'));
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Clipboard copy failed:', error);
+      toast.error(t('heatmap.linkCopyError'));
+    }
+  }, [shareLinkUrl, t]);
+
   const shareMatchLink = useCallback(async () => {
     if (!matchId || !isLoggedIn) {
       toast.error(t('heatmap.loginForLink'));
@@ -323,23 +345,8 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
 
       const baseUrl = 'https://my-volley.lovable.app';
       const url = `${baseUrl}/shared/${token}`;
-
-      if (navigator.share) {
-        try {
-          await navigator.share({ title: 'My Volley — Stats du match', url });
-          return;
-        } catch (error) {
-          if (import.meta.env.DEV) console.warn('Native share failed, fallback to clipboard:', error);
-        }
-      }
-
-      try {
-        await navigator.clipboard.writeText(url);
-        toast.success(t('heatmap.linkCopied'));
-      } catch (error) {
-        if (import.meta.env.DEV) console.error('Clipboard copy failed:', error);
-        window.open(url, '_blank', 'noopener,noreferrer');
-      }
+      setShareLinkUrl(url);
+      setShareLinkDialogOpen(true);
     } finally {
       setGeneratingLink(false);
     }
@@ -626,7 +633,41 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         </DropdownMenu>
       </div>
 
-      
+      <Dialog open={shareLinkDialogOpen} onOpenChange={setShareLinkDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('heatmap.linkReadyTitle')}</DialogTitle>
+            <DialogDescription>{t('heatmap.linkReadyDescription')}</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <input
+              readOnly
+              value={shareLinkUrl}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
+            />
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={copyGeneratedLink}
+                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                {t('heatmap.copyLink')}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!shareLinkUrl) return;
+                  window.open(shareLinkUrl, '_blank', 'noopener,noreferrer');
+                }}
+                className="inline-flex items-center justify-center rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
+              >
+                {t('heatmap.openSharedPage')}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
