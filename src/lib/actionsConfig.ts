@@ -68,9 +68,9 @@ export function addCustomAction(
   const config = getConfig();
   config.customActions.push({
     id: crypto.randomUUID(), label: label.trim(), sport, category,
-    ...(category === 'neutral' && sigil ? { sigil: sigil.slice(0, 2).toUpperCase() } : {}),
-    ...(category === 'neutral' ? { showOnCourt: showOnCourt ?? false } : {}),
-    ...(category === 'neutral' ? { assignToPlayer: assignToPlayer ?? true } : {}),
+    ...(sigil ? { sigil: sigil.slice(0, 2).toUpperCase() } : {}),
+    showOnCourt: showOnCourt ?? (category === 'neutral' ? false : true),
+    assignToPlayer: assignToPlayer ?? true,
   });
   saveConfig(config);
   return config;
@@ -81,11 +81,9 @@ export function updateCustomAction(id: string, newLabel: string, points?: number
   const action = config.customActions.find(a => a.id === id);
   if (action) {
     action.label = newLabel.trim();
-    if (action.category === 'neutral') {
-      if (sigil !== undefined) action.sigil = sigil.slice(0, 2).toUpperCase();
-      if (showOnCourt !== undefined) action.showOnCourt = showOnCourt;
-      if (assignToPlayer !== undefined) action.assignToPlayer = assignToPlayer;
-    }
+    if (sigil !== undefined) action.sigil = sigil.slice(0, 2).toUpperCase();
+    if (showOnCourt !== undefined) action.showOnCourt = showOnCourt;
+    if (assignToPlayer !== undefined) action.assignToPlayer = assignToPlayer;
   }
   saveConfig(config);
   return config;

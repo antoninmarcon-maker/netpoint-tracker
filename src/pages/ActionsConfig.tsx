@@ -33,11 +33,9 @@ export default function ActionsConfig() {
 
   const handleAdd = useCallback(() => {
     if (!newLabel.trim() || !addingCategory) return;
-    const sigil = addingCategory === 'neutral' ? newSigil : undefined;
-    const showOnCourt = addingCategory === 'neutral' ? newShowOnCourt : undefined;
-    const assignToPlayer = addingCategory === 'neutral' ? newAssignToPlayer : undefined;
-    setConfig(addCustomAction(newLabel, sport, addingCategory, undefined, sigil, showOnCourt, assignToPlayer));
-    setNewLabel(''); setNewSigil(''); setNewShowOnCourt(false); setNewAssignToPlayer(true); setAddingCategory(null);
+    const sigil = newSigil || undefined;
+    setConfig(addCustomAction(newLabel, sport, addingCategory, undefined, sigil, newShowOnCourt, newAssignToPlayer));
+    setNewLabel(''); setNewSigil(''); setNewShowOnCourt(true); setNewAssignToPlayer(true); setAddingCategory(null);
   }, [newLabel, addingCategory, newSigil, newShowOnCourt, newAssignToPlayer]);
 
   const handleUpdate = useCallback((id: string) => {
@@ -52,14 +50,13 @@ export default function ActionsConfig() {
     const defaultActions = category === 'scored' ? getScoredActionsForSport(sport) : category === 'fault' ? getFaultActionsForSport(sport) : getNeutralActionsForSport(sport);
     const customs = config.customActions.filter(c => c.sport === sport && c.category === category);
     const categoryLabel = category === 'scored' ? t('actionsConfig.scored') : category === 'fault' ? t('actionsConfig.faults') : t('actionsConfig.neutral');
-    const isNeutral = category === 'neutral';
 
     return (
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-foreground">{categoryLabel}</h3>
-          <button onClick={() => { setAddingCategory(category); setNewLabel(''); setNewSigil(''); setNewShowOnCourt(false); setNewAssignToPlayer(true); }}
-            className={`flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium ${isNeutral && customs.length === 0 ? 'animate-pulse' : ''}`}>
+          <button onClick={() => { setAddingCategory(category); setNewLabel(''); setNewSigil(''); setNewShowOnCourt(category !== 'neutral'); setNewAssignToPlayer(true); }}
+            className={`flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium ${category === 'neutral' && customs.length === 0 ? 'animate-pulse' : ''}`}>
             <Plus size={14} /> {t('actionsConfig.addAction')}
           </button>
         </div>
@@ -83,13 +80,11 @@ export default function ActionsConfig() {
               {editingId === c.id ? (
                 <div className="flex items-center gap-2 flex-1 flex-wrap">
                   <Input value={editLabel} onChange={e => setEditLabel(e.target.value)} className="h-8 text-sm flex-1 min-w-[100px]" onKeyDown={e => e.key === 'Enter' && handleUpdate(c.id)} autoFocus />
-                  {isNeutral && (
-                    <>
-                      <div className="flex items-center gap-1.5"><Switch checked={editShowOnCourt} onCheckedChange={setEditShowOnCourt} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.showOnCourt')}</Label></div>
-                      <div className="flex items-center gap-1.5"><Switch checked={editAssignToPlayer} onCheckedChange={setEditAssignToPlayer} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.assignToPlayer')}</Label></div>
-                      {editShowOnCourt && (<div className="flex items-center gap-1.5"><Input value={editSigil} onChange={e => setEditSigil(e.target.value.slice(0, 2).toUpperCase())} placeholder={t('actionsConfig.sigilPlaceholder')} className="h-8 text-sm w-14" /><span className="text-[10px] text-muted-foreground">{t('actionsConfig.sigilHelp')}</span></div>)}
-                    </>
-                  )}
+                  <>
+                    <div className="flex items-center gap-1.5"><Switch checked={editShowOnCourt} onCheckedChange={setEditShowOnCourt} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.showOnCourt')}</Label></div>
+                    <div className="flex items-center gap-1.5"><Switch checked={editAssignToPlayer} onCheckedChange={setEditAssignToPlayer} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.assignToPlayer')}</Label></div>
+                    {editShowOnCourt && category === 'neutral' && (<div className="flex items-center gap-1.5"><Input value={editSigil} onChange={e => setEditSigil(e.target.value.slice(0, 2).toUpperCase())} placeholder={t('actionsConfig.sigilPlaceholder')} className="h-8 text-sm w-14" /><span className="text-[10px] text-muted-foreground">{t('actionsConfig.sigilHelp')}</span></div>)}
+                  </>
                   <button onClick={() => handleUpdate(c.id)} className="p-1 text-primary"><Check size={16} /></button>
                   <button onClick={() => setEditingId(null)} className="p-1 text-muted-foreground"><X size={16} /></button>
                 </div>
@@ -97,8 +92,9 @@ export default function ActionsConfig() {
                 <>
                   <span className="text-sm font-medium text-foreground">
                     {c.label}
-                    {isNeutral && c.sigil && <span className="ml-1.5 inline-flex items-center justify-center w-6 h-5 rounded bg-muted text-muted-foreground text-[10px] font-bold">{c.sigil}</span>}
-                    {isNeutral && c.showOnCourt && <span className="ml-1 text-[10px] text-muted-foreground">📍</span>}
+                    {c.sigil && <span className="ml-1.5 inline-flex items-center justify-center w-6 h-5 rounded bg-muted text-muted-foreground text-[10px] font-bold">{c.sigil}</span>}
+                    {c.showOnCourt && <span className="ml-1 text-[10px] text-muted-foreground">📍</span>}
+                    {c.assignToPlayer === false && <span className="ml-1 text-[10px] text-muted-foreground">👤✗</span>}
                   </span>
                   <div className="flex items-center gap-1">
                     <button onClick={() => handleToggle(c.id)} className="p-1.5 rounded-md hover:bg-secondary transition-colors">{isHidden ? <EyeOff size={14} className="text-muted-foreground" /> : <Eye size={14} className="text-foreground" />}</button>
@@ -118,13 +114,11 @@ export default function ActionsConfig() {
               <button onClick={handleAdd} disabled={!newLabel.trim()} className="p-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50"><Check size={16} /></button>
               <button onClick={() => setAddingCategory(null)} className="p-1 text-muted-foreground"><X size={16} /></button>
             </div>
-            {isNeutral && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-1.5"><Switch checked={newShowOnCourt} onCheckedChange={setNewShowOnCourt} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.showOnCourt')}</Label></div>
-                <div className="flex items-center gap-1.5"><Switch checked={newAssignToPlayer} onCheckedChange={setNewAssignToPlayer} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.assignToPlayer')}</Label></div>
-                {newShowOnCourt && (<div className="flex items-center gap-1.5"><Input value={newSigil} onChange={e => setNewSigil(e.target.value.slice(0, 2).toUpperCase())} placeholder={t('actionsConfig.sigilPlaceholder')} className="h-8 text-sm w-14" /><span className="text-[10px] text-muted-foreground">{t('actionsConfig.sigilHelp')}</span></div>)}
-              </div>
-            )}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5"><Switch checked={newShowOnCourt} onCheckedChange={setNewShowOnCourt} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.showOnCourt')}</Label></div>
+              <div className="flex items-center gap-1.5"><Switch checked={newAssignToPlayer} onCheckedChange={setNewAssignToPlayer} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.assignToPlayer')}</Label></div>
+              {newShowOnCourt && category === 'neutral' && (<div className="flex items-center gap-1.5"><Input value={newSigil} onChange={e => setNewSigil(e.target.value.slice(0, 2).toUpperCase())} placeholder={t('actionsConfig.sigilPlaceholder')} className="h-8 text-sm w-14" /><span className="text-[10px] text-muted-foreground">{t('actionsConfig.sigilHelp')}</span></div>)}
+            </div>
           </div>
         )}
       </div>
