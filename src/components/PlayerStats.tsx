@@ -2,32 +2,38 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Point, Player, SportType, OFFENSIVE_ACTIONS, FAULT_ACTIONS } from '@/types/sports';
 import { useTranslation } from 'react-i18next';
+import { getMatch } from '@/lib/matchStorage';
 
 interface PlayerStatsProps {
   points: Point[];
   players: Player[];
   teamName: string;
   sport?: SportType;
+  matchId?: string;
 }
 
-export function PlayerStats({ points, players, teamName }: PlayerStatsProps) {
+export function PlayerStats({ points, players, teamName, matchId }: PlayerStatsProps) {
   const { t } = useTranslation();
   const [expandedPlayers, setExpandedPlayers] = useState<Record<string, boolean>>({});
   const [expandedSections, setExpandedSections] = useState<Record<string, { scored?: boolean; faults?: boolean; neutral?: boolean }>>({});
   const [sectionOpen, setSectionOpen] = useState(true);
 
   // Merge current roster with "ghost" players found in points but missing from roster
+  // Recover real names from the stored match data
   const allPlayers = useMemo(() => {
+    const storedMatch = matchId ? getMatch(matchId) : null;
+    const storedPlayers = storedMatch?.players ?? [];
     const knownIds = new Set(players.map(p => p.id));
     const ghostPlayers: Player[] = [];
     points.forEach(p => {
       if (p.playerId && !knownIds.has(p.playerId)) {
         knownIds.add(p.playerId);
-        ghostPlayers.push({ id: p.playerId, name: `#${p.playerId.slice(0, 4)}` });
+        const stored = storedPlayers.find(sp => sp.id === p.playerId);
+        ghostPlayers.push({ id: p.playerId, name: stored?.name ?? `#${p.playerId.slice(0, 4)}`, number: stored?.number });
       }
     });
     return [...players, ...ghostPlayers];
-  }, [players, points]);
+  }, [players, points, matchId]);
 
   const stats = useMemo(() => {
     return allPlayers.map(player => {

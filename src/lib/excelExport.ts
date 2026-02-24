@@ -7,13 +7,14 @@ function formatDuration(seconds: number): string {
   return `${m}min ${s.toString().padStart(2, '0')}s`;
 }
 
-function mergeGhostPlayers(pts: Point[], players: Player[]): Player[] {
+function mergeGhostPlayers(pts: Point[], players: Player[], storedPlayers: Player[] = []): Player[] {
   const knownIds = new Set(players.map(p => p.id));
   const ghosts: Player[] = [];
   pts.forEach(p => {
     if (p.playerId && !knownIds.has(p.playerId)) {
       knownIds.add(p.playerId);
-      ghosts.push({ id: p.playerId, name: `#${p.playerId.slice(0, 4)}` });
+      const stored = storedPlayers.find(sp => sp.id === p.playerId);
+      ghosts.push({ id: p.playerId, name: stored?.name ?? `#${p.playerId.slice(0, 4)}`, number: stored?.number });
     }
   });
   return [...players, ...ghosts];

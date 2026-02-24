@@ -75,7 +75,7 @@ export function ScoreBoard({
     if (!menuTeam) return;
     const type: PointType = menuTab;
 
-    const placeOnCourt = type === 'neutral' ? (showOnCourt ?? false) : true;
+    const placeOnCourt = showOnCourt ?? (type === 'neutral' ? false : true);
     (window as any).__pendingPlaceOnCourt = placeOnCourt;
     (window as any).__pendingCustomAssignToPlayer = assignToPlayer ?? true;
 
