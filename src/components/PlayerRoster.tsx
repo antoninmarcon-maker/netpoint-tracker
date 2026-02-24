@@ -24,7 +24,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editNumber, setEditNumber] = useState('');
-  const [savedPlayers, setSavedPlayers] = useState<{ id: string; name: string }[]>([]);
+  const [savedPlayers, setSavedPlayers] = useState<{ id: string; name: string; number?: string }[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const numberRef = useRef<HTMLInputElement>(null);
@@ -90,14 +90,18 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
 
   const addPlayer = () => {
     if (!newName.trim()) return;
+    // Check if this player name exists in saved pool to recover their jersey number
+    const savedMatch = savedPlayers.find(sp => sp.name.toLowerCase() === newName.trim().toLowerCase());
+    const savedNum = savedMatch ? getPlayerNumber(savedMatch.id) : undefined;
+    const numberToUse = newNumber.trim() || savedNum || '';
     const player: Player = {
       id: crypto.randomUUID(),
       name: newName.trim(),
-      ...(jerseyEnabled && newNumber.trim() ? { number: newNumber.trim() } : {}),
+      ...(jerseyEnabled && numberToUse ? { number: numberToUse } : {}),
     };
     // Save number to localStorage
-    if (jerseyEnabled && newNumber.trim()) {
-      updateSavedPlayerNumber(player.id, newNumber.trim(), userId);
+    if (jerseyEnabled && numberToUse) {
+      updateSavedPlayerNumber(player.id, numberToUse, userId);
     }
     onSetPlayers([...players, player]);
     setNewName('');
@@ -112,9 +116,9 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
     }, 0);
   };
 
-  const selectSuggestion = (sp: { id: string; name: string }) => {
+  const selectSuggestion = (sp: { id: string; name: string; number?: string }) => {
     setShowSuggestions(false);
-    const savedNum = getPlayerNumber(sp.id);
+    const savedNum = getPlayerNumber(sp.id) || sp.number;
     const player: Player = {
       id: crypto.randomUUID(),
       name: sp.name,
@@ -141,7 +145,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
     );
     if (toAdd.length === 0) return;
     const newPlayers = toAdd.map(sp => {
-      const savedNum = getPlayerNumber(sp.id);
+      const savedNum = getPlayerNumber(sp.id) || sp.number;
       const player: Player = {
         id: crypto.randomUUID(),
         name: sp.name,
@@ -169,6 +173,11 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
     if (!editingId || !editName.trim()) return;
     if (jerseyEnabled) {
       updateSavedPlayerNumber(editingId, editNumber.trim(), userId);
+      // Also sync number back to the saved player pool by name
+      const savedMatch = savedPlayers.find(sp => sp.name.toLowerCase() === editName.trim().toLowerCase());
+      if (savedMatch) {
+        updateSavedPlayerNumber(savedMatch.id, editNumber.trim(), userId);
+      }
     }
     onSetPlayers(players.map(p => p.id === editingId ? {
       ...p,
