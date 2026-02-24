@@ -604,7 +604,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
             {matchId && isLoggedIn && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={shareMatchLink} disabled={generatingLink} className="cursor-pointer">
+                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); shareMatchLink(); }} disabled={generatingLink} className="cursor-pointer">
                   <LinkIcon size={14} className="mr-2" />
                   {generatingLink ? t('heatmap.generatingLink') : t('heatmap.shareLink')}
                 </DropdownMenuItem>
