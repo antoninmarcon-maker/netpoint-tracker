@@ -235,9 +235,13 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     resetChrono();
   }, [resetChrono]);
 
-  // Auto-save
+  // Auto-save — preserve ghost players (removed from roster but still referenced in points)
   useEffect(() => {
     if (!loaded) return;
+    const knownIds = new Set(players.map(p => p.id));
+    const previousPlayers: Player[] = loaded.players ?? [];
+    const ghostPlayers = previousPlayers.filter(p => !knownIds.has(p.id) && allPoints.some(pt => pt.playerId === p.id));
+    const mergedPlayers = [...players, ...ghostPlayers];
     saveMatch({
       ...loaded,
       completedSets,
@@ -246,11 +250,11 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       teamNames,
       sidesSwapped,
       chronoSeconds,
-      players,
+      players: mergedPlayers,
       updatedAt: Date.now(),
     });
     saveLastRoster(players);
-  }, [completedSets, currentSetNumber, points, teamNames, sidesSwapped, chronoSeconds, players, loaded]);
+  }, [completedSets, currentSetNumber, points, teamNames, sidesSwapped, chronoSeconds, players, loaded, allPoints]);
 
   return {
     points,
