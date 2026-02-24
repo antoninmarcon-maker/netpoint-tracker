@@ -74,12 +74,14 @@ function mergeLocalPlayers(sport: SportType, matchPlayers: Player[]) {
 
 // ---- CLOUD ----
 
-async function getCloudSavedPlayers(sport: SportType): Promise<SavedPlayer[]> {
-  const { data, error } = await supabase
+async function getCloudSavedPlayers(sport: SportType, userId?: string): Promise<SavedPlayer[]> {
+  let query = supabase
     .from('saved_players')
     .select('*')
     .eq('sport', sport)
     .order('name');
+  if (userId) query = query.eq('user_id', userId);
+  const { data, error } = await query;
   if (error || !data) return [];
   return data.map((r: any) => ({
     id: r.id,
@@ -112,7 +114,7 @@ async function deleteCloudSavedPlayer(id: string) {
 
 export async function getSavedPlayers(sport: SportType, userId?: string | null): Promise<SavedPlayer[]> {
   if (userId) {
-    return getCloudSavedPlayers(sport);
+    return getCloudSavedPlayers(sport, userId);
   }
   return getLocalSavedPlayers(sport);
 }

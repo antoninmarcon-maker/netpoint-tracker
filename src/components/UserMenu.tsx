@@ -24,6 +24,13 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    // Purge all local data to prevent data bleed to the next user
+    localStorage.removeItem('volley-tracker-matches');
+    localStorage.removeItem('volley-tracker-active-match-id');
+    localStorage.removeItem('volley-tracker-last-roster');
+    localStorage.removeItem('volley-tracker-saved-players');
+    localStorage.removeItem('myvolley-player-numbers');
+    localStorage.removeItem('myvolley-jersey-config');
     setShowMenu(false);
     window.location.reload();
   };

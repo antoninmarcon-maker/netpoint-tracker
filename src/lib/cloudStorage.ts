@@ -2,10 +2,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { MatchSummary, SetData, Point, Player } from '@/types/sports';
 import { getAllMatches as getLocalMatches } from './matchStorage';
 
-// Helper: check if user has an active session
-async function hasSession(): Promise<boolean> {
+// Helper: get current session user id, or null
+async function getSessionUserId(): Promise<string | null> {
   const { data: { session } } = await supabase.auth.getSession();
-  return !!session;
+  return session?.user?.id ?? null;
 }
 
 // Sync local matches to cloud on first login
@@ -28,12 +28,14 @@ export async function syncLocalMatchesToCloud(userId: string) {
   localStorage.removeItem('volley-tracker-matches');
 }
 
-// Get all matches from cloud — read from match_data JSON (always available)
+// Get all matches from cloud — strictly filtered by current user
 export async function getCloudMatches(): Promise<MatchSummary[]> {
-  if (!(await hasSession())) return [];
+  const userId = await getSessionUserId();
+  if (!userId) return [];
   const { data, error } = await supabase
     .from('matches')
     .select('*')
+    .eq('user_id', userId)
     .order('updated_at', { ascending: false });
 
   if (error || !data) return [];
@@ -42,7 +44,7 @@ export async function getCloudMatches(): Promise<MatchSummary[]> {
 
 // Save match to cloud — writes to both match_data AND normalized tables
 export async function saveCloudMatch(userId: string, match: MatchSummary) {
-  if (!(await hasSession())) return;
+  if (!(await getSessionUserId())) return;
 
   // 1. Upsert the match row (including match_data for backward compat reads)
   const { error: matchError } = await supabase.from('matches').upsert({
@@ -58,7 +60,7 @@ export async function saveCloudMatch(userId: string, match: MatchSummary) {
 
 // Delete match from cloud
 export async function deleteCloudMatch(matchId: string) {
-  if (!(await hasSession())) throw new Error('No session');
+  if (!(await getSessionUserId())) throw new Error('No session');
   
   // CASCADE handles children, but delete match directly
   const { error, count } = await supabase
@@ -111,14 +113,16 @@ export async function getMatchByShareToken(token: string): Promise<MatchSummary 
   return data.match_data as unknown as MatchSummary;
 }
 
-// Fetch a single match from cloud by ID
+// Fetch a single match from cloud by ID — strictly filtered by current user
 export async function getCloudMatchById(matchId: string): Promise<MatchSummary | null> {
-  if (!(await hasSession())) return null;
+  const userId = await getSessionUserId();
+  if (!userId) return null;
 
   const { data } = await supabase
     .from('matches')
     .select('match_data')
     .eq('id', matchId)
+    .eq('user_id', userId)
     .maybeSingle();
 
   if (!data?.match_data) return null;
