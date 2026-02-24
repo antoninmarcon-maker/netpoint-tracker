@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Point, Player, SportType, OFFENSIVE_ACTIONS, FAULT_ACTIONS } from '@/types/sports';
 import { useTranslation } from 'react-i18next';
 import { getMatch } from '@/lib/matchStorage';
+import { getPlayerNumber } from '@/lib/savedPlayers';
 
 interface PlayerStatsProps {
   points: Point[];
@@ -19,19 +20,37 @@ export function PlayerStats({ points, players, teamName, matchId }: PlayerStatsP
   const [sectionOpen, setSectionOpen] = useState(true);
 
   // Merge current roster with "ghost" players found in points but missing from roster
-  // Recover real names from the stored match data
+  // Recover names from persisted aliases and jersey-based fallback
   const allPlayers = useMemo(() => {
     const storedMatch = matchId ? getMatch(matchId) : null;
     const storedPlayers = storedMatch?.players ?? [];
+    const aliasById = storedMatch?.metadata?.playerAliases ?? {};
     const knownIds = new Set(players.map(p => p.id));
-    const ghostPlayers: Player[] = [];
-    points.forEach(p => {
-      if (p.playerId && !knownIds.has(p.playerId)) {
-        knownIds.add(p.playerId);
-        const stored = storedPlayers.find(sp => sp.id === p.playerId);
-        ghostPlayers.push({ id: p.playerId, name: stored?.name ?? `#${p.playerId.slice(0, 4)}`, number: stored?.number });
-      }
+    const knownNameByNumber = new Map<string, string>();
+
+    [...players, ...storedPlayers].forEach((player) => {
+      const number = player.number || getPlayerNumber(player.id);
+      if (number && player.name) knownNameByNumber.set(number, player.name);
     });
+
+    const ghostPlayers: Player[] = [];
+
+    points.forEach((p) => {
+      if (!p.playerId || knownIds.has(p.playerId)) return;
+      knownIds.add(p.playerId);
+
+      const stored = storedPlayers.find(sp => sp.id === p.playerId);
+      const jersey = stored?.number || getPlayerNumber(p.playerId);
+      const nameFromNumber = jersey ? knownNameByNumber.get(jersey) : undefined;
+      const resolvedName = stored?.name || aliasById[p.playerId] || nameFromNumber || `#${p.playerId.slice(0, 4)}`;
+
+      ghostPlayers.push({
+        id: p.playerId,
+        name: resolvedName,
+        ...(jersey ? { number: jersey } : {}),
+      });
+    });
+
     return [...players, ...ghostPlayers];
   }, [players, points, matchId]);
 

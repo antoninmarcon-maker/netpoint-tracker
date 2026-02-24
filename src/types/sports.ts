@@ -94,6 +94,8 @@ export interface SetData {
 export interface MatchMetadata {
   /** Whether the interactive court is enabled (default: true) */
   hasCourt?: boolean;
+  /** Snapshot map to keep historical player names even after roster edits */
+  playerAliases?: Record<string, string>;
 }
 
 export interface MatchState {

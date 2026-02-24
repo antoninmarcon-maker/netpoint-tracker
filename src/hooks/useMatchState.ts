@@ -19,6 +19,15 @@ export function useMatchState(matchId: string, ready: boolean = true) {
   const [teamNames, setTeamNames] = useState(loaded?.teamNames ?? { blue: 'Bleue', red: 'Rouge' });
   const [sidesSwapped, setSidesSwapped] = useState(loaded?.sidesSwapped ?? false);
   const [players, setPlayers] = useState<Player[]>(loaded?.players ?? []);
+  const [playerAliases, setPlayerAliases] = useState<Record<string, string>>(() => {
+    const metadataAliases = loaded?.metadata?.playerAliases ?? {};
+    const rosterAliases = Object.fromEntries(
+      (loaded?.players ?? [])
+        .filter((p) => p.name?.trim())
+        .map((p) => [p.id, p.name])
+    );
+    return { ...metadataAliases, ...rosterAliases };
+  });
   const [pendingPoint, setPendingPoint] = useState<Omit<Point, 'playerId'> | null>(null);
   const sport: SportType = 'volleyball';
 
@@ -40,9 +49,31 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     setPoints(match.points ?? []);
     setTeamNames(match.teamNames ?? { blue: 'Bleue', red: 'Rouge' });
     setSidesSwapped(swapped);
-    setPlayers(match.players ?? []);
+    const hydratedPlayers = match.players ?? [];
+    setPlayers(hydratedPlayers);
+    const hydratedAliases = match.metadata?.playerAliases ?? {};
+    const rosterAliases = Object.fromEntries(
+      hydratedPlayers
+        .filter((p) => p.name?.trim())
+        .map((p) => [p.id, p.name])
+    );
+    setPlayerAliases({ ...hydratedAliases, ...rosterAliases });
     setChronoSeconds(match.chronoSeconds ?? 0);
   }, [ready, matchId]);
+
+  useEffect(() => {
+    setPlayerAliases((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      players.forEach((player) => {
+        if (player.name?.trim() && next[player.id] !== player.name) {
+          next[player.id] = player.name;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [players]);
 
   // Chrono
   const [chronoRunning, setChronoRunning] = useState(false);
@@ -117,9 +148,15 @@ export function useMatchState(matchId: string, ready: boolean = true) {
 
   const assignPlayer = useCallback((playerId: string) => {
     if (!pendingPoint) return;
+    const playerName = players.find((player) => player.id === playerId)?.name;
+    if (playerName) {
+      setPlayerAliases((prev) => (
+        prev[playerId] === playerName ? prev : { ...prev, [playerId]: playerName }
+      ));
+    }
     setPoints(prev => [...prev, { ...pendingPoint, playerId }]);
     setPendingPoint(null);
-  }, [pendingPoint]);
+  }, [pendingPoint, players]);
 
   const skipPlayerAssignment = useCallback(() => {
     if (!pendingPoint) return;
@@ -242,6 +279,11 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     const previousPlayers: Player[] = loaded.players ?? [];
     const ghostPlayers = previousPlayers.filter(p => !knownIds.has(p.id) && allPoints.some(pt => pt.playerId === p.id));
     const mergedPlayers = [...players, ...ghostPlayers];
+    const mergedMetadata: MatchMetadata = {
+      ...(loaded.metadata ?? {}),
+      playerAliases,
+    };
+
     saveMatch({
       ...loaded,
       completedSets,
@@ -251,10 +293,11 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       sidesSwapped,
       chronoSeconds,
       players: mergedPlayers,
+      metadata: mergedMetadata,
       updatedAt: Date.now(),
     });
     saveLastRoster(players);
-  }, [completedSets, currentSetNumber, points, teamNames, sidesSwapped, chronoSeconds, players, loaded, allPoints]);
+  }, [completedSets, currentSetNumber, points, teamNames, sidesSwapped, chronoSeconds, players, loaded, allPoints, playerAliases]);
 
   return {
     points,
