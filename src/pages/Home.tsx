@@ -67,6 +67,7 @@ export default function Home() {
   const [showNew, setShowNew] = useState(false);
   const [names, setNames] = useState({ blue: '', red: '' });
   const [hasCourt, setHasCourt] = useState(true);
+  const [isPerformanceMode, setIsPerformanceMode] = useState(false);
   
   const [finishingId, setFinishingId] = useState<string | null>(null);
   const [showSavedPlayers, setShowSavedPlayers] = useState(false);
@@ -192,7 +193,7 @@ export default function Home() {
     const blueName = names.blue.trim() || t('scoreboard.blue');
     const redName = names.red.trim() || t('scoreboard.red');
     
-    const metadata = { hasCourt };
+    const metadata = { hasCourt, isPerformanceMode };
     const match = createNewMatch({ blue: blueName, red: redName }, 'volleyball', metadata);
     
     saveMatch(match);
@@ -464,6 +465,13 @@ export default function Home() {
                 <div className="flex-1">
                   <Label htmlFor="court-mode" className="text-sm font-semibold cursor-pointer">{t('home.interactiveCourt')}</Label>
                   <p className="text-[10px] text-muted-foreground">{t('home.interactiveCourtHint')}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 bg-secondary/30 p-3 rounded-xl border border-border">
+                <Switch id="performance-mode" checked={isPerformanceMode} onCheckedChange={setIsPerformanceMode} />
+                <div className="flex-1">
+                  <Label htmlFor="performance-mode" className="text-sm font-semibold cursor-pointer">{t('home.performanceMode')}</Label>
+                  <p className="text-[10px] text-muted-foreground">{t('home.performanceModeHint')}</p>
                 </div>
               </div>
               <div className="flex gap-2">

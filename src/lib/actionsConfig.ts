@@ -12,6 +12,8 @@ export interface CustomAction {
   sigil?: string;
   showOnCourt?: boolean;
   assignToPlayer?: boolean;
+  /** Whether this action requires a direction (2-click: origin + destination) */
+  hasDirection?: boolean;
 }
 
 export interface ActionsConfig {
@@ -110,7 +112,7 @@ export function getCustomActionRealKey(customAction: CustomAction): ActionType {
 export function getVisibleActions(
   sport: SportType, category: PointType,
   defaultActions: { key: string; label: string; points?: number }[]
-): { key: string; label: string; points?: number; customId?: string; sigil?: string; showOnCourt?: boolean }[] {
+): { key: string; label: string; points?: number; customId?: string; sigil?: string; showOnCourt?: boolean; hasDirection?: boolean }[] {
   const config = getConfig();
   const visible = defaultActions.filter(a => !config.hiddenActions.includes(a.key));
   const customs = config.customActions
@@ -120,6 +122,7 @@ export function getVisibleActions(
       ...(c.sigil ? { sigil: c.sigil } : {}),
       ...(c.showOnCourt != null ? { showOnCourt: c.showOnCourt } : {}),
       ...(c.assignToPlayer != null ? { assignToPlayer: c.assignToPlayer } : {}),
+      ...(c.hasDirection ? { hasDirection: true } : {}),
     }));
   return [...visible, ...customs];
 }

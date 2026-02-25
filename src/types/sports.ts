@@ -91,6 +91,8 @@ export interface Point {
   customActionLabel?: string;
   sigil?: string;
   showOnCourt?: boolean;
+  /** Rally sub-actions when Performance Mode is active */
+  rallyActions?: RallyAction[];
 }
 
 export interface SetData {
@@ -102,9 +104,31 @@ export interface SetData {
   duration: number;
 }
 
+export interface RallyAction {
+  id: string;
+  team: Team;
+  type: PointType;
+  action: ActionType;
+  x: number;
+  y: number;
+  playerId?: string;
+  timestamp: number;
+  customActionLabel?: string;
+  sigil?: string;
+  showOnCourt?: boolean;
+  /** Direction tracking: start coordinates */
+  startX?: number;
+  startY?: number;
+  /** Direction tracking: end coordinates */
+  endX?: number;
+  endY?: number;
+}
+
 export interface MatchMetadata {
   /** Whether the interactive court is enabled (default: true) */
   hasCourt?: boolean;
+  /** Whether performance mode (rally tracking) is enabled */
+  isPerformanceMode?: boolean;
   /** Snapshot map to keep historical player names even after roster edits */
   playerAliases?: Record<string, string>;
 }

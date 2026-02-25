@@ -57,6 +57,7 @@ const Index = () => {
     score, stats, setsScore, currentSetNumber, completedSets,
     teamNames, sidesSwapped, chronoRunning, chronoSeconds,
     players, pendingPoint, servingTeam, sport,
+    isPerformanceMode, currentRallyActions, rallyInProgress, directionOrigin, pendingDirectionAction, canUndo,
     setTeamNames, setPlayers, selectAction, cancelSelection, addPoint,
     assignPlayer, skipPlayerAssignment,
     undo, endSet, startNewSet, waitingForNewSet, resetMatch, switchSides, startChrono, pauseChrono,
@@ -187,10 +188,30 @@ const Index = () => {
               servingTeam={servingTeam} sport={sport} metadata={metadata}
               onSelectAction={selectAction} onCancelSelection={cancelSelection} onUndo={undo} onEndSet={endSet} onReset={resetMatch}
               onSwitchSides={switchSides} onStartChrono={startChrono} onPauseChrono={pauseChrono} onSetTeamNames={setTeamNames}
-              canUndo={points.length > 0} isFinished={isFinished} waitingForNewSet={waitingForNewSet} onStartNewSet={startNewSet}
+              canUndo={canUndo} isFinished={isFinished} waitingForNewSet={waitingForNewSet} onStartNewSet={startNewSet}
+              rallyInProgress={rallyInProgress} rallyActionCount={currentRallyActions.length}
             />
+            {/* Direction mode indicator */}
+            {pendingDirectionAction && directionOrigin && (
+              <div className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-accent/50 border border-accent animate-pulse">
+                <span className="text-xs font-bold text-accent-foreground">🎯 {t('scoreboard.touchCourtDestination')}</span>
+                <button onClick={cancelSelection} className="p-1 rounded-md text-muted-foreground hover:text-foreground">
+                  <X size={14} />
+                </button>
+              </div>
+            )}
             {metadata?.hasCourt !== false && (
-              <VolleyballCourt points={points} selectedTeam={selectedTeam} selectedAction={selectedAction} selectedPointType={selectedPointType} sidesSwapped={sidesSwapped} teamNames={teamNames} onCourtClick={addPoint} />
+              <VolleyballCourt
+                points={points}
+                selectedTeam={pendingDirectionAction ? null : selectedTeam}
+                selectedAction={pendingDirectionAction ? null : selectedAction}
+                selectedPointType={pendingDirectionAction ? null : selectedPointType}
+                sidesSwapped={sidesSwapped}
+                teamNames={teamNames}
+                onCourtClick={addPoint}
+                directionOrigin={directionOrigin}
+                pendingDirectionAction={!!pendingDirectionAction}
+              />
             )}
           </div>
         ) : (
