@@ -8,13 +8,14 @@ import { HeatmapView } from '@/components/HeatmapView';
 import { SetHistory } from '@/components/SetHistory';
 import { PlayerRoster } from '@/components/PlayerRoster';
 import { PlayerSelector } from '@/components/PlayerSelector';
+import { PlayByPlayNavigator } from '@/components/PlayByPlayNavigator';
 import { AiAnalysis } from '@/components/AiAnalysis';
 import { AuthDialog } from '@/components/AuthDialog';
 import { getMatch, saveMatch } from '@/lib/matchStorage';
 import { getCloudMatchById, saveCloudMatch } from '@/lib/cloudStorage';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
-import type { MatchSummary, Player } from '@/types/sports';
+import type { MatchSummary, Player, RallyAction } from '@/types/sports';
 import { useTranslation } from 'react-i18next';
 
 type Tab = 'match' | 'stats';
@@ -29,6 +30,10 @@ const Index = () => {
   const [showAuthForAi, setShowAuthForAi] = useState(false);
   const [loading, setLoading] = useState(true);
   const [matchReady, setMatchReady] = useState(false);
+
+  // --- Play-by-Play Visualization states ---
+  const [viewingPointIndex, setViewingPointIndex] = useState<number | null>(null);
+  const [viewingActionIndex, setViewingActionIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!matchId) { setLoading(false); return; }
@@ -65,6 +70,44 @@ const Index = () => {
 
   const matchData2 = getMatch(matchId ?? '');
   const metadata = matchData2?.metadata;
+  const playerAliases = metadata?.playerAliases ?? {};
+
+  // --- Visualization helpers ---
+  const isViewingMode = viewingPointIndex !== null;
+
+  const handleSelectViewPoint = useCallback((index: number) => {
+    setViewingPointIndex(index);
+    setViewingActionIndex(0);
+  }, []);
+
+  const handleChangePoint = useCallback((index: number) => {
+    if (index < 0 || index >= allPoints.length) return;
+    setViewingPointIndex(index);
+    setViewingActionIndex(0);
+  }, [allPoints.length]);
+
+  const handleChangeAction = useCallback((index: number) => {
+    setViewingActionIndex(index);
+  }, []);
+
+  const handleBackToLive = useCallback(() => {
+    setViewingPointIndex(null);
+    setViewingActionIndex(null);
+  }, []);
+
+  // Derive the viewing action/point for the court
+  const viewingCourtData = useMemo(() => {
+    if (viewingPointIndex === null) return { action: null, point: null };
+    const point = allPoints[viewingPointIndex];
+    if (!point) return { action: null, point: null };
+
+    const rallyActions = point.rallyActions ?? [];
+    if (rallyActions.length > 0 && viewingActionIndex !== null) {
+      const action = rallyActions[viewingActionIndex] ?? null;
+      return { action, point: null };
+    }
+    return { action: null, point };
+  }, [viewingPointIndex, viewingActionIndex, allPoints]);
 
   // Auto-point for service faults or when court is disabled or placeOnCourt=false
   const SERVICE_FAULT_ACTIONS = ['service_miss', 'gameplay_fault', 'opponent_fault', 'timeout'];
@@ -86,8 +129,6 @@ const Index = () => {
   // Player assignment logic
   useEffect(() => {
     if (!pendingPoint || players.length === 0) return;
-
-    // Respect explicit assignToPlayer=false
     if ((window as any).__pendingCustomAssignToPlayer === false) {
       delete (window as any).__pendingCustomAssignToPlayer;
       skipPlayerAssignment();
@@ -96,8 +137,6 @@ const Index = () => {
     if ((window as any).__pendingCustomAssignToPlayer !== undefined) {
       delete (window as any).__pendingCustomAssignToPlayer;
     }
-
-    // Volleyball: show selector for blue scored, red scored, red fault, neutral
     const isBlueScored = pendingPoint.team === 'blue' && pendingPoint.type === 'scored';
     const isRedScored = pendingPoint.team === 'red' && pendingPoint.type === 'scored';
     const isRedFault = pendingPoint.team === 'red' && pendingPoint.type === 'fault';
@@ -138,6 +177,13 @@ const Index = () => {
       }
     };
   }, [user, matchId]);
+
+  // Exit viewing mode when new points are added
+  useEffect(() => {
+    if (isViewingMode && selectedTeam) {
+      handleBackToLive();
+    }
+  }, [selectedTeam]);
 
   if (loading) {
     return (
@@ -200,17 +246,34 @@ const Index = () => {
                 </button>
               </div>
             )}
+
+            {/* Play-by-Play Navigator */}
+            {isViewingMode && (
+              <PlayByPlayNavigator
+                points={allPoints}
+                viewingPointIndex={viewingPointIndex!}
+                viewingActionIndex={viewingActionIndex ?? 0}
+                onChangePoint={handleChangePoint}
+                onChangeAction={handleChangeAction}
+                onBackToLive={handleBackToLive}
+              />
+            )}
+
             {metadata?.hasCourt !== false && (
               <VolleyballCourt
                 points={points}
-                selectedTeam={pendingDirectionAction ? null : selectedTeam}
-                selectedAction={pendingDirectionAction ? null : selectedAction}
-                selectedPointType={pendingDirectionAction ? null : selectedPointType}
+                selectedTeam={isViewingMode ? null : (pendingDirectionAction ? null : selectedTeam)}
+                selectedAction={isViewingMode ? null : (pendingDirectionAction ? null : selectedAction)}
+                selectedPointType={isViewingMode ? null : (pendingDirectionAction ? null : selectedPointType)}
                 sidesSwapped={sidesSwapped}
                 teamNames={teamNames}
                 onCourtClick={addPoint}
-                directionOrigin={directionOrigin}
-                pendingDirectionAction={!!pendingDirectionAction}
+                directionOrigin={isViewingMode ? null : directionOrigin}
+                pendingDirectionAction={isViewingMode ? false : !!pendingDirectionAction}
+                isViewingMode={isViewingMode}
+                viewingAction={viewingCourtData.action}
+                viewingPoint={viewingCourtData.point}
+                playerAliases={playerAliases}
               />
             )}
           </div>
@@ -222,7 +285,7 @@ const Index = () => {
             {metadata?.hasCourt === false ? (
               <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} hasCourt={false} />
             ) : (
-              <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} />
+              <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} onSelectPoint={handleSelectViewPoint} viewingPointIndex={viewingPointIndex} />
             )}
           </div>
         )}

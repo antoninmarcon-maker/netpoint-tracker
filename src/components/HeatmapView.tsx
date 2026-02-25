@@ -37,6 +37,8 @@ interface HeatmapViewProps {
   matchId?: string;
   isLoggedIn?: boolean;
   hasCourt?: boolean;
+  onSelectPoint?: (index: number) => void;
+  viewingPointIndex?: number | null;
 }
 
 type SetFilter = 'all' | number;
@@ -144,7 +146,7 @@ function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: n
   return { blue: byTeam('blue'), red: byTeam('red'), total: pts.length };
 }
 
-export function HeatmapView({ points, completedSets, currentSetPoints, currentSetNumber, stats, teamNames, players = [], sport = 'volleyball', matchId, isLoggedIn, hasCourt = true }: HeatmapViewProps) {
+export function HeatmapView({ points, completedSets, currentSetPoints, currentSetNumber, stats, teamNames, players = [], sport = 'volleyball', matchId, isLoggedIn, hasCourt = true, onSelectPoint, viewingPointIndex }: HeatmapViewProps) {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [setFilter_, setSetFilter] = useState<SetFilter>('all');
@@ -521,7 +523,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
       </div>
 
       {setFilter_ !== 'all' && showTimeline && (
-        <PointTimeline points={filteredPoints} teamNames={teamNames} />
+        <PointTimeline points={filteredPoints} teamNames={teamNames} onSelectPoint={onSelectPoint} viewingPointIndex={viewingPointIndex} />
       )}
 
         {hasCourt && setFilter_ !== 'all' && showCourt && (
