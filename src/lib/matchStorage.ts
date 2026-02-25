@@ -13,16 +13,35 @@ const PlayerSchema = z.object({
   name: z.string(),
 });
 
+const RallyActionSchema = z.object({
+  id: z.string(),
+  team: z.enum(['blue', 'red']),
+  type: z.enum(['scored', 'fault', 'neutral']),
+  action: z.string(),
+  x: z.number(),
+  y: z.number(),
+  timestamp: z.number(),
+  playerId: z.string().optional(),
+  customActionLabel: z.string().optional(),
+  sigil: z.string().optional(),
+  showOnCourt: z.boolean().optional(),
+  startX: z.number().optional(),
+  startY: z.number().optional(),
+  endX: z.number().optional(),
+  endY: z.number().optional(),
+});
+
 const PointSchema = z.object({
   id: z.string(),
   team: z.enum(['blue', 'red']),
-  type: z.enum(['scored', 'fault']),
+  type: z.enum(['scored', 'fault', 'neutral']),
   action: z.string(),
   x: z.number(),
   y: z.number(),
   timestamp: z.number(),
   playerId: z.string().optional(),
   pointValue: z.number().optional(),
+  rallyActions: z.array(RallyActionSchema).optional(),
 });
 
 const SetDataSchema = z.object({

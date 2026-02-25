@@ -33,6 +33,9 @@ interface ScoreBoardProps {
   isFinished?: boolean;
   waitingForNewSet?: boolean;
   onStartNewSet?: () => void;
+  /** Performance Mode props */
+  rallyInProgress?: boolean;
+  rallyActionCount?: number;
 }
 
 function formatTime(seconds: number) {
@@ -50,6 +53,7 @@ export function ScoreBoard({
   currentSetNumber, teamNames, sidesSwapped, chronoRunning, chronoSeconds,
   servingTeam, sport, metadata,
   isFinished = false, waitingForNewSet = false, onStartNewSet,
+  rallyInProgress = false, rallyActionCount = 0,
 }: ScoreBoardProps) {
   const { t } = useTranslation();
   const [editingNames, setEditingNames] = useState(false);
@@ -71,7 +75,7 @@ export function ScoreBoard({
     setEditingNames(false);
   };
 
-  const handleActionSelect = (action: ActionType, customLabel?: string, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean) => {
+  const handleActionSelect = (action: ActionType, customLabel?: string, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean, hasDirection?: boolean) => {
     if (!menuTeam) return;
     const type: PointType = menuTab;
 
@@ -82,6 +86,7 @@ export function ScoreBoard({
     if (customLabel) { (window as any).__pendingCustomActionLabel = customLabel; }
     if (sigil) { (window as any).__pendingCustomSigil = sigil; }
     if (showOnCourt) { (window as any).__pendingCustomShowOnCourt = true; }
+    if (hasDirection) { (window as any).__pendingHasDirection = true; }
 
     onSelectAction(menuTeam, type, action);
     setMenuTeam(null);
@@ -137,7 +142,15 @@ export function ScoreBoard({
           >
             {chronoRunning ? <Pause size={12} /> : <Play size={12} />}
           </button>
+      </div>
+
+      {/* Rally in progress badge */}
+      {rallyInProgress && (
+        <div className="flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg bg-primary/10 border border-primary/20 animate-pulse">
+          <span className="text-xs font-bold text-primary">⚡ {t('scoreboard.rallyInProgress')}</span>
+          <span className="text-xs font-mono font-bold bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center">{rallyActionCount}</span>
         </div>
+      )}
       </div>
 
       {/* Action buttons */}
@@ -244,7 +257,7 @@ export function ScoreBoard({
             {(menuTab === 'scored' ? getScoredActions() : menuTab === 'fault' ? getFilteredFaultActions() : getVisibleActions(sport, 'neutral', getNeutralActionsForSport(sport))).map(a => (
               <button
                 key={a.customId ?? a.key}
-                onClick={() => handleActionSelect(a.key as ActionType, a.customId ? a.label : undefined, a.sigil, a.showOnCourt, (a as any).assignToPlayer)}
+                onClick={() => handleActionSelect(a.key as ActionType, a.customId ? a.label : undefined, a.sigil, a.showOnCourt, (a as any).assignToPlayer, (a as any).hasDirection)}
                 className={`py-2.5 px-2 text-xs font-semibold rounded-lg transition-all active:scale-95 ${
                   menuTab === 'scored' ? 'bg-action-scored/10 text-action-scored hover:bg-action-scored/20 border border-action-scored/20'
                     : menuTab === 'fault' ? 'bg-action-fault/10 text-action-fault hover:bg-action-fault/20 border border-action-fault/20'

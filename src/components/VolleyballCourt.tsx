@@ -9,6 +9,10 @@ interface VolleyballCourtProps {
   sidesSwapped: boolean;
   teamNames: { blue: string; red: string };
   onCourtClick: (x: number, y: number) => void;
+  /** Direction mode: anchor point for first click */
+  directionOrigin?: { x: number; y: number } | null;
+  /** Whether we're waiting for 2nd direction click */
+  pendingDirectionAction?: boolean;
 }
 
 // Court dimensions in SVG coordinates
@@ -153,11 +157,11 @@ function getZoneHighlights(
   }
 }
 
-export function VolleyballCourt({ points, selectedTeam, selectedAction, selectedPointType, sidesSwapped = false, teamNames = { blue: 'Bleue', red: 'Rouge' }, onCourtClick }: VolleyballCourtProps) {
+export function VolleyballCourt({ points, selectedTeam, selectedAction, selectedPointType, sidesSwapped = false, teamNames = { blue: 'Bleue', red: 'Rouge' }, onCourtClick, directionOrigin, pendingDirectionAction }: VolleyballCourtProps) {
   const courtRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const hasSelection = !!selectedTeam && !!selectedAction && !!selectedPointType;
+  const hasSelection = (!!selectedTeam && !!selectedAction && !!selectedPointType) || !!pendingDirectionAction;
 
   // Auto-scroll to court when placement mode is active
   useEffect(() => {
@@ -173,7 +177,18 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
 
   const handleInteraction = useCallback(
     (clientX: number, clientY: number) => {
-      if (!hasSelection || !courtRef.current) return;
+      if (!courtRef.current) return;
+      
+      // Direction mode: allow any click for destination
+      if (pendingDirectionAction && directionOrigin) {
+        const rect = courtRef.current.getBoundingClientRect();
+        const x = (clientX - rect.left) / rect.width;
+        const y = (clientY - rect.top) / rect.height;
+        onCourtClick(x, y);
+        return;
+      }
+      
+      if (!hasSelection) return;
       const rect = courtRef.current.getBoundingClientRect();
       const x = (clientX - rect.left) / rect.width;
       const y = (clientY - rect.top) / rect.height;
@@ -187,7 +202,7 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
         onCourtClick(x, y);
       }
     },
-    [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped, onCourtClick]
+    [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped, onCourtClick, pendingDirectionAction, directionOrigin]
   );
 
   const handleClick = useCallback(
@@ -321,6 +336,20 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
             </g>
           );
         })}
+        {/* Direction anchor point (blinking) */}
+        {directionOrigin && pendingDirectionAction && (() => {
+          const cx = (sidesSwapped ? (1 - directionOrigin.x) : directionOrigin.x) * 600;
+          const cy = directionOrigin.y * 400;
+          return (
+            <g>
+              <circle cx={cx} cy={cy} r={12} fill="none" stroke="hsl(45, 93%, 58%)" strokeWidth={2.5}>
+                <animate attributeName="r" values="8;14;8" dur="1s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />
+              </circle>
+              <circle cx={cx} cy={cy} r={4} fill="hsl(45, 93%, 58%)" />
+            </g>
+          );
+        })()}
       </svg>
     </div>
   );

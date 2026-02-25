@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Team, Point, PointType, ActionType, SetData, Player, SportType, MatchMetadata } from '@/types/sports';
+import { Team, Point, PointType, ActionType, SetData, Player, SportType, MatchMetadata, RallyAction } from '@/types/sports';
 import { getMatch, saveMatch, saveLastRoster } from '@/lib/matchStorage';
 
 export function useMatchState(matchId: string, ready: boolean = true) {
@@ -30,6 +30,17 @@ export function useMatchState(matchId: string, ready: boolean = true) {
   });
   const [pendingPoint, setPendingPoint] = useState<Omit<Point, 'playerId'> | null>(null);
   const sport: SportType = 'volleyball';
+
+  // --- Performance Mode (Rally Tracking) ---
+  const isPerformanceMode = loaded?.metadata?.isPerformanceMode ?? false;
+  const [currentRallyActions, setCurrentRallyActions] = useState<RallyAction[]>([]);
+  
+  // Direction mode: waiting for 2nd click
+  const [directionOrigin, setDirectionOrigin] = useState<{ x: number; y: number } | null>(null);
+  const [pendingDirectionAction, setPendingDirectionAction] = useState<{
+    team: Team; type: PointType; action: ActionType;
+    customLabel?: string; sigil?: string; showOnCourt?: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!ready || hasInitialized.current) return;
@@ -110,10 +121,83 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     setSelectedTeam(null);
     setSelectedPointType(null);
     setSelectedAction(null);
+    // Also cancel direction mode
+    setDirectionOrigin(null);
+    setPendingDirectionAction(null);
   }, []);
 
+  // --- Direction mode helpers ---
+  const startDirectionMode = useCallback((team: Team, type: PointType, action: ActionType, x: number, y: number, customLabel?: string, sigil?: string, showOnCourt?: boolean) => {
+    setDirectionOrigin({ x, y });
+    setPendingDirectionAction({ team, type, action, customLabel, sigil, showOnCourt });
+  }, []);
+
+  const completeDirectionAction = useCallback((endX: number, endY: number) => {
+    if (!pendingDirectionAction || !directionOrigin) return;
+    const { team, type, action, customLabel, sigil, showOnCourt } = pendingDirectionAction;
+    const rallyAction: RallyAction = {
+      id: crypto.randomUUID(),
+      team, type, action,
+      x: directionOrigin.x, y: directionOrigin.y,
+      startX: directionOrigin.x, startY: directionOrigin.y,
+      endX, endY,
+      timestamp: Date.now(),
+      ...(customLabel ? { customActionLabel: customLabel } : {}),
+      ...(sigil ? { sigil } : {}),
+      ...(showOnCourt ? { showOnCourt: true } : {}),
+    };
+    
+    setDirectionOrigin(null);
+    setPendingDirectionAction(null);
+    
+    // Process this rally action the same way as a regular one
+    processRallyAction(rallyAction, team, type);
+  }, [pendingDirectionAction, directionOrigin]);
+
+  // Process a rally action: accumulate neutrals, conclude on scored/fault
+  const processRallyAction = useCallback((rallyAction: RallyAction, team: Team, type: PointType) => {
+    if (type === 'neutral') {
+      // Neutral: accumulate, don't conclude
+      setCurrentRallyActions(prev => [...prev, rallyAction]);
+    } else {
+      // Scored or fault: conclude the point
+      const allRallyActions = [...currentRallyActions, rallyAction];
+      const point: Point = {
+        id: crypto.randomUUID(),
+        team,
+        type,
+        action: rallyAction.action,
+        x: rallyAction.x,
+        y: rallyAction.y,
+        timestamp: Date.now(),
+        rallyActions: allRallyActions,
+        ...(rallyAction.customActionLabel ? { customActionLabel: rallyAction.customActionLabel } : {}),
+        ...(rallyAction.sigil ? { sigil: rallyAction.sigil } : {}),
+        ...(rallyAction.showOnCourt ? { showOnCourt: true } : {}),
+      };
+      
+      // Check if player assignment needed
+      const shouldAssignPlayer = players.length > 0 && (
+        rallyAction.type === 'neutral' || team === 'blue' || (team === 'red' && type === 'fault')
+      );
+      if (shouldAssignPlayer) {
+        setPendingPoint(point);
+      } else {
+        setPoints(prev => [...prev, point]);
+      }
+      setCurrentRallyActions([]);
+    }
+  }, [currentRallyActions, players.length]);
+
   const addPoint = useCallback((x: number, y: number) => {
-    if (!selectedTeam || !selectedPointType || !selectedAction) return;
+    if (!selectedTeam || !selectedPointType || !selectedAction) {
+      // Check if we're in direction completion mode
+      if (pendingDirectionAction && directionOrigin) {
+        completeDirectionAction(x, y);
+        return;
+      }
+      return;
+    }
     if (!chronoRunning) {
       setChronoRunning(true);
     }
@@ -123,6 +207,43 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     if (customSigil) delete (window as any).__pendingCustomSigil;
     const customShowOnCourt = (window as any).__pendingCustomShowOnCourt;
     if (customShowOnCourt !== undefined) delete (window as any).__pendingCustomShowOnCourt;
+    const hasDirection = (window as any).__pendingHasDirection;
+    if (hasDirection !== undefined) delete (window as any).__pendingHasDirection;
+
+    // --- Performance Mode with direction: 2-click flow ---
+    if (isPerformanceMode && hasDirection && !directionOrigin) {
+      startDirectionMode(selectedTeam, selectedPointType, selectedAction, x, y, customLabel, customSigil, customShowOnCourt);
+      setSelectedTeam(null);
+      setSelectedPointType(null);
+      setSelectedAction(null);
+      return;
+    }
+
+    // --- Performance Mode: rally accumulation ---
+    if (isPerformanceMode) {
+      const rallyAction: RallyAction = {
+        id: crypto.randomUUID(),
+        team: selectedTeam,
+        type: selectedPointType,
+        action: selectedAction,
+        x, y,
+        timestamp: Date.now(),
+        ...(customLabel ? { customActionLabel: customLabel } : {}),
+        ...(customSigil ? { sigil: customSigil } : {}),
+        ...(customShowOnCourt ? { showOnCourt: true } : {}),
+      };
+      
+      const team = selectedTeam;
+      const type = selectedPointType;
+      setSelectedTeam(null);
+      setSelectedPointType(null);
+      setSelectedAction(null);
+      
+      processRallyAction(rallyAction, team, type);
+      return;
+    }
+
+    // --- Standard Mode (unchanged) ---
     const point: Point = {
       id: crypto.randomUUID(),
       team: selectedTeam,
@@ -144,7 +265,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     setSelectedTeam(null);
     setSelectedPointType(null);
     setSelectedAction(null);
-  }, [selectedTeam, selectedPointType, selectedAction, chronoRunning, points.length, players.length]);
+  }, [selectedTeam, selectedPointType, selectedAction, chronoRunning, players.length, isPerformanceMode, directionOrigin, pendingDirectionAction, completeDirectionAction, startDirectionMode, processRallyAction]);
 
   const assignPlayer = useCallback((playerId: string) => {
     if (!pendingPoint) return;
@@ -164,9 +285,30 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     setPendingPoint(null);
   }, [pendingPoint]);
 
+  // --- Smart Undo ---
   const undo = useCallback(() => {
+    if (isPerformanceMode) {
+      // Case A: Rally in progress — remove last sub-action
+      if (currentRallyActions.length > 0) {
+        setCurrentRallyActions(prev => prev.slice(0, -1));
+        return;
+      }
+      // Case B: Last point just concluded — reopen it
+      if (points.length > 0) {
+        const lastPoint = points[points.length - 1];
+        if (lastPoint.rallyActions && lastPoint.rallyActions.length > 0) {
+          // Remove the concluding action, restore the neutrals as currentRallyActions
+          const rally = lastPoint.rallyActions;
+          const neutralActions = rally.slice(0, -1); // everything except the conclusion
+          setCurrentRallyActions(neutralActions);
+          setPoints(prev => prev.slice(0, -1));
+          return;
+        }
+      }
+    }
+    // Standard undo
     setPoints(prev => prev.slice(0, -1));
-  }, []);
+  }, [isPerformanceMode, currentRallyActions, points]);
 
   // Score calculation: volleyball rally scoring — exclude neutral
   const score = useMemo(() => {
@@ -223,6 +365,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     };
     setCompletedSets(prev => [...prev, setData]);
     setPoints([]);
+    setCurrentRallyActions([]);
     setSelectedTeam(null);
     setSelectedPointType(null);
     setSelectedAction(null);
@@ -251,6 +394,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       setPoints([]);
     }
     setChronoRunning(false);
+    setCurrentRallyActions([]);
     const match = getMatch(matchId);
     if (match) {
       saveMatch({ ...match, finished: true, updatedAt: Date.now() });
@@ -269,6 +413,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     setSelectedPointType(null);
     setSelectedAction(null);
     setSidesSwapped(false);
+    setCurrentRallyActions([]);
     resetChrono();
   }, [resetChrono]);
 
@@ -299,6 +444,14 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     saveLastRoster(players);
   }, [completedSets, currentSetNumber, points, teamNames, sidesSwapped, chronoSeconds, players, loaded, allPoints, playerAliases]);
 
+  // Can undo check for performance mode
+  const canUndo = isPerformanceMode
+    ? (currentRallyActions.length > 0 || points.length > 0)
+    : points.length > 0;
+
+  // Rally in progress: if neutrals accumulated but not yet concluded
+  const rallyInProgress = isPerformanceMode && currentRallyActions.length > 0;
+
   return {
     points,
     allPoints,
@@ -318,6 +471,12 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     pendingPoint,
     servingTeam,
     sport,
+    isPerformanceMode,
+    currentRallyActions,
+    rallyInProgress,
+    directionOrigin,
+    pendingDirectionAction,
+    canUndo,
     setTeamNames,
     setPlayers,
     selectAction,
