@@ -49,7 +49,7 @@ export default function Credits() {
         <section className="space-y-4">
           <h2 className="text-lg font-bold text-foreground">{t('credits.ecosystemTitle')}</h2>
           <div className="grid gap-3">
-            <a href="https://sport-tracker-global.lovable.app/" target="_blank" rel="noopener noreferrer">
+            <a href="https://sports-tracker.my-volley.com/" target="_blank" rel="noopener noreferrer">
               <Card className="relative overflow-hidden hover:bg-accent/50 transition-colors">
                 <CardContent className="flex items-start gap-3 p-4">
                   <Dribbble size={24} className="text-orange-500 shrink-0 mt-0.5" />
@@ -65,7 +65,7 @@ export default function Credits() {
               </Card>
             </a>
 
-            <a href="https://sport-tracker-global.lovable.app/" target="_blank" rel="noopener noreferrer">
+            <a href="https://sports-tracker.my-volley.com/" target="_blank" rel="noopener noreferrer">
               <Card className="relative overflow-hidden hover:bg-accent/50 transition-colors">
                 <CardContent className="flex items-start gap-3 p-4">
                   <Circle size={24} className="text-yellow-400 shrink-0 mt-0.5" />
@@ -81,7 +81,7 @@ export default function Credits() {
               </Card>
             </a>
 
-            <a href="https://sport-tracker-global.lovable.app/" target="_blank" rel="noopener noreferrer">
+            <a href="https://sports-tracker.my-volley.com/" target="_blank" rel="noopener noreferrer">
               <Card className="relative overflow-hidden hover:bg-accent/50 transition-colors">
                 <CardContent className="flex items-start gap-3 p-4">
                   <Activity size={24} className="text-blue-500 shrink-0 mt-0.5" />
