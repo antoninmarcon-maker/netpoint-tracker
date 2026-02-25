@@ -72,44 +72,6 @@ export default function Help() {
         </section>
 
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">{t('help.sportsTitle')}</h2>
-          <div className="space-y-3">
-            <details className="bg-card rounded-xl border border-border">
-              <summary className="p-4 font-semibold text-foreground cursor-pointer text-sm">{t('help.volleyballLabel')}</summary>
-              <div className="px-4 pb-4 text-sm text-muted-foreground space-y-2">
-                <p><strong className="text-foreground">{t('help.volleyballScored')}</strong></p>
-                <p><strong className="text-foreground">{t('help.volleyballFaults')}</strong></p>
-                <p>{t('help.volleyballNote')}</p>
-              </div>
-            </details>
-            <details className="bg-card rounded-xl border border-border">
-              <summary className="p-4 font-semibold text-foreground cursor-pointer text-sm">{t('help.basketballLabel')}</summary>
-              <div className="px-4 pb-4 text-sm text-muted-foreground space-y-2">
-                <p><strong className="text-foreground">{t('help.basketballScored')}</strong></p>
-                <p><strong className="text-foreground">{t('help.basketballFaults')}</strong></p>
-                <p>{t('help.basketballNote')}</p>
-              </div>
-            </details>
-            <details className="bg-card rounded-xl border border-border">
-              <summary className="p-4 font-semibold text-foreground cursor-pointer text-sm">{t('help.tennisLabel')}</summary>
-              <div className="px-4 pb-4 text-sm text-muted-foreground space-y-2">
-                <p><strong className="text-foreground">{t('help.tennisScored')}</strong></p>
-                <p><strong className="text-foreground">{t('help.tennisFaults')}</strong></p>
-                <p>{t('help.tennisNote')}</p>
-              </div>
-            </details>
-            <details className="bg-card rounded-xl border border-border">
-              <summary className="p-4 font-semibold text-foreground cursor-pointer text-sm">{t('help.padelLabel')}</summary>
-              <div className="px-4 pb-4 text-sm text-muted-foreground space-y-2">
-                <p><strong className="text-foreground">{t('help.padelScored')}</strong></p>
-                <p><strong className="text-foreground">{t('help.padelFaults')}</strong></p>
-                <p>{t('help.padelNote')}</p>
-              </div>
-            </details>
-          </div>
-        </section>
-
-        <section>
           <h2 className="text-xl font-bold text-foreground mb-3">{t('help.exportTitle')}</h2>
           <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
             <p>{t('help.exportDesc')}</p>

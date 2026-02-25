@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, Plus, Pencil, Trash2, X, Check } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Plus, Pencil, Trash2, X, Check, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -63,12 +63,35 @@ export default function ActionsConfig() {
 
         {defaultActions.map(a => {
           const isHidden = config.hiddenActions.includes(a.key);
+          const desc = (a as any).description;
           return (
-            <div key={a.key} className={`flex items-center justify-between p-3 rounded-lg border transition-all ${isHidden ? 'border-border/50 bg-muted/30 opacity-60' : 'border-border bg-card'}`}>
-              <span className="text-sm font-medium text-foreground">{t(`actions.${a.key}`, a.label)}</span>
-              <button onClick={() => handleToggle(a.key)} className="p-1.5 rounded-md hover:bg-secondary transition-colors" title={isHidden ? t('actionsConfig.show') : t('actionsConfig.hide')}>
-                {isHidden ? <EyeOff size={16} className="text-muted-foreground" /> : <Eye size={16} className="text-foreground" />}
-              </button>
+            <div key={a.key} className={`rounded-lg border transition-all ${isHidden ? 'border-border/50 bg-muted/30 opacity-60' : 'border-border bg-card'}`}>
+              <div className="flex items-center justify-between p-3">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-sm font-medium text-foreground">{t(`actions.${a.key}`, a.label)}</span>
+                  {desc && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const el = (e.currentTarget.parentElement?.parentElement?.nextElementSibling as HTMLElement);
+                        if (el) el.classList.toggle('hidden');
+                      }}
+                      className="p-0.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+                      title={t('actionsConfig.showDesc')}
+                    >
+                      <Info size={14} />
+                    </button>
+                  )}
+                </div>
+                <button onClick={() => handleToggle(a.key)} className="p-1.5 rounded-md hover:bg-secondary transition-colors" title={isHidden ? t('actionsConfig.show') : t('actionsConfig.hide')}>
+                  {isHidden ? <EyeOff size={16} className="text-muted-foreground" /> : <Eye size={16} className="text-foreground" />}
+                </button>
+              </div>
+              {desc && (
+                <div className="hidden px-3 pb-3 -mt-1">
+                  <p className="text-xs text-muted-foreground bg-secondary/50 rounded-md px-2.5 py-1.5">{t(desc)}</p>
+                </div>
+              )}
             </div>
           );
         })}

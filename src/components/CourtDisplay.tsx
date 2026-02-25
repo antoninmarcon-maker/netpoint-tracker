@@ -10,6 +10,7 @@ interface CourtDisplayProps {
 const VOLLEY_ACTION_SHORT: Record<string, string> = {
   attack: 'A', ace: 'As', block: 'B', bidouille: 'Bi', seconde_main: '2M',
   out: 'O', net_fault: 'F', service_miss: 'SL', block_out: 'BO',
+  gameplay_fault: 'FJ', opponent_fault: 'FA',
   other_offensive: '',
 };
 

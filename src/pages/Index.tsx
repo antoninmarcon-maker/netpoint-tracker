@@ -66,7 +66,7 @@ const Index = () => {
   const metadata = matchData2?.metadata;
 
   // Auto-point for service faults or when court is disabled or placeOnCourt=false
-  const SERVICE_FAULT_ACTIONS = ['service_miss'];
+  const SERVICE_FAULT_ACTIONS = ['service_miss', 'gameplay_fault', 'opponent_fault', 'timeout'];
   useEffect(() => {
     if (!selectedTeam || !selectedAction) {
       delete (window as any).__pendingPlaceOnCourt;

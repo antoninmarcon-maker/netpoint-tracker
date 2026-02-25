@@ -1,9 +1,13 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Users, Plus, X, Pencil, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, Plus, X, Pencil, Check, ChevronDown, ChevronUp, UserPlus } from 'lucide-react';
 import { Player, SportType } from '@/types/sports';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getSavedPlayers, syncMatchPlayersToPool, getJerseyConfig, getPlayerNumber, updateSavedPlayerNumber } from '@/lib/savedPlayers';
+import { getAllMatches } from '@/lib/matchStorage';
+import { getCloudMatches } from '@/lib/cloudStorage';
 import { useTranslation } from 'react-i18next';
 
 interface PlayerRosterProps {
@@ -26,6 +30,9 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
   const [editNumber, setEditNumber] = useState('');
   const [savedPlayers, setSavedPlayers] = useState<{ id: string; name: string; number?: string }[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [selectedImportIds, setSelectedImportIds] = useState<Set<string>>(new Set());
+  const [playerStats, setPlayerStats] = useState<Record<string, { matches: number; scored: number; faults: number }>>({}); 
   const nameRef = useRef<HTMLInputElement>(null);
   const numberRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -139,9 +146,9 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
     }, 0);
   };
 
-  const addAllSaved = () => {
+  const addAllSaved = (idsToAdd?: Set<string>) => {
     const toAdd = savedPlayers.filter(sp =>
-      !players.some(p => p.name === sp.name)
+      !players.some(p => p.name === sp.name) && (!idsToAdd || idsToAdd.has(sp.id))
     );
     if (toAdd.length === 0) return;
     const newPlayers = toAdd.map(sp => {
@@ -157,6 +164,56 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
       return player;
     });
     onSetPlayers([...players, ...newPlayers]);
+  };
+
+  // Compute stats for saved players when import dialog opens
+  useEffect(() => {
+    if (!showImportDialog) return;
+    const computeStats = async () => {
+      const allMatches = userId ? await getCloudMatches() : getAllMatches();
+      const statsMap: Record<string, { matches: number; scored: number; faults: number }> = {};
+      for (const sp of savedPlayers) {
+        let matchCount = 0;
+        let scored = 0;
+        let faults = 0;
+        for (const match of allMatches) {
+          const matchPlayers = match.players ?? [];
+          const matchPlayerId = matchPlayers.find(mp => mp.name === sp.name)?.id;
+          if (!matchPlayerId) continue;
+          matchCount++;
+          const allPts = [...(match.completedSets?.flatMap(s => s.points) ?? []), ...(match.points ?? [])];
+          for (const pt of allPts) {
+            if (pt.playerId === matchPlayerId) {
+              if (pt.type === 'scored') scored++;
+              if (pt.type === 'fault') faults++;
+            }
+          }
+        }
+        statsMap[sp.id] = { matches: matchCount, scored, faults };
+      }
+      setPlayerStats(statsMap);
+    };
+    computeStats();
+  }, [showImportDialog, savedPlayers, userId]);
+
+  const availableForImport = useMemo(() =>
+    savedPlayers.filter(sp => !players.some(p => p.name === sp.name)),
+    [savedPlayers, players]
+  );
+
+  const handleImportConfirm = () => {
+    addAllSaved(selectedImportIds);
+    setShowImportDialog(false);
+    setSelectedImportIds(new Set());
+  };
+
+  const toggleImportSelection = (id: string) => {
+    setSelectedImportIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const removePlayer = (id: string) => {
@@ -218,16 +275,68 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
 
       {!collapsed && (
         <>
-          {/* Quick add all saved players */}
+          {/* Import saved players */}
           {!readOnly && availableSavedCount > 0 && (
             <button
-              onClick={addAllSaved}
+              onClick={() => {
+                setSelectedImportIds(new Set(availableForImport.map(sp => sp.id)));
+                setShowImportDialog(true);
+              }}
               className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-semibold rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all"
             >
-              <Users size={12} />
-              {t('roster.addAllSaved', { count: availableSavedCount })}
+              <UserPlus size={12} />
+              {t('roster.addSavedPlayers', { count: availableSavedCount })}
             </button>
           )}
+
+          {/* Import Dialog */}
+          <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+            <DialogContent className="max-w-sm rounded-2xl max-h-[80vh] overflow-auto">
+              <DialogHeader>
+                <DialogTitle className="text-center text-lg font-bold">{t('roster.importTitle')}</DialogTitle>
+              </DialogHeader>
+              <div className="grid grid-cols-2 gap-2">
+                {availableForImport.map(sp => {
+                  const num = jerseyEnabled ? (getPlayerNumber(sp.id) || sp.number) : undefined;
+                  const stats = playerStats[sp.id];
+                  const isSelected = selectedImportIds.has(sp.id);
+                  const ratio = stats && (stats.scored + stats.faults > 0)
+                    ? Math.round((stats.scored / (stats.scored + stats.faults)) * 100)
+                    : null;
+                  return (
+                    <button
+                      key={sp.id}
+                      onClick={() => toggleImportSelection(sp.id)}
+                      className={`relative flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all text-center ${isSelected ? 'border-primary bg-primary/10' : 'border-border bg-card hover:bg-secondary/50'}`}
+                    >
+                      <div className="absolute top-2 right-2">
+                        <Checkbox checked={isSelected} className="pointer-events-none" />
+                      </div>
+                      {num && (
+                        <Badge variant="outline" className="rounded-full w-7 h-7 flex items-center justify-center text-xs font-black border-primary/30 text-primary bg-primary/10 p-0">
+                          {num}
+                        </Badge>
+                      )}
+                      <span className="text-xs font-semibold text-foreground truncate max-w-full">{sp.name}</span>
+                      {stats && (
+                        <div className="text-[10px] text-muted-foreground space-y-0.5">
+                          <p>{t('roster.matchesPlayed', { count: stats.matches })}</p>
+                          {ratio !== null && <p className="font-medium text-primary">Ratio : {ratio}%</p>}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                onClick={handleImportConfirm}
+                disabled={selectedImportIds.size === 0}
+                className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-40 flex items-center justify-center gap-1.5"
+              >
+                <Check size={16} /> {t('roster.confirmImport', { count: selectedImportIds.size })}
+              </button>
+            </DialogContent>
+          </Dialog>
 
           {/* Player list */}
           {players.length > 0 && (

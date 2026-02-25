@@ -62,6 +62,11 @@
     "feedback": "Feedback",
     "story": "Crédits",
     "customizeLogo": "Personnaliser le logo",
+    "inviteFriend": "Inviter",
+    "inviteTitle": "Inviter un ami",
+    "inviteDesc": "Partagez My Volley avec vos coéquipiers et coachs !",
+    "inviteSent": "Invitation envoyée !",
+    "copyAppLink": "Copier le lien de l'app",
     "welcomeTitle": "Bienvenue sur My Volley",
     "welcomeText": "L'application dédiée aux coachs et joueurs de volleyball souhaitant analyser leur jeu avec précision. Comptez les points, générez des heatmaps et exportez vos statistiques.",
     "welcomeStart": "Commencer"
@@ -172,9 +177,11 @@
     "teamTitle": "👥 Gérer son équipe",
     "teamP1": "Ajoutez vos joueurs avec leur numéro de maillot dans le Roster. Les numéros accélèrent considérablement le scouting en direct — identifiez instantanément le joueur sur le terrain.",
     "teamP2": "Les joueurs et leurs statistiques sont synchronisés sur le Cloud et réutilisables d'un match à l'autre.",
-    "volleyEngineTitle": "🏐 Le Moteur Volley",
-    "volleyEngineP1": "Chaque action comptabilisée attribue 1 point (sauf les faits de jeu neutres comme la réception). L'application gère automatiquement la rotation des services et les fins de set.",
-    "volleyEngineP2": "Points Gagnés : Attaque, Ace, Block, Bidouille, Seconde main. Fautes adverses : Out, Filet, Service loupé, Block Out. Le set se termine manuellement avec « Fin du Set ». Les côtés s'inversent automatiquement.",
+    "sportsTitle": "🏐 Actions par sport",
+    "volleyballLabel": "Volleyball",
+    "volleyballScored": "Points Gagnés : Attaque, Ace, Block, Bidouille, Seconde main.",
+    "volleyballFaults": "Fautes adverses : Out, Filet, Service loupé, Block Out, Faute de jeu, Faute adverse.",
+    "volleyballNote": "Le set se termine manuellement avec « Fin du Set ». Les côtés s'inversent automatiquement.",
     "exportTitle": "📤 Export & Partage",
     "exportDesc": "Exportez vos stats en PNG (capture d'écran), en Excel (XLSX) détaillé set par set, ou partagez le match via un lien unique en lecture seule.",
     "leaveFeedback": "Laisser un feedback",
@@ -224,6 +231,10 @@
     "defineRoster": "Définir le roster {{team}}",
     "rosterTitle": "Roster {{team}} ({{count}})",
     "addAllSaved": "Ajouter les {{count}} joueurs sauvegardés",
+    "addSavedPlayers": "Ajouter des joueurs ({{count}})",
+    "importTitle": "Ajouter des joueurs sauvegardés",
+    "matchesPlayed": "{{count}} match(s)",
+    "confirmImport": "Ajouter ({{count}})",
     "playerNamePlaceholder": "Nom du joueur"
   },
   "playerSelector": {
@@ -391,7 +402,28 @@
     "net_fault": "Filet",
     "service_miss": "Service loupé",
     "block_out": "Block Out",
-    "other_volley_fault": "Autre faute"
+    "gameplay_fault": "Faute de jeu",
+    "opponent_fault": "Faute adverse",
+    "other_volley_fault": "Autre faute",
+    "timeout": "Temps mort",
+    "other_volley_neutral": "Autre"
+  },
+  "actionsDesc": {
+    "attack": "Attaque réussie dans le camp adverse.",
+    "ace": "Service direct non retourné par l'adversaire.",
+    "block": "Point marqué au contre.",
+    "bidouille": "Feinte ou déviation au filet qui trompe l'adversaire.",
+    "seconde_main": "Point marqué au 2ème toucher (passe attaquée).",
+    "other_offensive": "Action offensive qui ne rentre dans aucune autre catégorie.",
+    "out": "Balle envoyée hors du terrain par l'adversaire.",
+    "net_fault": "L'adversaire touche le filet ou envoie la balle dans le filet.",
+    "service_miss": "Service raté : la balle ne passe pas le filet ou sort.",
+    "block_out": "Le block dévie la balle hors du terrain.",
+    "gameplay_fault": "Regroupe les fautes de filet, de pénétration ou de ligne mordue.",
+    "opponent_fault": "Toute faute commise par l'adversaire sans action spécifique.",
+    "other_volley_fault": "Faute qui ne rentre dans aucune autre catégorie.",
+    "timeout": "Temps mort demandé par l'une des équipes.",
+    "other_volley_neutral": "Action neutre de secours (fallback)."
   },
   "actionsConfig": {
     "title": "Mes réglages Volley",
@@ -406,7 +438,8 @@
     "showOnCourt": "Terrain",
     "assignToPlayer": "Joueur",
     "show": "Afficher",
-    "hide": "Masquer"
+    "hide": "Masquer",
+    "showDesc": "Voir la description"
   },
   "notifications": {
     "promptTitle": "Ne manquez aucune stat 🔔",

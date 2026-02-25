@@ -62,6 +62,11 @@
     "feedback": "Feedback",
     "story": "Credits",
     "customizeLogo": "Customize logo",
+    "inviteFriend": "Invite",
+    "inviteTitle": "Invite a friend",
+    "inviteDesc": "Share My Volley with your teammates and coaches!",
+    "inviteSent": "Invitation sent!",
+    "copyAppLink": "Copy app link",
     "welcomeTitle": "Welcome to My Volley",
     "welcomeText": "The app dedicated to volleyball coaches and players who want to analyze their game with precision. Count points, generate heatmaps and export your statistics.",
     "welcomeStart": "Get Started"
@@ -172,9 +177,11 @@
     "teamTitle": "👥 Managing your team",
     "teamP1": "Add your players with their jersey numbers in the Roster. Numbers significantly speed up live scouting — instantly identify the player on the court.",
     "teamP2": "Players and their statistics are synced to the Cloud and reusable across matches.",
-    "volleyEngineTitle": "🏐 The Volleyball Engine",
-    "volleyEngineP1": "Each action awards 1 point (except neutral events like reception). The app automatically manages service rotation and set endings.",
-    "volleyEngineP2": "Points Won: Attack, Ace, Block, Tip, Second touch. Opponent faults: Out, Net, Missed serve, Block Out. The set ends manually with \"End Set\". Sides swap automatically.",
+    "sportsTitle": "🏐 Actions by sport",
+    "volleyballLabel": "Volleyball",
+    "volleyballScored": "Points Won: Attack, Ace, Block, Tip, Second touch.",
+    "volleyballFaults": "Opponent faults: Out, Net, Missed serve, Block Out, Gameplay fault, Opponent fault.",
+    "volleyballNote": "The set ends manually with \"End Set\". Sides swap automatically.",
     "exportTitle": "📤 Export & Share",
     "exportDesc": "Export your stats as PNG (screenshot), detailed Excel (XLSX) set by set, or share the match via a unique read-only link.",
     "leaveFeedback": "Leave feedback",
@@ -224,6 +231,10 @@
     "defineRoster": "Set roster {{team}}",
     "rosterTitle": "Roster {{team}} ({{count}})",
     "addAllSaved": "Add {{count}} saved players",
+    "addSavedPlayers": "Add players ({{count}})",
+    "importTitle": "Add saved players",
+    "matchesPlayed": "{{count}} match(es)",
+    "confirmImport": "Add ({{count}})",
     "playerNamePlaceholder": "Player name"
   },
   "playerSelector": {
@@ -391,7 +402,28 @@
     "net_fault": "Net",
     "service_miss": "Missed serve",
     "block_out": "Block Out",
-    "other_volley_fault": "Other fault"
+    "gameplay_fault": "Gameplay fault",
+    "opponent_fault": "Opponent fault",
+    "other_volley_fault": "Other fault",
+    "timeout": "Timeout",
+    "other_volley_neutral": "Other"
+  },
+  "actionsDesc": {
+    "attack": "Successful attack landing in the opponent's court.",
+    "ace": "Direct serve that the opponent cannot return.",
+    "block": "Point scored at the net with a block.",
+    "bidouille": "Tip or deflection at the net that deceives the opponent.",
+    "seconde_main": "Point scored on the 2nd touch (attacking pass).",
+    "other_offensive": "Offensive action that doesn't fit any other category.",
+    "out": "Ball sent out of bounds by the opponent.",
+    "net_fault": "Opponent touches the net or sends the ball into the net.",
+    "service_miss": "Missed serve: ball doesn't clear the net or goes out.",
+    "block_out": "The block deflects the ball out of bounds.",
+    "gameplay_fault": "Includes net faults, penetration faults or line faults.",
+    "opponent_fault": "Any fault committed by the opponent without a specific action.",
+    "other_volley_fault": "Fault that doesn't fit any other category.",
+    "timeout": "Timeout called by one of the teams.",
+    "other_volley_neutral": "Fallback neutral action."
   },
   "actionsConfig": {
     "title": "My Volleyball Settings",
@@ -406,7 +438,8 @@
     "showOnCourt": "Court",
     "assignToPlayer": "Player",
     "show": "Show",
-    "hide": "Hide"
+    "hide": "Hide",
+    "showDesc": "Show description"
   },
   "notifications": {
     "promptTitle": "Don't miss any stat 🔔",

@@ -4,30 +4,37 @@ export type SportType = 'volleyball';
 
 // ---- VOLLEYBALL ----
 export type OffensiveAction = 'attack' | 'ace' | 'block' | 'bidouille' | 'seconde_main' | 'other_offensive';
-export type FaultAction = 'out' | 'net_fault' | 'service_miss' | 'block_out' | 'other_volley_fault';
+export type FaultAction = 'out' | 'net_fault' | 'service_miss' | 'block_out' | 'gameplay_fault' | 'opponent_fault' | 'other_volley_fault';
 
 // ---- NEUTRAL ----
-export type NeutralAction = 'other_volley_neutral';
+export type NeutralAction = 'timeout' | 'other_volley_neutral';
 
 export type ActionType = OffensiveAction | FaultAction | NeutralAction;
 
 // ---- Action lists ----
 
-export const OFFENSIVE_ACTIONS: { key: OffensiveAction; label: string }[] = [
-  { key: 'attack', label: 'Attaque' },
-  { key: 'ace', label: 'Ace' },
-  { key: 'block', label: 'Block' },
-  { key: 'bidouille', label: 'Bidouille' },
-  { key: 'seconde_main', label: 'Seconde main' },
-  { key: 'other_offensive', label: 'Autre' },
+export const OFFENSIVE_ACTIONS: { key: OffensiveAction; label: string; description?: string }[] = [
+  { key: 'attack', label: 'Attaque', description: 'actionsDesc.attack' },
+  { key: 'ace', label: 'Ace', description: 'actionsDesc.ace' },
+  { key: 'block', label: 'Block', description: 'actionsDesc.block' },
+  { key: 'bidouille', label: 'Bidouille', description: 'actionsDesc.bidouille' },
+  { key: 'seconde_main', label: 'Seconde main', description: 'actionsDesc.seconde_main' },
+  { key: 'other_offensive', label: 'Autre', description: 'actionsDesc.other_offensive' },
 ];
 
-export const FAULT_ACTIONS: { key: FaultAction; label: string }[] = [
-  { key: 'out', label: 'Out' },
-  { key: 'net_fault', label: 'Filet' },
-  { key: 'service_miss', label: 'Service loupé' },
-  { key: 'block_out', label: 'Block Out' },
-  { key: 'other_volley_fault', label: 'Autre' },
+export const FAULT_ACTIONS: { key: FaultAction; label: string; description?: string }[] = [
+  { key: 'out', label: 'Out', description: 'actionsDesc.out' },
+  { key: 'net_fault', label: 'Filet', description: 'actionsDesc.net_fault' },
+  { key: 'service_miss', label: 'Service loupé', description: 'actionsDesc.service_miss' },
+  { key: 'block_out', label: 'Block Out', description: 'actionsDesc.block_out' },
+  { key: 'gameplay_fault', label: 'Faute de jeu', description: 'actionsDesc.gameplay_fault' },
+  { key: 'opponent_fault', label: 'Faute adverse', description: 'actionsDesc.opponent_fault' },
+  { key: 'other_volley_fault', label: 'Autre', description: 'actionsDesc.other_volley_fault' },
+];
+
+export const NEUTRAL_ACTIONS: { key: NeutralAction; label: string; description?: string }[] = [
+  { key: 'timeout', label: 'Temps mort', description: 'actionsDesc.timeout' },
+  { key: 'other_volley_neutral', label: 'Autre', description: 'actionsDesc.other_volley_neutral' },
 ];
 
 // ---- "Other" action keys ----
@@ -35,14 +42,18 @@ export const OTHER_ACTION_KEYS: Record<SportType, { scored: ActionType; fault: A
   volleyball: { scored: 'other_offensive', fault: 'other_volley_fault', neutral: 'other_volley_neutral' },
 };
 
-export function getNeutralActionsForSport(_sport: SportType): { key: string; label: string }[] {
-  return [];
+export function getNeutralActionsForSport(_sport: SportType): { key: string; label: string; description?: string }[] {
+  return NEUTRAL_ACTIONS;
 }
 
 // ---- Helper functions ----
 
 export function isOffensiveAction(action: ActionType): boolean {
   return ['attack', 'ace', 'block', 'bidouille', 'seconde_main', 'other_offensive'].includes(action);
+}
+
+export function isFaultAction(action: ActionType): boolean {
+  return ['out', 'net_fault', 'service_miss', 'block_out', 'gameplay_fault', 'opponent_fault', 'other_volley_fault'].includes(action);
 }
 
 export function getScoredActionsForSport(_sport: SportType) {

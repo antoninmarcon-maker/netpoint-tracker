@@ -27,8 +27,8 @@ function getClickZone(svgX: number, svgY: number): ZoneType {
   const isInsideCourt = svgX >= COURT_LEFT && svgX <= COURT_RIGHT && svgY >= COURT_TOP && svgY <= COURT_BOTTOM;
   
   if (isInsideCourt) {
-    // Net zone: within 15px of center line
-    if (Math.abs(svgX - NET_X) < 15) {
+    // Net zone: within 30px of center line (wider hitbox for mobile)
+    if (Math.abs(svgX - NET_X) < 30) {
       return svgX <= NET_X ? 'net_left' : 'net_right';
     }
     // Back court zones (near baselines)
@@ -133,11 +133,11 @@ function getZoneHighlights(
       ]};
     }
     case 'net_fault': {
-      // Opponent's side of the net
+      // Opponent's side of the net — wider hitbox (30px)
       if (opponentSide === 'left') {
-        return { allowed: [{ x: NET_X - 15, y: COURT_TOP, w: 15, h: COURT_BOTTOM - COURT_TOP }] };
+        return { allowed: [{ x: NET_X - 30, y: COURT_TOP, w: 30, h: COURT_BOTTOM - COURT_TOP }] };
       }
-      return { allowed: [{ x: NET_X, y: COURT_TOP, w: 15, h: COURT_BOTTOM - COURT_TOP }] };
+      return { allowed: [{ x: NET_X, y: COURT_TOP, w: 30, h: COURT_BOTTOM - COURT_TOP }] };
     }
     case 'block_out': {
       // All outside zones (both sides)
@@ -213,6 +213,7 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
   const ACTION_SHORT: Record<string, string> = {
     attack: 'A', ace: 'As', block: 'B', bidouille: 'Bi', seconde_main: '2M',
     out: 'O', net_fault: 'F', service_miss: 'SL', block_out: 'BO',
+    gameplay_fault: 'FJ', opponent_fault: 'FA',
     other_offensive: '',
   };
 

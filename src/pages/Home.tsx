@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getDemoMatch, DEMO_MATCH_ID } from '@/lib/demoMatch';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, LogIn, HelpCircle, Loader2, X, MessageSquare, ImagePlus } from 'lucide-react';
+import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, LogIn, HelpCircle, Loader2, X, MessageSquare, ImagePlus, Share2, Copy, Mail } from 'lucide-react';
 import logoCapbreton from '@/assets/logo-capbreton.jpeg';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -73,6 +73,8 @@ export default function Home() {
   const [customLogo, setCustomLogo] = useState<string | null>(null);
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showShareInvite, setShowShareInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
 
   useEffect(() => {
     if (localStorage.getItem('welcomeSeen') !== 'true') {
@@ -364,6 +366,48 @@ export default function Home() {
 
       <main className="flex-1 overflow-auto p-4 max-w-lg mx-auto w-full space-y-6">
         <PwaInstallBanner />
+
+        {/* Share / Invite Dialog */}
+        <Dialog open={showShareInvite} onOpenChange={setShowShareInvite}>
+          <DialogContent className="max-w-sm rounded-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-center text-lg font-bold">{t('home.inviteTitle')}</DialogTitle>
+              <DialogDescription className="text-center text-sm text-muted-foreground">{t('home.inviteDesc')}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)}
+                  placeholder={t('auth.emailPlaceholder')}
+                  className="h-10 flex-1"
+                />
+                <button
+                  disabled={!inviteEmail.trim() || !inviteEmail.includes('@')}
+                  onClick={() => { toast.success(t('home.inviteSent')); setInviteEmail(''); }}
+                  className="px-3 h-10 rounded-lg bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-40 flex items-center gap-1.5"
+                >
+                  <Mail size={14} /> {t('common.send')}
+                </button>
+              </div>
+              <div className="relative flex items-center gap-2">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-[10px] text-muted-foreground">{t('common.or')}</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+              <button
+                onClick={() => {
+                  const url = 'https://my-volley.lovable.app';
+                  navigator.clipboard.writeText(url).then(() => toast.success(t('heatmap.linkCopied'))).catch(() => toast.error(t('heatmap.linkCopyError')));
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm hover:bg-secondary/80 transition-all"
+              >
+                <Copy size={14} /> {t('home.copyAppLink')}
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
         <button
           onClick={() => setShowNew(true)}
           className="group w-full relative flex items-center justify-center gap-3 py-4 rounded-2xl font-bold text-lg text-white overflow-hidden transition-all duration-300 active:scale-[0.97] hover:shadow-lg hover:shadow-action-scored/25"
@@ -573,9 +617,13 @@ export default function Home() {
           <MessageSquare size={16} />
           {t('home.feedback')}
         </Link>
-        <p className="text-[10px] text-muted-foreground hidden sm:block">
-          {t('credits.techNote')}
-        </p>
+        <button
+          onClick={() => setShowShareInvite(true)}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-primary hover:bg-primary/10 transition-all"
+        >
+          <Share2 size={16} />
+          {t('home.inviteFriend')}
+        </button>
         <Link
           to="/credits"
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
