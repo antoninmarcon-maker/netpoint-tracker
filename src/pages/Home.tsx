@@ -386,7 +386,13 @@ export default function Home() {
                 />
                 <button
                   disabled={!inviteEmail.trim() || !inviteEmail.includes('@')}
-                  onClick={() => { toast.success(t('home.inviteSent')); setInviteEmail(''); }}
+                  onClick={() => {
+                    const url = `${window.location.origin}`;
+                    navigator.clipboard.writeText(`${t('home.inviteText')} ${url}`)
+                      .then(() => toast.success(t('home.inviteLinkCopied')))
+                      .catch(() => toast.error(t('home.inviteError'), { description: t('home.inviteErrorDesc') }));
+                    setInviteEmail('');
+                  }}
                   className="px-3 h-10 rounded-lg bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-40 flex items-center gap-1.5"
                 >
                   <Mail size={14} /> {t('common.send')}

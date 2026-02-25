@@ -65,26 +65,32 @@ export function toggleActionVisibility(actionKey: string): ActionsConfig {
 
 export function addCustomAction(
   label: string, sport: SportType, category: PointType,
-  points?: number, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean
+  points?: number, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean, hasDirection?: boolean
 ): ActionsConfig {
   const config = getConfig();
   config.customActions.push({
     id: crypto.randomUUID(), label: label.trim(), sport, category,
     ...(sigil ? { sigil: sigil.slice(0, 2).toUpperCase() } : {}),
-    showOnCourt: showOnCourt ?? (category === 'neutral' ? false : true),
+    showOnCourt: hasDirection ? true : (showOnCourt ?? (category === 'neutral' ? false : true)),
     assignToPlayer: assignToPlayer ?? true,
+    ...(hasDirection ? { hasDirection: true } : {}),
   });
   saveConfig(config);
   return config;
 }
 
-export function updateCustomAction(id: string, newLabel: string, points?: number, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean): ActionsConfig {
+export function updateCustomAction(id: string, newLabel: string, points?: number, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean, hasDirection?: boolean): ActionsConfig {
   const config = getConfig();
   const action = config.customActions.find(a => a.id === id);
   if (action) {
     action.label = newLabel.trim();
     if (sigil !== undefined) action.sigil = sigil.slice(0, 2).toUpperCase();
-    if (showOnCourt !== undefined) action.showOnCourt = showOnCourt;
+    if (hasDirection !== undefined) action.hasDirection = hasDirection;
+    if (hasDirection) {
+      action.showOnCourt = true;
+    } else if (showOnCourt !== undefined) {
+      action.showOnCourt = showOnCourt;
+    }
     if (assignToPlayer !== undefined) action.assignToPlayer = assignToPlayer;
   }
   saveConfig(config);

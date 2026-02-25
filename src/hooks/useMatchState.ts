@@ -201,6 +201,10 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     if (!chronoRunning) {
       setChronoRunning(true);
     }
+    // Timeout action: pause chrono
+    if (selectedAction === 'timeout') {
+      setChronoRunning(false);
+    }
     const customLabel = (window as any).__pendingCustomActionLabel;
     if (customLabel) delete (window as any).__pendingCustomActionLabel;
     const customSigil = (window as any).__pendingCustomSigil;
@@ -380,6 +384,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
   }, []);
 
   const finishMatch = useCallback(() => {
+    // Only add last set if it has points (don't create empty sets)
     if (points.length > 0) {
       const winner: Team = score.blue >= score.red ? 'blue' : 'red';
       const setData: SetData = {
@@ -397,7 +402,12 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     setCurrentRallyActions([]);
     const match = getMatch(matchId);
     if (match) {
-      saveMatch({ ...match, finished: true, updatedAt: Date.now() });
+      // Also clean empty sets from completedSets
+      const cleanedSets = [...(match.completedSets ?? []), ...(points.length > 0 ? [{
+        id: crypto.randomUUID(), number: currentSetNumber, points: [...points],
+        score: { ...score }, winner: (score.blue >= score.red ? 'blue' : 'red') as Team, duration: chronoSeconds,
+      }] : [])].filter(s => s.points.length > 0);
+      saveMatch({ ...match, completedSets: cleanedSets, points: [], finished: true, updatedAt: Date.now() });
     }
   }, [points, score, currentSetNumber, chronoSeconds, matchId]);
 

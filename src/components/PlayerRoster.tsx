@@ -30,6 +30,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
   const [editNumber, setEditNumber] = useState('');
   const [savedPlayers, setSavedPlayers] = useState<{ id: string; name: string; number?: string }[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [selectedImportIds, setSelectedImportIds] = useState<Set<string>>(new Set());
   const [playerStats, setPlayerStats] = useState<Record<string, { matches: number; scored: number; faults: number }>>({}); 
@@ -382,7 +383,23 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
           )}
 
           {/* Add player with autocomplete */}
-          {!readOnly && (
+          {!readOnly && !showAddForm && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-lg bg-team-blue/10 text-team-blue border border-team-blue/20 hover:bg-team-blue/20 transition-all"
+              >
+                <Plus size={14} /> {t('roster.addNewPlayer')}
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                className="px-3 py-2 text-xs font-semibold rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
+              >
+                {t('roster.collapseMenu')}
+              </button>
+            </div>
+          )}
+          {!readOnly && showAddForm && (
             <div className="relative" ref={suggestionsRef}>
               <div className="flex gap-1.5">
                 {jerseyEnabled && (
@@ -412,6 +429,12 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
                   className="px-2.5 h-8 rounded-md bg-team-blue text-primary-foreground text-xs font-semibold disabled:opacity-30 transition-all"
                 >
                   <Plus size={14} />
+                </button>
+                <button
+                  onClick={() => setShowAddForm(false)}
+                  className="p-1.5 rounded-md text-muted-foreground hover:text-foreground"
+                >
+                  <X size={14} />
                 </button>
               </div>
 

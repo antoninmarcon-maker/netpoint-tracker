@@ -68,6 +68,10 @@
     "inviteTitle": "Inviter un ami",
     "inviteDesc": "Partagez My Volley avec vos coéquipiers et coachs !",
     "inviteSent": "Invitation envoyée !",
+    "inviteLinkCopied": "Lien copié dans le presse-papier !",
+    "inviteText": "Découvre My Volley, l'app de stats volleyball en direct !",
+    "inviteError": "Erreur d'envoi",
+    "inviteErrorDesc": "Impossible de copier le lien. Réessayez.",
     "copyAppLink": "Copier le lien de l'app",
     "welcomeTitle": "Bienvenue sur My Volley",
     "welcomeText": "L'application dédiée aux coachs et joueurs de volleyball souhaitant analyser leur jeu avec précision. Comptez les points, générez des heatmaps et exportez vos statistiques.",
@@ -239,7 +243,9 @@
     "importTitle": "Ajouter des joueurs sauvegardés",
     "matchesPlayed": "{{count}} match(s)",
     "confirmImport": "Ajouter ({{count}})",
-    "playerNamePlaceholder": "Nom du joueur"
+    "playerNamePlaceholder": "Nom du joueur",
+    "addNewPlayer": "Ajouter un joueur",
+    "collapseMenu": "Replier"
   },
   "playerSelector": {
     "whoScored": "Quel joueur a marqué ?",
@@ -452,7 +458,8 @@
     "assignToPlayer": "Joueur",
     "show": "Afficher",
     "hide": "Masquer",
-    "showDesc": "Voir la description"
+    "showDesc": "Voir la description",
+    "hasDirection": "Trajectoire"
   },
   "notifications": {
     "promptTitle": "Ne manquez aucune stat 🔔",

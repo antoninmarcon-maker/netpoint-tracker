@@ -142,6 +142,7 @@ export function ScoreBoard({
           >
             {chronoRunning ? <Pause size={12} /> : <Play size={12} />}
           </button>
+        </div>
       </div>
 
       {/* Rally in progress badge */}
@@ -151,7 +152,6 @@ export function ScoreBoard({
           <span className="text-xs font-mono font-bold bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center">{rallyActionCount}</span>
         </div>
       )}
-      </div>
 
       {/* Action buttons */}
       {!isFinished && !waitingForNewSet && (
