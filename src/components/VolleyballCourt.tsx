@@ -1,5 +1,5 @@
 import { useRef, useCallback, useMemo, useEffect } from 'react';
-import { Point, Team, ActionType, PointType, isOffensiveAction } from '@/types/sports';
+import { Point, Team, ActionType, PointType, RallyAction, isOffensiveAction } from '@/types/sports';
 
 interface VolleyballCourtProps {
   points: Point[];
@@ -13,6 +13,14 @@ interface VolleyballCourtProps {
   directionOrigin?: { x: number; y: number } | null;
   /** Whether we're waiting for 2nd direction click */
   pendingDirectionAction?: boolean;
+  /** Visualization mode: single action to display */
+  viewingAction?: RallyAction | null;
+  /** Visualization mode: the point being viewed (for non-rally points) */
+  viewingPoint?: Point | null;
+  /** Whether we're in visualization (read-only) mode */
+  isViewingMode?: boolean;
+  /** Player aliases for displaying names */
+  playerAliases?: Record<string, string>;
 }
 
 // Court dimensions in SVG coordinates
@@ -157,11 +165,11 @@ function getZoneHighlights(
   }
 }
 
-export function VolleyballCourt({ points, selectedTeam, selectedAction, selectedPointType, sidesSwapped = false, teamNames = { blue: 'Bleue', red: 'Rouge' }, onCourtClick, directionOrigin, pendingDirectionAction }: VolleyballCourtProps) {
+export function VolleyballCourt({ points, selectedTeam, selectedAction, selectedPointType, sidesSwapped = false, teamNames = { blue: 'Bleue', red: 'Rouge' }, onCourtClick, directionOrigin, pendingDirectionAction, viewingAction, viewingPoint, isViewingMode, playerAliases }: VolleyballCourtProps) {
   const courtRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const hasSelection = (!!selectedTeam && !!selectedAction && !!selectedPointType) || !!pendingDirectionAction;
+  const hasSelection = !isViewingMode && ((!!selectedTeam && !!selectedAction && !!selectedPointType) || !!pendingDirectionAction);
 
   // Auto-scroll to court when placement mode is active
   useEffect(() => {
@@ -232,14 +240,18 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
     other_offensive: '',
   };
 
+  // Determine what to render: visualization mode vs live mode
+  const actionToView = isViewingMode ? (viewingAction || null) : null;
+  const pointToView = isViewingMode ? (viewingPoint || null) : null;
+
   return (
-    <div ref={containerRef} id="court-container" className={`relative rounded-xl overflow-hidden transition-all ${hasSelection ? 'ring-2 ring-primary' : ''}`}>
+    <div ref={containerRef} id="court-container" className={`relative rounded-xl overflow-hidden transition-all ${hasSelection ? 'ring-2 ring-primary' : ''} ${isViewingMode ? 'ring-2 ring-accent' : ''}`}>
       <svg
         ref={courtRef}
         viewBox="0 0 600 400"
-        className={`w-full h-auto ${hasSelection ? 'cursor-crosshair' : ''}`}
-        onClick={handleClick}
-        onTouchStart={handleTouch}
+        className={`w-full h-auto ${hasSelection ? 'cursor-crosshair' : ''} ${isViewingMode ? 'cursor-default' : ''}`}
+        onClick={isViewingMode ? undefined : handleClick}
+        onTouchStart={isViewingMode ? undefined : handleTouch}
         data-court="true"
       >
         {/* Court background */}
@@ -248,9 +260,7 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
         {/* Dimming overlay when selection is active */}
         {hasSelection && (
           <>
-            {/* Full dim */}
             <rect x="0" y="0" width="600" height="400" fill="black" opacity="0.5" />
-            {/* Clear allowed zones */}
             <defs>
               <clipPath id="allowed-zones">
                 {zoneHighlights?.allowed.map((z, i) => (
@@ -258,15 +268,18 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
                 ))}
               </clipPath>
             </defs>
-            {/* Redraw court in allowed zones */}
             <g clipPath="url(#allowed-zones)">
               <rect x="0" y="0" width="600" height="400" rx="8" fill="hsl(142, 40%, 28%)" />
-              {/* Pulsing highlight */}
               <rect x="0" y="0" width="600" height="400" fill={selectedTeam === 'blue' ? 'hsl(217, 91%, 60%)' : 'hsl(0, 84%, 60%)'} opacity="0.15">
                 <animate attributeName="opacity" values="0.1;0.2;0.1" dur="1.5s" repeatCount="indefinite" />
               </rect>
             </g>
           </>
+        )}
+
+        {/* Visualization mode overlay */}
+        {isViewingMode && (
+          <rect x="0" y="0" width="600" height="400" fill="black" opacity="0.15" />
         )}
 
         {/* Court border */}
@@ -291,62 +304,152 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
           {teamNames[bottomTeam]}
         </text>
 
-        {/* Point markers (exclude service_miss and neutral without showOnCourt) */}
-        {points.filter(p => p.action !== 'service_miss' && p.type !== 'neutral').map((point) => {
-          const cx = (sidesSwapped ? (1 - point.x) : point.x) * 600;
-          const cy = point.y * 400;
-          const color = point.team === 'blue' ? 'hsl(217, 91%, 60%)' : 'hsl(0, 84%, 60%)';
-          const isFault = point.type === 'fault';
-          const actionLetter = ACTION_SHORT[point.action] ?? null;
-          return (
-            <g key={point.id} className="animate-point-drop">
-              <circle
-                cx={cx}
-                cy={cy}
-                r={9}
-                fill={isFault ? 'transparent' : color}
-                opacity={0.85}
-                stroke={color}
-                strokeWidth={isFault ? 2 : 1.5}
-                strokeDasharray={isFault ? '3 2' : 'none'}
-              />
-              {isFault && !actionLetter && (
-                <>
-                  <line x1={cx - 3.5} y1={cy - 3.5} x2={cx + 3.5} y2={cy + 3.5} stroke={color} strokeWidth="1.5" />
-                  <line x1={cx + 3.5} y1={cy - 3.5} x2={cx - 3.5} y2={cy + 3.5} stroke={color} strokeWidth="1.5" />
-                </>
-              )}
-              {actionLetter && (
-                <text x={cx} y={cy + 4} textAnchor="middle" fill={isFault ? color : 'white'} fontSize="10" fontWeight="bold">{actionLetter}</text>
-              )}
-            </g>
-          );
-        })}
+        {/* ===== LIVE MODE: Show all points ===== */}
+        {!isViewingMode && (
+          <>
+            {/* Point markers (exclude service_miss and neutral without showOnCourt) */}
+            {points.filter(p => p.action !== 'service_miss' && p.type !== 'neutral').map((point) => {
+              const cx = (sidesSwapped ? (1 - point.x) : point.x) * 600;
+              const cy = point.y * 400;
+              const color = point.team === 'blue' ? 'hsl(217, 91%, 60%)' : 'hsl(0, 84%, 60%)';
+              const isFault = point.type === 'fault';
+              const actionLetter = ACTION_SHORT[point.action] ?? null;
+              return (
+                <g key={point.id} className="animate-point-drop">
+                  <circle cx={cx} cy={cy} r={9} fill={isFault ? 'transparent' : color} opacity={0.85} stroke={color} strokeWidth={isFault ? 2 : 1.5} strokeDasharray={isFault ? '3 2' : 'none'} />
+                  {isFault && !actionLetter && (
+                    <>
+                      <line x1={cx - 3.5} y1={cy - 3.5} x2={cx + 3.5} y2={cy + 3.5} stroke={color} strokeWidth="1.5" />
+                      <line x1={cx + 3.5} y1={cy - 3.5} x2={cx - 3.5} y2={cy + 3.5} stroke={color} strokeWidth="1.5" />
+                    </>
+                  )}
+                  {actionLetter && (
+                    <text x={cx} y={cy + 4} textAnchor="middle" fill={isFault ? color : 'white'} fontSize="10" fontWeight="bold">{actionLetter}</text>
+                  )}
+                </g>
+              );
+            })}
 
-        {/* Neutral point markers (only if showOnCourt) */}
-        {points.filter(p => p.type === 'neutral' && p.showOnCourt).map((point) => {
-          const cx = (sidesSwapped ? (1 - point.x) : point.x) * 600;
-          const cy = point.y * 400;
-          return (
-            <g key={point.id} className="animate-point-drop">
-              <circle cx={cx} cy={cy} r={8} fill="hsl(var(--muted))" opacity={0.7} stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} />
-              {point.sigil && (
-                <text x={cx} y={cy + 3.5} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="8" fontWeight="bold">{point.sigil}</text>
-              )}
-            </g>
-          );
-        })}
-        {/* Direction anchor point (blinking) */}
-        {directionOrigin && pendingDirectionAction && (() => {
-          const cx = (sidesSwapped ? (1 - directionOrigin.x) : directionOrigin.x) * 600;
-          const cy = directionOrigin.y * 400;
+            {/* Neutral point markers (only if showOnCourt) */}
+            {points.filter(p => p.type === 'neutral' && p.showOnCourt).map((point) => {
+              const cx = (sidesSwapped ? (1 - point.x) : point.x) * 600;
+              const cy = point.y * 400;
+              return (
+                <g key={point.id} className="animate-point-drop">
+                  <circle cx={cx} cy={cy} r={8} fill="hsl(var(--muted))" opacity={0.7} stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} />
+                  {point.sigil && (
+                    <text x={cx} y={cy + 3.5} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="8" fontWeight="bold">{point.sigil}</text>
+                  )}
+                </g>
+              );
+            })}
+
+            {/* Direction anchor point (blinking) */}
+            {directionOrigin && pendingDirectionAction && (() => {
+              const cx = (sidesSwapped ? (1 - directionOrigin.x) : directionOrigin.x) * 600;
+              const cy = directionOrigin.y * 400;
+              return (
+                <g>
+                  <circle cx={cx} cy={cy} r={12} fill="none" stroke="hsl(45, 93%, 58%)" strokeWidth={2.5}>
+                    <animate attributeName="r" values="8;14;8" dur="1s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />
+                  </circle>
+                  <circle cx={cx} cy={cy} r={4} fill="hsl(45, 93%, 58%)" />
+                </g>
+              );
+            })()}
+          </>
+        )}
+
+        {/* ===== VISUALIZATION MODE: Show single action ===== */}
+        {isViewingMode && actionToView && (() => {
+          const color = actionToView.team === 'blue' ? 'hsl(217, 91%, 60%)' : 'hsl(0, 84%, 60%)';
+          const isFault = actionToView.type === 'fault';
+          const actionLetter = ACTION_SHORT[actionToView.action] ?? null;
+          const hasDir = actionToView.startX != null && actionToView.endX != null;
+
+          // Main point position
+          const cx = (sidesSwapped ? (1 - actionToView.x) : actionToView.x) * 600;
+          const cy = actionToView.y * 400;
+
+          // Direction arrow coordinates
+          const sx = hasDir ? (sidesSwapped ? (1 - actionToView.startX!) : actionToView.startX!) * 600 : 0;
+          const sy = hasDir ? actionToView.startY! * 400 : 0;
+          const ex = hasDir ? (sidesSwapped ? (1 - actionToView.endX!) : actionToView.endX!) * 600 : 0;
+          const ey = hasDir ? actionToView.endY! * 400 : 0;
+
+          const playerLabel = actionToView.playerId && playerAliases?.[actionToView.playerId]
+            ? playerAliases[actionToView.playerId]
+            : null;
+
           return (
             <g>
-              <circle cx={cx} cy={cy} r={12} fill="none" stroke="hsl(45, 93%, 58%)" strokeWidth={2.5}>
-                <animate attributeName="r" values="8;14;8" dur="1s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />
+              {/* Arrow marker definition */}
+              {hasDir && (
+                <defs>
+                  <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill={color} />
+                  </marker>
+                </defs>
+              )}
+
+              {/* Direction arrow */}
+              {hasDir && (
+                <line x1={sx} y1={sy} x2={ex} y2={ey} stroke={color} strokeWidth={2.5} markerEnd="url(#arrowhead)" opacity={0.9}>
+                  <animate attributeName="stroke-dashoffset" from="20" to="0" dur="0.8s" fill="freeze" />
+                </line>
+              )}
+
+              {/* Main action point */}
+              <circle cx={cx} cy={cy} r={14} fill={isFault ? 'transparent' : color} opacity={0.9} stroke={color} strokeWidth={isFault ? 3 : 2} strokeDasharray={isFault ? '4 3' : 'none'}>
+                <animate attributeName="r" values="12;16;14" dur="0.5s" fill="freeze" />
               </circle>
-              <circle cx={cx} cy={cy} r={4} fill="hsl(45, 93%, 58%)" />
+              {actionLetter && (
+                <text x={cx} y={cy + 5} textAnchor="middle" fill={isFault ? color : 'white'} fontSize="13" fontWeight="bold">{actionLetter}</text>
+              )}
+
+              {/* Player label */}
+              {playerLabel && (
+                <g>
+                  <rect x={cx - 35} y={cy - 30} width={70} height={16} rx={4} fill="hsl(var(--card))" opacity={0.9} stroke={color} strokeWidth={1} />
+                  <text x={cx} y={cy - 18} textAnchor="middle" fill="hsl(var(--foreground))" fontSize="9" fontWeight="bold">{playerLabel}</text>
+                </g>
+              )}
+
+              {/* Direction start point (origin) */}
+              {hasDir && (
+                <circle cx={sx} cy={sy} r={6} fill={color} opacity={0.7} stroke="white" strokeWidth={1.5} />
+              )}
+            </g>
+          );
+        })()}
+
+        {/* Visualization of non-rally point */}
+        {isViewingMode && !actionToView && pointToView && (() => {
+          const color = pointToView.team === 'blue' ? 'hsl(217, 91%, 60%)' : 'hsl(0, 84%, 60%)';
+          const isFault = pointToView.type === 'fault';
+          const actionLetter = ACTION_SHORT[pointToView.action] ?? null;
+          const cx = (sidesSwapped ? (1 - pointToView.x) : pointToView.x) * 600;
+          const cy = pointToView.y * 400;
+
+          const playerLabel = pointToView.playerId && playerAliases?.[pointToView.playerId]
+            ? playerAliases[pointToView.playerId]
+            : null;
+
+          return (
+            <g>
+              <circle cx={cx} cy={cy} r={14} fill={isFault ? 'transparent' : color} opacity={0.9} stroke={color} strokeWidth={isFault ? 3 : 2} strokeDasharray={isFault ? '4 3' : 'none'}>
+                <animate attributeName="r" values="12;16;14" dur="0.5s" fill="freeze" />
+              </circle>
+              {actionLetter && (
+                <text x={cx} y={cy + 5} textAnchor="middle" fill={isFault ? color : 'white'} fontSize="13" fontWeight="bold">{actionLetter}</text>
+              )}
+              {playerLabel && (
+                <g>
+                  <rect x={cx - 35} y={cy - 30} width={70} height={16} rx={4} fill="hsl(var(--card))" opacity={0.9} stroke={color} strokeWidth={1} />
+                  <text x={cx} y={cy - 18} textAnchor="middle" fill="hsl(var(--foreground))" fontSize="9" fontWeight="bold">{playerLabel}</text>
+                </g>
+              )}
             </g>
           );
         })()}

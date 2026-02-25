@@ -317,7 +317,16 @@
     "points": "Points",
     "pointWon": "Point won",
     "faultCommitted": "Fault committed",
-    "point": "Point"
+    "point": "Point",
+    "rallyActions": "{{count}} actions",
+    "viewPoint": "View this point"
+  },
+  "playByPlay": {
+    "backToLive": "Back to live",
+    "pointOf": "Point {{current}}/{{total}}",
+    "point": "Point",
+    "actionOf": "Action {{current}}/{{total}}",
+    "viewMode": "Visualization mode"
   },
   "analysis": {
     "analyze": "Analysis",
