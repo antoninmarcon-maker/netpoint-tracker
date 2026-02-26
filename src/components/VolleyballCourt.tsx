@@ -187,27 +187,28 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
     (clientX: number, clientY: number) => {
       if (!courtRef.current) return;
       
+      const rect = courtRef.current.getBoundingClientRect();
+      const rawX = (clientX - rect.left) / rect.width;
+      const y = (clientY - rect.top) / rect.height;
+      
+      // Normalize X so stored coordinates are always from blue's perspective (left=blue)
+      const normalizedX = sidesSwapped ? 1 - rawX : rawX;
+      
       // Direction mode: allow any click for destination
       if (pendingDirectionAction && directionOrigin) {
-        const rect = courtRef.current.getBoundingClientRect();
-        const x = (clientX - rect.left) / rect.width;
-        const y = (clientY - rect.top) / rect.height;
-        onCourtClick(x, y);
+        onCourtClick(normalizedX, y);
         return;
       }
       
       if (!hasSelection) return;
-      const rect = courtRef.current.getBoundingClientRect();
-      const x = (clientX - rect.left) / rect.width;
-      const y = (clientY - rect.top) / rect.height;
       
-      // Convert to SVG coords for zone check
-      const svgX = x * 600;
+      // Zone check uses raw (physical) coordinates
+      const svgX = rawX * 600;
       const svgY = y * 400;
       const zone = getClickZone(svgX, svgY);
       
       if (isZoneAllowed(zone, selectedTeam!, selectedAction!, selectedPointType!, sidesSwapped)) {
-        onCourtClick(x, y);
+        onCourtClick(normalizedX, y);
       }
     },
     [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped, onCourtClick, pendingDirectionAction, directionOrigin]

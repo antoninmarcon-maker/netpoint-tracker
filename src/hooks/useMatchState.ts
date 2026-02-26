@@ -190,12 +190,16 @@ export function useMatchState(matchId: string, ready: boolean = true) {
   }, [currentRallyActions, players.length]);
 
   const addPoint = useCallback((x: number, y: number) => {
+    // Priority: intercept 2nd direction click before any other check
+    if (pendingDirectionAction && directionOrigin) {
+      completeDirectionAction(x, y);
+      setSelectedTeam(null);
+      setSelectedPointType(null);
+      setSelectedAction(null);
+      return;
+    }
+
     if (!selectedTeam || !selectedPointType || !selectedAction) {
-      // Check if we're in direction completion mode
-      if (pendingDirectionAction && directionOrigin) {
-        completeDirectionAction(x, y);
-        return;
-      }
       return;
     }
     if (!chronoRunning) {
@@ -214,12 +218,10 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     const hasDirection = (window as any).__pendingHasDirection;
     if (hasDirection !== undefined) delete (window as any).__pendingHasDirection;
 
-    // --- Performance Mode with direction: 2-click flow ---
+    // --- Performance Mode with direction: 1st click (origin) ---
     if (isPerformanceMode && hasDirection && !directionOrigin) {
       startDirectionMode(selectedTeam, selectedPointType, selectedAction, x, y, customLabel, customSigil, customShowOnCourt);
-      setSelectedTeam(null);
-      setSelectedPointType(null);
-      setSelectedAction(null);
+      // Do NOT clear selectedTeam here — keeps the "touch destination" banner visible
       return;
     }
 
