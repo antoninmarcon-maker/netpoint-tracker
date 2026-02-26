@@ -357,6 +357,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
   };
 
   const [waitingForNewSet, setWaitingForNewSet] = useState(false);
+  const [lastEndedSetScore, setLastEndedSetScore] = useState<{ blue: number; red: number } | null>(null);
 
   const endSet = useCallback(() => {
     if (points.length === 0) return;
@@ -370,6 +371,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       duration: chronoSeconds,
     };
     setCompletedSets(prev => [...prev, setData]);
+    setLastEndedSetScore({ ...score });
     setPoints([]);
     setCurrentRallyActions([]);
     setSelectedTeam(null);
@@ -383,6 +385,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     setCurrentSetNumber(prev => prev + 1);
     setSidesSwapped(prev => !prev);
     setWaitingForNewSet(false);
+    setLastEndedSetScore(null);
   }, []);
 
   const finishMatch = useCallback(() => {
@@ -500,6 +503,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     endSet,
     startNewSet,
     waitingForNewSet,
+    lastEndedSetScore,
     finishMatch,
     resetMatch,
     switchSides,
