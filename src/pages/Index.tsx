@@ -65,7 +65,7 @@ const Index = () => {
     isPerformanceMode, currentRallyActions, rallyInProgress, directionOrigin, pendingDirectionAction, canUndo,
     setTeamNames, setPlayers, selectAction, cancelSelection, addPoint,
     assignPlayer, skipPlayerAssignment,
-    undo, endSet, startNewSet, waitingForNewSet, resetMatch, switchSides, startChrono, pauseChrono,
+    undo, endSet, startNewSet, waitingForNewSet, lastEndedSetScore, resetMatch, switchSides, startChrono, pauseChrono,
   } = matchState;
 
   const matchData2 = getMatch(matchId ?? '');
@@ -232,9 +232,9 @@ const Index = () => {
               score={score} points={points} selectedTeam={selectedTeam} selectedPointType={selectedPointType} selectedAction={selectedAction}
               currentSetNumber={currentSetNumber} teamNames={teamNames} sidesSwapped={sidesSwapped} chronoRunning={chronoRunning} chronoSeconds={chronoSeconds}
               servingTeam={servingTeam} sport={sport} metadata={metadata}
-              onSelectAction={selectAction} onCancelSelection={cancelSelection} onUndo={undo} onEndSet={endSet} onReset={resetMatch}
+              onSelectAction={selectAction} onCancelSelection={cancelSelection} onUndo={undo} onEndSet={endSet} onFinishMatch={matchState.finishMatch} onReset={resetMatch}
               onSwitchSides={switchSides} onStartChrono={startChrono} onPauseChrono={pauseChrono} onSetTeamNames={setTeamNames}
-              canUndo={canUndo} isFinished={isFinished} waitingForNewSet={waitingForNewSet} onStartNewSet={startNewSet}
+              canUndo={canUndo} isFinished={isFinished} waitingForNewSet={waitingForNewSet} lastEndedSetScore={lastEndedSetScore} onStartNewSet={startNewSet}
               rallyInProgress={rallyInProgress} rallyActionCount={currentRallyActions.length}
             />
             {/* Direction mode indicator */}

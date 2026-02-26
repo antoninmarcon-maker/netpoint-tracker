@@ -1,4 +1,4 @@
-import { Undo2, RotateCcw, Flag, ArrowLeftRight, Play, Pause, Timer, Pencil, Plus, X, ChevronDown } from 'lucide-react';
+import { Undo2, RotateCcw, Flag, ArrowLeftRight, Play, Pause, Timer, Pencil, Plus, X, ChevronDown, Trophy, Square } from 'lucide-react';
 import { Team, PointType, ActionType, SportType, Point, MatchMetadata, getScoredActionsForSport, getFaultActionsForSport, getNeutralActionsForSport, getPeriodLabel } from '@/types/sports';
 import { getVisibleActions } from '@/lib/actionsConfig';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,7 @@ interface ScoreBoardProps {
   onUndo: () => void;
   onReset: () => void;
   onEndSet: () => void;
+  onFinishMatch: () => void;
   onSwitchSides: () => void;
   onStartChrono: () => void;
   onPauseChrono: () => void;
@@ -32,6 +33,7 @@ interface ScoreBoardProps {
   canUndo: boolean;
   isFinished?: boolean;
   waitingForNewSet?: boolean;
+  lastEndedSetScore?: { blue: number; red: number } | null;
   onStartNewSet?: () => void;
   /** Performance Mode props */
   rallyInProgress?: boolean;
@@ -48,11 +50,11 @@ type MenuTab = 'scored' | 'fault' | 'neutral';
 
 export function ScoreBoard({
   score, points, selectedTeam, selectedPointType, selectedAction,
-  onSelectAction, onCancelSelection, onUndo, onReset, onEndSet, onSwitchSides,
+  onSelectAction, onCancelSelection, onUndo, onReset, onEndSet, onFinishMatch, onSwitchSides,
   onStartChrono, onPauseChrono, onSetTeamNames, canUndo,
   currentSetNumber, teamNames, sidesSwapped, chronoRunning, chronoSeconds,
   servingTeam, sport, metadata,
-  isFinished = false, waitingForNewSet = false, onStartNewSet,
+  isFinished = false, waitingForNewSet = false, lastEndedSetScore, onStartNewSet,
   rallyInProgress = false, rallyActionCount = 0,
 }: ScoreBoardProps) {
   const { t } = useTranslation();
@@ -61,6 +63,7 @@ export function ScoreBoard({
   const [menuTeam, setMenuTeam] = useState<Team | null>(null);
   const [menuTab, setMenuTab] = useState<MenuTab>('scored');
   const [confirmEndSet, setConfirmEndSet] = useState(false);
+  const [confirmEndMatch, setConfirmEndMatch] = useState(false);
 
   const periodLabel = getPeriodLabel(sport);
 
@@ -293,15 +296,42 @@ export function ScoreBoard({
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('scoreboard.matchFinished')}</p>
         </div>
       ) : waitingForNewSet ? (
-        <div className="space-y-2">
-          <div className="bg-primary/10 rounded-lg p-3 text-center border border-primary/20">
-            <p className="text-xs font-semibold text-primary">{t('scoreboard.periodFinished', { period: periodLabel })}</p>
+        <div className="space-y-3">
+          <div className="bg-primary/10 rounded-xl p-4 text-center border border-primary/20 space-y-1">
+            <p className="text-sm font-bold text-primary">{t('scoreboard.periodFinished', { period: periodLabel })}</p>
+            {lastEndedSetScore && (
+              <p className="text-xs text-muted-foreground">
+                <Trophy size={12} className="inline mr-1" />
+                {t('scoreboard.setWinner', { team: lastEndedSetScore.blue >= lastEndedSetScore.red ? teamNames.blue : teamNames.red })} — <span className="font-bold text-team-blue">{lastEndedSetScore.blue}</span> – <span className="font-bold text-team-red">{lastEndedSetScore.red}</span>
+              </p>
+            )}
           </div>
-          <button onClick={onStartNewSet} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm transition-all active:scale-[0.98] hover:opacity-90">
-            <Play size={16} /> {t('scoreboard.newPeriod', { period: periodLabel })}
-          </button>
+          <div className="flex gap-3">
+            <button onClick={onStartNewSet} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm transition-all active:scale-[0.98] hover:opacity-90">
+              <Play size={16} /> {t('scoreboard.newPeriod', { period: periodLabel })}
+            </button>
+            <button onClick={() => setConfirmEndMatch(true)} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-secondary text-secondary-foreground font-bold text-sm transition-all active:scale-[0.98] hover:bg-secondary/80 border border-border">
+              <Square size={16} /> {t('scoreboard.endMatch')}
+            </button>
+          </div>
         </div>
       ) : null}
+
+      {/* AlertDialog: Confirm end match */}
+      {confirmEndMatch && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setConfirmEndMatch(false)}>
+          <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4 animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-foreground text-center">{t('scoreboard.confirmEndMatchTitle')}</h2>
+            <p className="text-sm text-muted-foreground text-center">{t('scoreboard.confirmEndMatchDesc')}</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmEndMatch(false)} className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm">{t('common.cancel')}</button>
+              <button onClick={() => { setConfirmEndMatch(false); onFinishMatch(); }} className="flex-1 py-2.5 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm flex items-center justify-center gap-1.5">
+                <Square size={14} /> {t('scoreboard.confirmEndMatchAction')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmEndSet && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setConfirmEndSet(false)}>
