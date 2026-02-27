@@ -193,9 +193,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     // Priority: intercept 2nd direction click before any other check
     if (pendingDirectionAction && directionOrigin) {
       completeDirectionAction(x, y);
-      setSelectedTeam(null);
-      setSelectedPointType(null);
-      setSelectedAction(null);
+      cancelSelection();
       return;
     }
 
@@ -271,7 +269,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     setSelectedTeam(null);
     setSelectedPointType(null);
     setSelectedAction(null);
-  }, [selectedTeam, selectedPointType, selectedAction, chronoRunning, players.length, isPerformanceMode, directionOrigin, pendingDirectionAction, completeDirectionAction, startDirectionMode, processRallyAction]);
+  }, [selectedTeam, selectedPointType, selectedAction, chronoRunning, players.length, isPerformanceMode, directionOrigin, pendingDirectionAction, completeDirectionAction, cancelSelection, startDirectionMode, processRallyAction]);
 
   const assignPlayer = useCallback((playerId: string) => {
     if (!pendingPoint) return;
