@@ -315,8 +315,27 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
               const color = point.team === 'blue' ? 'hsl(217, 91%, 60%)' : 'hsl(0, 84%, 60%)';
               const isFault = point.type === 'fault';
               const actionLetter = ACTION_SHORT[point.action] ?? null;
+
+              // Direction arrow from rally actions
+              const concludingAction = point.rallyActions?.[point.rallyActions.length - 1];
+              const hasDir = concludingAction?.startX != null && concludingAction?.endX != null;
+              const sx = hasDir ? (sidesSwapped ? (1 - concludingAction!.startX!) : concludingAction!.startX!) * 600 : 0;
+              const sy = hasDir ? concludingAction!.startY! * 400 : 0;
+              const ex = hasDir ? (sidesSwapped ? (1 - concludingAction!.endX!) : concludingAction!.endX!) * 600 : 0;
+              const ey = hasDir ? concludingAction!.endY! * 400 : 0;
+
               return (
                 <g key={point.id} className="animate-point-drop">
+                  {hasDir && (
+                    <>
+                      <defs>
+                        <marker id={`arrow-${point.id}`} markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                          <polygon points="0 0, 10 3.5, 0 7" fill={color} />
+                        </marker>
+                      </defs>
+                      <line x1={sx} y1={sy} x2={ex} y2={ey} stroke={color} strokeWidth={2.5} markerEnd={`url(#arrow-${point.id})`} opacity={0.6} />
+                    </>
+                  )}
                   <circle cx={cx} cy={cy} r={9} fill={isFault ? 'transparent' : color} opacity={0.85} stroke={color} strokeWidth={isFault ? 2 : 1.5} strokeDasharray={isFault ? '3 2' : 'none'} />
                   {isFault && !actionLetter && (
                     <>
