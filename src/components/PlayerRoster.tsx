@@ -296,6 +296,20 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
               <DialogHeader>
                 <DialogTitle className="text-center text-lg font-bold">{t('roster.importTitle')}</DialogTitle>
               </DialogHeader>
+              <div className="flex justify-end gap-2 mb-1">
+                <button
+                  onClick={() => {
+                    if (selectedImportIds.size === availableForImport.length) {
+                      setSelectedImportIds(new Set());
+                    } else {
+                      setSelectedImportIds(new Set(availableForImport.map(sp => sp.id)));
+                    }
+                  }}
+                  className="text-[11px] font-semibold text-primary hover:underline"
+                >
+                  {selectedImportIds.size === availableForImport.length ? t('roster.deselectAll') : t('roster.selectAll')}
+                </button>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 {availableForImport.map(sp => {
                   const num = jerseyEnabled ? (getPlayerNumber(sp.id) || sp.number) : undefined;

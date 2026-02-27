@@ -249,6 +249,8 @@
     "importTitle": "Add saved players",
     "matchesPlayed": "{{count}} match(es)",
     "confirmImport": "Add ({{count}})",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
     "playerNamePlaceholder": "Player name",
     "addNewPlayer": "Add a player",
     "collapseMenu": "Collapse"
