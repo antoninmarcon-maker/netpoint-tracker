@@ -249,6 +249,8 @@
     "importTitle": "Ajouter des joueurs sauvegardés",
     "matchesPlayed": "{{count}} match(s)",
     "confirmImport": "Ajouter ({{count}})",
+    "selectAll": "Tout sélectionner",
+    "deselectAll": "Tout désélectionner",
     "playerNamePlaceholder": "Nom du joueur",
     "addNewPlayer": "Ajouter un joueur",
     "collapseMenu": "Replier"
