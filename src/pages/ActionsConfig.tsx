@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { PointType, getScoredActionsForSport, getFaultActionsForSport, getNeutralActionsForSport } from '@/types/sports';
 import {
   getActionsConfig, toggleActionVisibility, addCustomAction,
-  updateCustomAction, deleteCustomAction,
+  updateCustomAction, deleteCustomAction, updateDefaultActionConfig
 } from '@/lib/actionsConfig';
 import type { ActionsConfig as ActionsConfigType } from '@/lib/actionsConfig';
 
@@ -34,6 +34,11 @@ export default function ActionsConfig() {
   const sport = 'volleyball' as const;
 
   const handleToggle = useCallback((key: string) => { setConfig(toggleActionVisibility(key)); }, []);
+
+  const handleUpdateDefault = useCallback((key: string) => {
+    setConfig(updateDefaultActionConfig(key, editAssignToPlayer, editHasDirection, editHasRating));
+    setEditingId(null);
+  }, [editAssignToPlayer, editHasDirection, editHasRating]);
 
   const handleAdd = useCallback(() => {
     if (!newLabel.trim() || !addingCategory) return;
@@ -70,30 +75,65 @@ export default function ActionsConfig() {
         {defaultActions.map(a => {
           const isHidden = config.hiddenActions.includes(a.key);
           const desc = (a as any).description;
+          const overrides = config.defaultActionsConfig?.[a.key] || {};
+          const isEditing = editingId === a.key;
+
+          const currentAssignToPlayer = overrides.assignToPlayer ?? true;
+          const currentHasDirection = overrides.hasDirection ?? false;
+          const currentHasRating = overrides.hasRating ?? (a as any).hasRating ?? (['attack'].includes(a.key) || ['Réception', 'Passe', 'Service', 'Attaque', 'Défense', 'Block', 'block'].includes(a.label));
+
           return (
             <div key={a.key} className={`rounded-lg border transition-all ${isHidden ? 'border-border/50 bg-muted/30 opacity-60' : 'border-border bg-card'}`}>
               <div className="flex items-center justify-between p-3">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <span className="text-sm font-medium text-foreground">{t(`actions.${a.key}`, a.label)}</span>
-                  {desc && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const el = (e.currentTarget.parentElement?.parentElement?.nextElementSibling as HTMLElement);
-                        if (el) el.classList.toggle('hidden');
-                      }}
-                      className="p-0.5 rounded text-muted-foreground hover:text-foreground transition-colors"
-                      title={t('actionsConfig.showDesc')}
-                    >
-                      <Info size={14} />
-                    </button>
-                  )}
-                </div>
-                <button onClick={() => handleToggle(a.key)} className="p-1.5 rounded-md hover:bg-secondary transition-colors" title={isHidden ? t('actionsConfig.show') : t('actionsConfig.hide')}>
-                  {isHidden ? <EyeOff size={16} className="text-muted-foreground" /> : <Eye size={16} className="text-foreground" />}
-                </button>
+                {isEditing ? (
+                  <div className="flex items-center gap-2 flex-1 flex-wrap">
+                    <span className="text-sm font-medium text-foreground flex-1 min-w-[100px]">{t(`actions.${a.key}`, a.label)}</span>
+                    <div className="flex items-center gap-1.5"><Switch checked={editAssignToPlayer} onCheckedChange={setEditAssignToPlayer} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.assignToPlayer')}</Label></div>
+                    <div className="flex items-center gap-1.5"><Switch checked={editHasDirection} onCheckedChange={setEditHasDirection} className="scale-75" /><Label className="text-[10px] text-muted-foreground">Indiquer une trajectoire</Label></div>
+                    <div className="flex items-center gap-1.5"><Switch checked={editHasRating} onCheckedChange={setEditHasRating} className="scale-75" /><Label className="text-[10px] text-muted-foreground">Évaluer la qualité (+ / -)</Label></div>
+                    <button onClick={() => handleUpdateDefault(a.key)} className="p-1 text-primary"><Check size={16} /></button>
+                    <button onClick={() => setEditingId(null)} className="p-1 text-muted-foreground"><X size={16} /></button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-sm font-medium text-foreground">
+                        {t(`actions.${a.key}`, a.label)}
+                        {currentHasDirection && <span className="ml-1 text-[10px] text-muted-foreground">🎯</span>}
+                        {currentAssignToPlayer === false && <span className="ml-1 text-[10px] text-muted-foreground">👤✗</span>}
+                        {currentHasRating && <span className="ml-1 text-[10px] text-muted-foreground">⭐️</span>}
+                      </span>
+                      {desc && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const el = (e.currentTarget.parentElement?.parentElement?.nextElementSibling as HTMLElement);
+                            if (el) el.classList.toggle('hidden');
+                          }}
+                          className="p-0.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+                          title={t('actionsConfig.showDesc')}
+                        >
+                          <Info size={14} />
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => handleToggle(a.key)} className="p-1.5 rounded-md hover:bg-secondary transition-colors" title={isHidden ? t('actionsConfig.show') : t('actionsConfig.hide')}>
+                        {isHidden ? <EyeOff size={14} className="text-muted-foreground" /> : <Eye size={14} className="text-foreground" />}
+                      </button>
+                      {a.key !== 'timeout' && (
+                        <button onClick={() => {
+                          setEditingId(a.key);
+                          setEditAssignToPlayer(currentAssignToPlayer);
+                          setEditHasDirection(currentHasDirection);
+                          setEditHasRating(currentHasRating);
+                        }} className="p-1.5 rounded-md hover:bg-secondary transition-colors"><Pencil size={14} className="text-muted-foreground" /></button>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
-              {desc && (
+              {desc && !isEditing && (
                 <div className="hidden px-3 pb-3 -mt-1">
                   <p className="text-xs text-muted-foreground bg-secondary/50 rounded-md px-2.5 py-1.5">{t(desc)}</p>
                 </div>
