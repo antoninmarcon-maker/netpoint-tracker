@@ -286,8 +286,8 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     let text = `🏐 Match : ${teamNames.blue} vs ${teamNames.red}\n📊 Score Sets : ${setsBlue}-${setsRed}`;
     if (details) text += `\n📋 Détails : ${details}`;
     if (currentSetPoints.length > 0) {
-      const blueNow = currentSetPoints.filter(p => p.team === 'blue').length;
-      const redNow = currentSetPoints.filter(p => p.team === 'red').length;
+      const blueNow = currentSetPoints.filter(p => p.team === 'blue' && p.type !== 'neutral').length;
+      const redNow = currentSetPoints.filter(p => p.team === 'red' && p.type !== 'neutral').length;
       text += `\n⏳ Set ${currentSetNumber} en cours : ${blueNow}-${redNow}`;
     }
     return text;
@@ -311,7 +311,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
 
   const shareNative = useCallback(async () => {
     if (navigator.share) {
-      try { await navigator.share({ text: getScoreText() }); } catch {}
+      try { await navigator.share({ text: getScoreText() }); } catch { }
     } else { copyScoreText(); }
   }, [getScoreText, copyScoreText]);
 
@@ -442,11 +442,10 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
             <button
               key={o.key}
               onClick={() => setSetFilter(o.key)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                setFilter_ === o.key
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${setFilter_ === o.key
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              }`}
+                }`}
             >
               {o.label}
             </button>
@@ -496,7 +495,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
 
                 <div className="flex justify-between border-t border-border pt-1 mt-1">
                   <span className="text-muted-foreground text-xs">{t('common.total')}</span>
-                  <span className="font-bold text-foreground text-xs">{ds[team].scored + ds[team].faults}</span>
+                  <span className="font-bold text-foreground text-xs">{ds[team].scored + ds[team].faults + ds[team].neutral}</span>
                 </div>
               </div>
             </div>
@@ -526,14 +525,14 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
         <PointTimeline points={filteredPoints} teamNames={teamNames} onSelectPoint={onSelectPoint} viewingPointIndex={viewingPointIndex} />
       )}
 
-        {hasCourt && setFilter_ !== 'all' && showCourt && (
-          <div className="space-y-1">
-            <p className="text-[10px] text-center text-muted-foreground">
-              {t('heatmap.court')} — {setOptions.find(o => o.key === setFilter_)?.label}
-            </p>
-            <CourtDisplay points={filteredPoints} teamNames={teamNames} sport={sport} />
-          </div>
-        )}
+      {hasCourt && setFilter_ !== 'all' && showCourt && (
+        <div className="space-y-1">
+          <p className="text-[10px] text-center text-muted-foreground">
+            {t('heatmap.court')} — {setOptions.find(o => o.key === setFilter_)?.label}
+          </p>
+          <CourtDisplay points={filteredPoints} teamNames={teamNames} sport={sport} />
+        </div>
+      )}
 
       <div className="flex gap-2 flex-wrap">
         {setFilter_ !== 'all' && (

@@ -34,7 +34,7 @@ export function PlayByPlayNavigator({
   cumulativeMode = true, onToggleCumulative,
 }: PlayByPlayNavigatorProps) {
   const { t } = useTranslation();
-  
+
   const isOverview = viewingPointIndex === null;
   const point = isOverview ? null : points[viewingPointIndex];
   const lastIndex = points.length - 1;
@@ -100,11 +100,24 @@ export function PlayByPlayNavigator({
             <Eye size={14} /> Replay
           </div>
         )}
-        <span className="text-xs text-muted-foreground font-mono">
-          {isOverview
-            ? t('playByPlay.overview', { total: points.length, defaultValue: `Vue d'ensemble · ${points.length} pts` })
-            : t('playByPlay.pointOf', { current: viewingPointIndex! + 1, total: points.length })}
-        </span>
+        <div className="flex items-center gap-2">
+          {hasRally && !isOverview && onToggleCumulative && (
+            <div className="flex items-center gap-1.5">
+              <Layers size={12} className="text-muted-foreground" />
+              <span className="text-[10px] text-muted-foreground">Cumul</span>
+              <Switch
+                checked={cumulativeMode}
+                onCheckedChange={onToggleCumulative}
+                className="scale-75"
+              />
+            </div>
+          )}
+          <span className="text-xs text-muted-foreground font-mono">
+            {isOverview
+              ? t('playByPlay.overview', { total: points.length, defaultValue: `Vue d'ensemble · ${points.length} pts` })
+              : t('playByPlay.pointOf', { current: viewingPointIndex! + 1, total: points.length })}
+          </span>
+        </div>
       </div>
 
       {/* Point navigation */}
