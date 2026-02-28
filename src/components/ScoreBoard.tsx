@@ -325,8 +325,8 @@ export function ScoreBoard({
             <p className="text-sm text-muted-foreground text-center">{t('scoreboard.confirmEndMatchDesc')}</p>
             <div className="flex gap-3">
               <button onClick={() => setConfirmEndMatch(false)} className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm">{t('common.cancel')}</button>
-              <button onClick={() => { setConfirmEndMatch(false); onFinishMatch(); }} className="flex-1 py-2.5 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm flex items-center justify-center gap-1.5">
-                <Square size={14} /> {t('scoreboard.confirmEndMatchAction')}
+              <button onClick={() => { setConfirmEndMatch(false); onFinishMatch(); }} className="flex-1 py-2.5 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm flex items-center justify-center">
+                {t('scoreboard.confirmEndMatchAction')}
               </button>
             </div>
           </div>
