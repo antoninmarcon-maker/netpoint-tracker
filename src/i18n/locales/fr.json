@@ -340,7 +340,8 @@
     "pointOf": "Point {{current}}/{{total}}",
     "point": "Point",
     "actionOf": "Action {{current}}/{{total}}",
-    "viewMode": "Mode visualisation"
+    "viewMode": "Mode visualisation",
+    "overview": "Vue d'ensemble · {{total}} pts"
   },
   "analysis": {
     "analyze": "Analyse",

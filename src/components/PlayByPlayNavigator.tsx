@@ -1,14 +1,18 @@
-import { ChevronLeft, ChevronRight, Radio, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Radio, Eye } from 'lucide-react';
 import { Point, RallyAction, ActionType } from '@/types/sports';
 import { useTranslation } from 'react-i18next';
 
 interface PlayByPlayNavigatorProps {
   points: Point[];
+  /** -1 = overview (all points), 0+ = specific point */
   viewingPointIndex: number;
   viewingActionIndex: number;
   onChangePoint: (index: number) => void;
   onChangeAction: (index: number) => void;
-  onBackToLive: () => void;
+  onBackToLive?: () => void;
+  /** If true, we're in finished-match replay (no "back to live" button) */
+  isReplayMode?: boolean;
+  isPerformanceMode?: boolean;
 }
 
 const ACTION_LABELS: Partial<Record<ActionType, string>> = {
@@ -22,13 +26,15 @@ const ACTION_LABELS: Partial<Record<ActionType, string>> = {
 export function PlayByPlayNavigator({
   points, viewingPointIndex, viewingActionIndex,
   onChangePoint, onChangeAction, onBackToLive,
+  isReplayMode = false, isPerformanceMode = false,
 }: PlayByPlayNavigatorProps) {
   const { t } = useTranslation();
-  const point = points[viewingPointIndex];
-  if (!point) return null;
+  
+  const isOverview = viewingPointIndex === -1;
+  const point = isOverview ? null : points[viewingPointIndex];
 
-  const rallyActions = point.rallyActions ?? [];
-  const hasRally = rallyActions.length > 0;
+  const rallyActions = point?.rallyActions ?? [];
+  const hasRally = isPerformanceMode && rallyActions.length > 0;
   const currentAction: RallyAction | null = hasRally ? rallyActions[viewingActionIndex] ?? null : null;
 
   const actionLabel = currentAction
@@ -37,37 +43,59 @@ export function PlayByPlayNavigator({
 
   return (
     <div className="bg-card rounded-xl border border-border p-3 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
-      {/* Back to live button */}
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <button
-          onClick={onBackToLive}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-destructive text-destructive-foreground hover:opacity-90 transition-all"
-        >
-          <Radio size={14} /> {t('playByPlay.backToLive')}
-        </button>
+        {!isReplayMode && onBackToLive ? (
+          <button
+            onClick={onBackToLive}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-destructive text-destructive-foreground hover:opacity-90 transition-all"
+          >
+            <Radio size={14} /> {t('playByPlay.backToLive')}
+          </button>
+        ) : (
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+            <Eye size={14} /> Replay
+          </div>
+        )}
         <span className="text-xs text-muted-foreground font-mono">
-          {t('playByPlay.pointOf', { current: viewingPointIndex + 1, total: points.length })}
+          {isOverview
+            ? t('playByPlay.overview', `Vue d'ensemble · ${points.length} pts`)
+            : t('playByPlay.pointOf', { current: viewingPointIndex + 1, total: points.length })}
         </span>
       </div>
 
-      {/* Point navigation */}
-      <div className="flex items-center justify-between gap-2">
+      {/* Point navigation with first/last buttons */}
+      <div className="flex items-center justify-between gap-1">
+        <button
+          onClick={() => onChangePoint(-1)}
+          disabled={isOverview}
+          className="p-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all"
+          title="Vue d'ensemble"
+        >
+          <ChevronsLeft size={16} />
+        </button>
         <button
           onClick={() => onChangePoint(viewingPointIndex - 1)}
-          disabled={viewingPointIndex <= 0}
+          disabled={isOverview}
           className="p-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all"
         >
           <ChevronLeft size={18} />
         </button>
-        <div className="flex-1 text-center">
-          <p className="text-sm font-bold text-foreground">
-            {t('playByPlay.point')} #{viewingPointIndex + 1}
-          </p>
-          <p className={`text-xs font-semibold ${point.team === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>
-            {point.type === 'scored' ? '⚡' : point.type === 'fault' ? '❌' : '📊'}{' '}
-            {point.customActionLabel || t(`actions.${point.action}`, ACTION_LABELS[point.action] ?? point.action)}
-            {hasRally && <span className="ml-1 text-muted-foreground">({rallyActions.length} actions)</span>}
-          </p>
+        <div className="flex-1 text-center min-w-0">
+          {isOverview ? (
+            <p className="text-sm font-bold text-primary">🗺️ Vue d'ensemble</p>
+          ) : point ? (
+            <>
+              <p className="text-sm font-bold text-foreground">
+                Point #{viewingPointIndex + 1}
+              </p>
+              <p className={`text-xs font-semibold truncate ${point.team === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>
+                {point.type === 'scored' ? '⚡' : point.type === 'fault' ? '❌' : '📊'}{' '}
+                {point.customActionLabel || t(`actions.${point.action}`, ACTION_LABELS[point.action] ?? point.action)}
+                {hasRally && <span className="ml-1 text-muted-foreground">({rallyActions.length} actions)</span>}
+              </p>
+            </>
+          ) : null}
         </div>
         <button
           onClick={() => onChangePoint(viewingPointIndex + 1)}
@@ -76,10 +104,18 @@ export function PlayByPlayNavigator({
         >
           <ChevronRight size={18} />
         </button>
+        <button
+          onClick={() => onChangePoint(points.length - 1)}
+          disabled={viewingPointIndex >= points.length - 1}
+          className="p-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all"
+          title="Dernier point"
+        >
+          <ChevronsRight size={16} />
+        </button>
       </div>
 
-      {/* Rally sub-action navigation */}
-      {hasRally && (
+      {/* Rally sub-action navigation (only in performance mode with rally data) */}
+      {hasRally && !isOverview && (
         <div className="flex items-center justify-between gap-2 bg-muted/50 rounded-lg p-2">
           <button
             onClick={() => onChangeAction(viewingActionIndex - 1)}

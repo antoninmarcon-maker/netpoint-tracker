@@ -136,16 +136,18 @@ export function ScoreBoard({
       {/* Set + Chrono */}
       <div className="flex items-center justify-between">
         <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{periodLabel} {currentSetNumber}</p>
-        <div className="flex items-center gap-2">
-          <Timer size={14} className="text-muted-foreground" />
-          <span className="text-sm font-mono font-bold text-foreground tabular-nums">{formatTime(chronoSeconds)}</span>
-          <button
-            onClick={chronoRunning ? onPauseChrono : onStartChrono}
-            className={`p-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all ${!chronoRunning && !isFinished ? 'animate-pulse ring-2 ring-primary/40' : ''}`}
-          >
-            {chronoRunning ? <Pause size={12} /> : <Play size={12} />}
-          </button>
-        </div>
+        {!isFinished && (
+          <div className="flex items-center gap-2">
+            <Timer size={14} className="text-muted-foreground" />
+            <span className="text-sm font-mono font-bold text-foreground tabular-nums">{formatTime(chronoSeconds)}</span>
+            <button
+              onClick={chronoRunning ? onPauseChrono : onStartChrono}
+              className={`p-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all ${!chronoRunning ? 'animate-pulse ring-2 ring-primary/40' : ''}`}
+            >
+              {chronoRunning ? <Pause size={12} /> : <Play size={12} />}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Rally in progress badge */}
@@ -172,23 +174,25 @@ export function ScoreBoard({
       )}
 
       {/* Team names editing */}
-      {editingNames ? (
-        <div className="flex gap-2 items-end">
-          <div className="flex-1">
-            <label className="text-xs text-team-blue font-semibold">{t('scoreboard.blueTeam')}</label>
-            <Input value={nameInputs.blue} onChange={e => setNameInputs(prev => ({ ...prev, blue: e.target.value }))} className="h-8 text-sm" placeholder={t('scoreboard.blue')} />
+      {!isFinished ? (
+        editingNames ? (
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <label className="text-xs text-team-blue font-semibold">{t('scoreboard.blueTeam')}</label>
+              <Input value={nameInputs.blue} onChange={e => setNameInputs(prev => ({ ...prev, blue: e.target.value }))} className="h-8 text-sm" placeholder={t('scoreboard.blue')} />
+            </div>
+            <div className="flex-1">
+              <label className="text-xs text-team-red font-semibold">{t('scoreboard.redTeam')}</label>
+              <Input value={nameInputs.red} onChange={e => setNameInputs(prev => ({ ...prev, red: e.target.value }))} className="h-8 text-sm" placeholder={t('scoreboard.red')} />
+            </div>
+            <button onClick={saveNames} className="px-3 py-1.5 text-xs font-semibold rounded-md bg-primary text-primary-foreground">OK</button>
           </div>
-          <div className="flex-1">
-            <label className="text-xs text-team-red font-semibold">{t('scoreboard.redTeam')}</label>
-            <Input value={nameInputs.red} onChange={e => setNameInputs(prev => ({ ...prev, red: e.target.value }))} className="h-8 text-sm" placeholder={t('scoreboard.red')} />
-          </div>
-          <button onClick={saveNames} className="px-3 py-1.5 text-xs font-semibold rounded-md bg-primary text-primary-foreground">OK</button>
-        </div>
-      ) : (
-        <button onClick={() => { setNameInputs(teamNames); setEditingNames(true); }} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto">
-          <Pencil size={10} /> {t('scoreboard.editNames')}
-        </button>
-      )}
+        ) : (
+          <button onClick={() => { setNameInputs(teamNames); setEditingNames(true); }} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto">
+            <Pencil size={10} /> {t('scoreboard.editNames')}
+          </button>
+        )
+      ) : null}
 
       {/* Score display */}
       <div className="flex items-center justify-center gap-4">
@@ -203,15 +207,17 @@ export function ScoreBoard({
               <ChevronDown size={28} strokeWidth={3} className={`${left === 'blue' ? 'text-team-blue' : 'text-team-red'} opacity-60 animate-bounce`} />
             </div>
           )}
-          <button
-            onClick={() => openMenu(left)}
-            disabled={!!selectedTeam || isFinished || waitingForNewSet}
-            className={`mt-2 w-full py-3 rounded-xl font-bold text-lg transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${
-              left === 'blue' ? 'bg-team-blue/20 text-team-blue border-2 border-team-blue/30 hover:bg-team-blue/30' : 'bg-team-red/20 text-team-red border-2 border-team-red/30 hover:bg-team-red/30'
-            }`}
-          >
-            <Plus size={24} className="mx-auto" />
-          </button>
+          {!isFinished && (
+            <button
+              onClick={() => openMenu(left)}
+              disabled={!!selectedTeam || waitingForNewSet}
+              className={`mt-2 w-full py-3 rounded-xl font-bold text-lg transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${
+                left === 'blue' ? 'bg-team-blue/20 text-team-blue border-2 border-team-blue/30 hover:bg-team-blue/30' : 'bg-team-red/20 text-team-red border-2 border-team-red/30 hover:bg-team-red/30'
+              }`}
+            >
+              <Plus size={24} className="mx-auto" />
+            </button>
+          )}
         </div>
         <div className="text-muted-foreground text-lg font-bold">VS</div>
         <div className="flex-1 text-center">
@@ -225,15 +231,17 @@ export function ScoreBoard({
               <ChevronDown size={28} strokeWidth={3} className={`${right === 'blue' ? 'text-team-blue' : 'text-team-red'} opacity-60 animate-bounce`} />
             </div>
           )}
-          <button
-            onClick={() => openMenu(right)}
-            disabled={!!selectedTeam || isFinished || waitingForNewSet}
-            className={`mt-2 w-full py-3 rounded-xl font-bold text-lg transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${
-              right === 'blue' ? 'bg-team-blue/20 text-team-blue border-2 border-team-blue/30 hover:bg-team-blue/30' : 'bg-team-red/20 text-team-red border-2 border-team-red/30 hover:bg-team-red/30'
-            }`}
-          >
-            <Plus size={24} className="mx-auto" />
-          </button>
+          {!isFinished && (
+            <button
+              onClick={() => openMenu(right)}
+              disabled={!!selectedTeam || waitingForNewSet}
+              className={`mt-2 w-full py-3 rounded-xl font-bold text-lg transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${
+                right === 'blue' ? 'bg-team-blue/20 text-team-blue border-2 border-team-blue/30 hover:bg-team-blue/30' : 'bg-team-red/20 text-team-red border-2 border-team-red/30 hover:bg-team-red/30'
+              }`}
+            >
+              <Plus size={24} className="mx-auto" />
+            </button>
+          )}
         </div>
       </div>
 

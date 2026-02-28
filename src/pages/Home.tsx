@@ -499,19 +499,21 @@ export default function Home() {
               </div>
 
               <div className="flex items-center space-x-2 bg-secondary/30 p-3 rounded-xl border border-border">
-                <Switch id="court-mode" checked={hasCourt} onCheckedChange={setHasCourt} />
+                <Switch id="court-mode" checked={hasCourt} onCheckedChange={(v) => { setHasCourt(v); if (!v) setIsPerformanceMode(false); }} />
                 <div className="flex-1">
                   <Label htmlFor="court-mode" className="text-sm font-semibold cursor-pointer">{t('home.interactiveCourt')}</Label>
                   <p className="text-[10px] text-muted-foreground">{t('home.interactiveCourtHint')}</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2 bg-secondary/30 p-3 rounded-xl border border-border">
-                <Switch id="performance-mode" checked={isPerformanceMode} onCheckedChange={setIsPerformanceMode} />
-                <div className="flex-1">
-                  <Label htmlFor="performance-mode" className="text-sm font-semibold cursor-pointer">{t('home.performanceMode')}</Label>
-                  <p className="text-[10px] text-muted-foreground">{t('home.performanceModeHint')}</p>
+              {hasCourt && (
+                <div className="flex items-center space-x-2 bg-secondary/30 p-3 rounded-xl border border-border">
+                  <Switch id="performance-mode" checked={isPerformanceMode} onCheckedChange={setIsPerformanceMode} />
+                  <div className="flex-1">
+                    <Label htmlFor="performance-mode" className="text-sm font-semibold cursor-pointer">{t('home.performanceMode')}</Label>
+                    <p className="text-[10px] text-muted-foreground">{t('home.performanceModeHint')}</p>
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowNew(false)}
