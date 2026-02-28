@@ -391,9 +391,13 @@ export default function Home() {
                   onClick={async () => {
                     setInviteSending(true);
                     try {
-                      const { error } = await supabase.functions.invoke('invite-user', { body: { email: inviteEmail.trim() } });
+                      const { data, error } = await supabase.functions.invoke('invite-user', { body: { email: inviteEmail.trim() } });
                       if (error) throw error;
-                      toast.success(t('home.inviteSent'));
+                      if (data?.already_registered) {
+                        toast.info(t('home.inviteAlreadyRegistered'));
+                      } else {
+                        toast.success(t('home.inviteSent'));
+                      }
                       setInviteEmail('');
                       setShowShareInvite(false);
                     } catch (err: any) {
