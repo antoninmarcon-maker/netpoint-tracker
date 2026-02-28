@@ -30,7 +30,7 @@ function getConfig(): ActionsConfig {
 }
 
 function getDefaultConfig(): ActionsConfig {
-  return { hiddenActions: ['other_offensive', 'other_volley_fault', 'other_volley_neutral'], customActions: [] };
+  return { hiddenActions: ['other_offensive', 'other_volley_fault', 'other_volley_neutral', 'opponent_fault'], customActions: [] };
 }
 
 function saveConfig(config: ActionsConfig) {
