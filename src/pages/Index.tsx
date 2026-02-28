@@ -431,6 +431,7 @@ const Index = () => {
                 isViewingMode={isInReplayView}
                 isPerformanceMode={isPerformanceMode}
                 viewingActions={viewingCourtData.actions}
+                activeRallyActions={currentRallyActions}
                 viewingPoint={viewingCourtData.point}
                 playerAliases={playerAliases}
               />

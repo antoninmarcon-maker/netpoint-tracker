@@ -19,6 +19,7 @@ interface VolleyballCourtProps {
   isViewingMode?: boolean;
   /** Whether performance mode is active (allows free placement) */
   isPerformanceMode?: boolean;
+  activeRallyActions?: RallyAction[];
   playerAliases?: Record<string, string>;
 }
 
@@ -174,7 +175,7 @@ function getZoneHighlights(
   }
 }
 
-export function VolleyballCourt({ points, selectedTeam, selectedAction, selectedPointType, sidesSwapped = false, teamNames = { blue: 'Bleue', red: 'Rouge' }, onCourtClick, directionOrigin, pendingDirectionAction, viewingActions = [], viewingPoint, isViewingMode, isPerformanceMode, playerAliases }: VolleyballCourtProps) {
+export function VolleyballCourt({ points, selectedTeam, selectedAction, selectedPointType, sidesSwapped = false, teamNames = { blue: 'Bleue', red: 'Rouge' }, onCourtClick, directionOrigin, pendingDirectionAction, viewingActions = [], activeRallyActions = [], viewingPoint, isViewingMode, isPerformanceMode, playerAliases }: VolleyballCourtProps) {
   const courtRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -258,6 +259,7 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
   };
 
   const actionsToView = isViewingMode ? viewingActions : [];
+  const displayActions = isViewingMode ? actionsToView : (isPerformanceMode ? activeRallyActions : []);
   const pointToView = isViewingMode && actionsToView.length === 0 ? (viewingPoint || null) : null;
 
   return (
@@ -320,8 +322,8 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
           {teamNames[bottomTeam]}
         </text>
 
-        {/* ===== LIVE MODE: Show all points ===== */}
-        {!isViewingMode && (
+        {/* ===== LIVE MODE: Show past points (Standard Mode only) ===== */}
+        {!isViewingMode && !isPerformanceMode && (
           <>
             {/* Point markers (exclude service_miss and neutral without showOnCourt) */}
             {points.filter(p => p.action !== 'service_miss' && p.type !== 'neutral').map((point) => {
@@ -378,27 +380,27 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
                 </g>
               );
             })}
-
-            {/* Direction anchor point (blinking) */}
-            {directionOrigin && pendingDirectionAction && (() => {
-              const cx = (sidesSwapped ? (1 - directionOrigin.x) : directionOrigin.x) * 600;
-              const cy = directionOrigin.y * 400;
-              return (
-                <g>
-                  <circle cx={cx} cy={cy} r={12} fill="none" stroke="hsl(45, 93%, 58%)" strokeWidth={2.5}>
-                    <animate attributeName="r" values="8;14;8" dur="1s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />
-                  </circle>
-                  <circle cx={cx} cy={cy} r={4} fill="hsl(45, 93%, 58%)" />
-                </g>
-              );
-            })()}
           </>
         )}
 
-        {/* ===== VISUALIZATION MODE: Show action(s) ===== */}
-        {isViewingMode && actionsToView.length > 0 && actionsToView.map((act, idx) => {
-          const isLast = idx === actionsToView.length - 1;
+        {/* Direction anchor point (blinking) - Active across logic */}
+        {!isViewingMode && directionOrigin && pendingDirectionAction && (() => {
+          const cx = (sidesSwapped ? (1 - directionOrigin.x) : directionOrigin.x) * 600;
+          const cy = directionOrigin.y * 400;
+          return (
+            <g>
+              <circle cx={cx} cy={cy} r={12} fill="none" stroke="hsl(45, 93%, 58%)" strokeWidth={2.5}>
+                <animate attributeName="r" values="8;14;8" dur="1s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />
+              </circle>
+              <circle cx={cx} cy={cy} r={4} fill="hsl(45, 93%, 58%)" />
+            </g>
+          );
+        })()}
+
+        {/* ===== VISUALIZATION STYLES: Live Performance Rallies or Historic Mode ===== */}
+        {displayActions.length > 0 && displayActions.map((act, idx) => {
+          const isLast = idx === displayActions.length - 1;
           const opacity = isLast ? 0.9 : 0.45;
           const color = act.team === 'blue' ? 'hsl(217, 91%, 60%)' : 'hsl(0, 84%, 60%)';
           const isFault = act.type === 'fault';

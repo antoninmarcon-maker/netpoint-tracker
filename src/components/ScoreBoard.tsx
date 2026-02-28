@@ -106,7 +106,12 @@ export function ScoreBoard({
     if (customLabel) { (window as any).__pendingCustomActionLabel = customLabel; }
     if (sigil) { (window as any).__pendingCustomSigil = sigil; }
     if (showOnCourt) { (window as any).__pendingCustomShowOnCourt = true; }
-    if (hasDirection) { (window as any).__pendingHasDirection = true; }
+    // Always set explicitly to avoid leaking from a previous trajectory-enabled action
+    if (hasDirection) {
+      (window as any).__pendingHasDirection = true;
+    } else {
+      delete (window as any).__pendingHasDirection;
+    }
 
     onSelectAction(menuTeam, type, action);
     setMenuTeam(null);
@@ -285,8 +290,8 @@ export function ScoreBoard({
                 key={a.customId ?? a.key}
                 onClick={() => handleActionSelect(a.key as ActionType, a.customId ? a.label : undefined, a.sigil, a.showOnCourt, (a as any).assignToPlayer, (a as any).hasDirection)}
                 className={`py-2.5 px-2 text-xs font-semibold rounded-lg transition-all active:scale-95 ${menuTab === 'scored' ? 'bg-action-scored/10 text-action-scored hover:bg-action-scored/20 border border-action-scored/20'
-                    : menuTab === 'fault' ? 'bg-action-fault/10 text-action-fault hover:bg-action-fault/20 border border-action-fault/20'
-                      : 'bg-muted/50 text-foreground hover:bg-muted border border-border'
+                  : menuTab === 'fault' ? 'bg-action-fault/10 text-action-fault hover:bg-action-fault/20 border border-action-fault/20'
+                    : 'bg-muted/50 text-foreground hover:bg-muted border border-border'
                   }`}
               >
                 {a.customId ? a.label : t(`actions.${a.key}`, a.label)}
