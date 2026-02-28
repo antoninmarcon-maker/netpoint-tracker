@@ -197,19 +197,6 @@ export function PlayByPlayNavigator({
         </div>
       )}
 
-      {/* Cumulative toggle (only when viewing a specific point with rally actions) */}
-      {!isOverview && hasRally && onToggleCumulative && (
-        <div className="flex items-center justify-between px-1 pt-1">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Layers size={13} />
-            <span>Affichage cumulatif</span>
-          </div>
-          <Switch
-            checked={cumulativeMode}
-            onCheckedChange={onToggleCumulative}
-          />
-        </div>
-      )}
     </div>
   );
 }
