@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify caller is authenticated
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -44,14 +43,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Admin client to send invite
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email);
+
     if (error) {
+      // User already registered — treat as success from UX perspective
+      if (error.message?.includes("already been registered")) {
+        return new Response(JSON.stringify({ already_registered: true }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       console.error("Invite error:", error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 400,
