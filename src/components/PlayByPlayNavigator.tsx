@@ -59,7 +59,7 @@ export function PlayByPlayNavigator({
         )}
         <span className="text-xs text-muted-foreground font-mono">
           {isOverview
-            ? t('playByPlay.overview', `Vue d'ensemble · ${points.length} pts`)
+            ? t('playByPlay.overview', { total: points.length, defaultValue: `Vue d'ensemble · ${points.length} pts` })
             : t('playByPlay.pointOf', { current: viewingPointIndex + 1, total: points.length })}
         </span>
       </div>
