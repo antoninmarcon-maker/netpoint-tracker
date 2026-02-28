@@ -159,7 +159,7 @@ export function getVisibleActions(
       ...a,
       assignToPlayer: overrides.assignToPlayer ?? true, // Default true for actions requiring assigning
       hasDirection: overrides.hasDirection ?? false,
-      showOnCourt: overrides.showOnCourt ?? overrides.hasDirection ?? false,
+      showOnCourt: overrides.showOnCourt ?? (overrides.hasDirection ? true : undefined),
       hasRating: overrides.hasRating ?? a.hasRating ?? (['attack'].includes(a.key) || ['Réception', 'Passe', 'Service', 'Attaque', 'Défense', 'Block', 'block'].includes(a.label))
     };
   });

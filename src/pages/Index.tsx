@@ -219,7 +219,8 @@ const Index = () => {
       return;
     }
 
-    const needsAssignToPlayer = (window as any).__pendingCustomAssignToPlayer !== false;
+    const isStandardAssignmentNeeded = selectedPointType === 'neutral' || (selectedTeam === 'blue' && selectedPointType === 'scored') || (selectedTeam === 'red' && selectedPointType === 'fault');
+    const needsAssignToPlayer = (window as any).__pendingCustomAssignToPlayer !== false && isStandardAssignmentNeeded;
     const needsCourtPlacement = (window as any).__pendingPlaceOnCourt !== false && metadata?.hasCourt !== false && !SERVICE_FAULT_ACTIONS.includes(selectedAction);
     const needsRating = (window as any).__pendingHasRating === true;
 

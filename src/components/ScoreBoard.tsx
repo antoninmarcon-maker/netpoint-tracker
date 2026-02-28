@@ -95,7 +95,7 @@ export function ScoreBoard({
     setEditingNames(false);
   };
 
-  const handleActionSelect = (action: ActionType, customLabel?: string, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean, hasDirection?: boolean) => {
+  const handleActionSelect = (action: ActionType, customLabel?: string, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean, hasDirection?: boolean, hasRating?: boolean) => {
     if (!menuTeam) return;
     const type: PointType = menuTab;
 
@@ -111,6 +111,12 @@ export function ScoreBoard({
       (window as any).__pendingHasDirection = true;
     } else {
       delete (window as any).__pendingHasDirection;
+    }
+
+    if (hasRating) {
+      (window as any).__pendingHasRating = true;
+    } else {
+      delete (window as any).__pendingHasRating;
     }
 
     onSelectAction(menuTeam, type, action);
@@ -288,7 +294,7 @@ export function ScoreBoard({
             {(menuTab === 'scored' ? getScoredActions() : menuTab === 'fault' ? getFilteredFaultActions() : getVisibleActions(sport, 'neutral', getNeutralActionsForSport(sport))).map(a => (
               <button
                 key={a.customId ?? a.key}
-                onClick={() => handleActionSelect(a.key as ActionType, a.customId ? a.label : undefined, a.sigil, a.showOnCourt, (a as any).assignToPlayer, (a as any).hasDirection)}
+                onClick={() => handleActionSelect(a.key as ActionType, a.customId ? a.label : undefined, a.sigil, a.showOnCourt, (a as any).assignToPlayer, (a as any).hasDirection, (a as any).hasRating)}
                 className={`py-2.5 px-2 text-xs font-semibold rounded-lg transition-all active:scale-95 ${menuTab === 'scored' ? 'bg-action-scored/10 text-action-scored hover:bg-action-scored/20 border border-action-scored/20'
                   : menuTab === 'fault' ? 'bg-action-fault/10 text-action-fault hover:bg-action-fault/20 border border-action-fault/20'
                     : 'bg-muted/50 text-foreground hover:bg-muted border border-border'

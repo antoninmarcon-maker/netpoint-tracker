@@ -173,7 +173,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
         setPoints(prev => [...prev, point]);
       } else {
         const shouldAssignPlayer = players.length > 0 && (
-          rallyAction.type === 'neutral' || team === 'blue' || (team === 'red' && type === 'fault')
+          rallyAction.type === 'neutral' || (team === 'blue' && type === 'scored') || (team === 'red' && type === 'fault')
         );
         if (shouldAssignPlayer) {
           setPendingPoint(point);
@@ -282,8 +282,8 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       ...(customSigil ? { sigil: customSigil } : {}),
       ...(customShowOnCourt ? { showOnCourt: true } : {}),
     };
-    // Show player selector for blue team actions + red team fault points + neutral points
-    if (players.length > 0 && (point.type === 'neutral' || point.team === 'blue' || (point.team === 'red' && point.type === 'fault'))) {
+    // Show player selector for blue team scored points + red team fault points + neutral points
+    if (players.length > 0 && (point.type === 'neutral' || (point.team === 'blue' && point.type === 'scored') || (point.team === 'red' && point.type === 'fault'))) {
       setPendingPoint(point);
     } else {
       setPoints(prev => [...prev, point]);
