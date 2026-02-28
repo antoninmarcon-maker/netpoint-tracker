@@ -10,6 +10,7 @@ export interface CloudSettings {
   hiddenActions?: string[];
   advantageRule?: { tennis: boolean; padel: boolean };
   jerseyConfig?: Record<string, boolean>;
+  defaultActionsConfig?: Record<string, any>;
 }
 
 let _cachedUserId: string | null = null;

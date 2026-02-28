@@ -21,6 +21,8 @@ export interface CustomAction {
 export interface ActionsConfig {
   hiddenActions: string[];
   customActions: CustomAction[];
+  /** Overrides for predefined/default actions (e.g., hasRating, assignToPlayer, etc.) */
+  defaultActionsConfig?: Record<string, Partial<Omit<CustomAction, 'id' | 'sport' | 'category' | 'label' | 'points'>>>;
 }
 
 function getConfig(): ActionsConfig {
@@ -32,7 +34,7 @@ function getConfig(): ActionsConfig {
 }
 
 function getDefaultConfig(): ActionsConfig {
-  return { hiddenActions: ['other_offensive', 'other_volley_fault', 'other_volley_neutral'], customActions: [] };
+  return { hiddenActions: ['other_offensive', 'other_volley_fault', 'other_volley_neutral'], customActions: [], defaultActionsConfig: {} };
 }
 
 function saveConfig(config: ActionsConfig) {
@@ -44,15 +46,20 @@ async function syncActionsToCloud(config: ActionsConfig) {
   try {
     const userId = await getCurrentUserId();
     if (!userId) return;
-    await patchCloudSettings(userId, { customActions: config.customActions, hiddenActions: config.hiddenActions });
+    await patchCloudSettings(userId, { customActions: config.customActions, hiddenActions: config.hiddenActions, defaultActionsConfig: config.defaultActionsConfig });
+
   } catch { }
 }
 
 export function getActionsConfig(): ActionsConfig { return getConfig(); }
 
-export function hydrateActionsConfig(cloud: { customActions?: CustomAction[]; hiddenActions?: string[] }) {
+export function hydrateActionsConfig(cloud: { customActions?: CustomAction[]; hiddenActions?: string[]; defaultActionsConfig?: Record<string, any> }) {
   const local = getConfig();
-  const merged: ActionsConfig = { hiddenActions: cloud.hiddenActions ?? local.hiddenActions, customActions: cloud.customActions ?? local.customActions };
+  const merged: ActionsConfig = {
+    hiddenActions: cloud.hiddenActions ?? local.hiddenActions,
+    customActions: cloud.customActions ?? local.customActions,
+    defaultActionsConfig: cloud.defaultActionsConfig ?? local.defaultActionsConfig ?? {}
+  };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
 }
 
@@ -101,6 +108,28 @@ export function updateCustomAction(id: string, newLabel: string, points?: number
   return config;
 }
 
+export function updateDefaultActionConfig(key: string, assignToPlayer?: boolean, hasDirection?: boolean, hasRating?: boolean): ActionsConfig {
+  const config = getConfig();
+  if (!config.defaultActionsConfig) {
+    config.defaultActionsConfig = {};
+  }
+
+  if (!config.defaultActionsConfig[key]) {
+    config.defaultActionsConfig[key] = {};
+  }
+
+  const overrides = config.defaultActionsConfig[key];
+  if (hasDirection !== undefined) overrides.hasDirection = hasDirection;
+  if (hasDirection) {
+    overrides.showOnCourt = true;
+  }
+  if (assignToPlayer !== undefined) overrides.assignToPlayer = assignToPlayer;
+  if (hasRating !== undefined) overrides.hasRating = hasRating;
+
+  saveConfig(config);
+  return config;
+}
+
 export function deleteCustomAction(id: string): ActionsConfig {
   const config = getConfig();
   config.customActions = config.customActions.filter(a => a.id !== id);
@@ -124,10 +153,16 @@ export function getVisibleActions(
   defaultActions: { key: string; label: string; points?: number; customId?: string; hasRating?: boolean }[]
 ): { key: string; label: string; points?: number; customId?: string; sigil?: string; showOnCourt?: boolean; hasDirection?: boolean; hasRating?: boolean }[] {
   const config = getConfig();
-  const visible = defaultActions.filter(a => !config.hiddenActions.includes(a.key)).map(a => ({
-    ...a,
-    hasRating: a.hasRating ?? (['attack'].includes(a.key) || ['Réception', 'Passe', 'Service', 'Attaque', 'Défense', 'Block', 'block'].includes(a.label))
-  }));
+  const visible = defaultActions.filter(a => !config.hiddenActions.includes(a.key)).map(a => {
+    const overrides = config.defaultActionsConfig?.[a.key] || {};
+    return {
+      ...a,
+      assignToPlayer: overrides.assignToPlayer ?? true, // Default true for actions requiring assigning
+      hasDirection: overrides.hasDirection ?? false,
+      showOnCourt: overrides.showOnCourt ?? overrides.hasDirection ?? false,
+      hasRating: overrides.hasRating ?? a.hasRating ?? (['attack'].includes(a.key) || ['Réception', 'Passe', 'Service', 'Attaque', 'Défense', 'Block', 'block'].includes(a.label))
+    };
+  });
   const customs = config.customActions
     .filter(c => c.sport === sport && c.category === category && !config.hiddenActions.includes(c.id))
     .map(c => ({
