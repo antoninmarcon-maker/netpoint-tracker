@@ -4,7 +4,7 @@ export type SportType = 'volleyball';
 
 // ---- VOLLEYBALL ----
 export type OffensiveAction = 'attack' | 'ace' | 'block' | 'bidouille' | 'seconde_main' | 'other_offensive';
-export type FaultAction = 'out' | 'net_fault' | 'service_miss' | 'block_out' | 'gameplay_fault' | 'opponent_fault' | 'other_volley_fault';
+export type FaultAction = 'out' | 'net_fault' | 'service_miss' | 'block_out' | 'gameplay_fault' | 'other_volley_fault';
 
 // ---- NEUTRAL ----
 export type NeutralAction = 'timeout' | 'other_volley_neutral';
@@ -28,7 +28,6 @@ export const FAULT_ACTIONS: { key: FaultAction; label: string; description?: str
   { key: 'service_miss', label: 'Service loupé', description: 'actionsDesc.service_miss' },
   { key: 'block_out', label: 'Block Out', description: 'actionsDesc.block_out' },
   { key: 'gameplay_fault', label: 'Faute de jeu', description: 'actionsDesc.gameplay_fault' },
-  { key: 'opponent_fault', label: 'Faute adverse', description: 'actionsDesc.opponent_fault' },
   { key: 'other_volley_fault', label: 'Autre', description: 'actionsDesc.other_volley_fault' },
 ];
 
@@ -53,7 +52,7 @@ export function isOffensiveAction(action: ActionType): boolean {
 }
 
 export function isFaultAction(action: ActionType): boolean {
-  return ['out', 'net_fault', 'service_miss', 'block_out', 'gameplay_fault', 'opponent_fault', 'other_volley_fault'].includes(action);
+  return ['out', 'net_fault', 'service_miss', 'block_out', 'gameplay_fault', 'other_volley_fault'].includes(action);
 }
 
 export function getScoredActionsForSport(_sport: SportType) {

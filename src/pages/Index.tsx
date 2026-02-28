@@ -206,7 +206,7 @@ const Index = () => {
   }, [isFinished, replaySetAllPoints, points]);
 
   // Auto-point for service faults or when court is disabled or placeOnCourt=false
-  const SERVICE_FAULT_ACTIONS = ['service_miss', 'gameplay_fault', 'opponent_fault', 'timeout'];
+  const SERVICE_FAULT_ACTIONS = ['service_miss', 'gameplay_fault', 'timeout'];
   useEffect(() => {
     if (!selectedTeam || !selectedAction) {
       delete (window as any).__pendingPlaceOnCourt;

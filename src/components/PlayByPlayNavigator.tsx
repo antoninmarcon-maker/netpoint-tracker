@@ -22,7 +22,7 @@ interface PlayByPlayNavigatorProps {
 const ACTION_LABELS: Partial<Record<ActionType, string>> = {
   attack: 'Attaque', ace: 'Ace', block: 'Block', bidouille: 'Bidouille',
   seconde_main: '2M', out: 'Out', net_fault: 'Filet', service_miss: 'Srv',
-  block_out: 'BkO', gameplay_fault: 'FJ', opponent_fault: 'FA',
+  block_out: 'BkO', gameplay_fault: 'FJ',
   timeout: 'T.Mort', other_offensive: 'Autre', other_volley_fault: 'Autre',
   other_volley_neutral: 'Autre',
 };
