@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as webpush from "jsr:@negrel/webpush";
+import { decode as b64Decode, encode as b64Encode } from "https://deno.land/std@0.224.0/encoding/base64url.ts";
 
 // No CORS headers needed — this function is server-to-server only (cron/service role)
 const jsonHeaders = { "Content-Type": "application/json" };
@@ -18,6 +19,24 @@ const TUTORIAL_MESSAGES: Record<number, { title: string; body: string }> = {
     body: "Étape 3 : Lancez l'analyse IA sur votre dernier match pour obtenir des conseils tactiques personnalisés.",
   },
 };
+
+/** Convert a raw base64url-encoded uncompressed EC P-256 public key (65 bytes)
+ *  and a raw base64url-encoded private key (32 bytes) into JWK format. */
+function rawKeysToJwk(publicKeyB64: string, privateKeyB64: string) {
+  const pubBytes = b64Decode(publicKeyB64);
+  // Uncompressed format: 0x04 || x (32 bytes) || y (32 bytes)
+  const x = b64Encode(pubBytes.slice(1, 33));
+  const y = b64Encode(pubBytes.slice(33, 65));
+  const d = privateKeyB64; // already base64url 32 bytes
+
+  const publicJwk: JsonWebKey = {
+    kty: "EC", crv: "P-256", x, y, ext: true, key_ops: [],
+  };
+  const privateJwk: JsonWebKey = {
+    kty: "EC", crv: "P-256", x, y, d, ext: true, key_ops: ["sign"],
+  };
+  return { publicKey: publicJwk, privateKey: privateJwk };
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -50,11 +69,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Initialize VAPID keys
-    const vapidKeys = await webpush.importVapidKeys({
-      publicKey: vapidPublicKey,
-      privateKey: vapidPrivateKey,
-    }, { extractable: false });
+    // Convert raw base64url keys to JWK and import
+    const jwks = rawKeysToJwk(vapidPublicKey, vapidPrivateKey);
+    const vapidKeys = await webpush.importVapidKeys(jwks, { extractable: false });
 
     const appServer = await webpush.ApplicationServer.new({
       contactInformation: "mailto:antonin.marcon@gmail.com",
