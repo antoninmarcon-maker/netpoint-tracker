@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as webpush from "jsr:@negrel/webpush";
-import { decode as b64Decode, encode as b64Encode } from "https://deno.land/std@0.224.0/encoding/base64url.ts";
+import { decodeBase64Url as b64Decode, encodeBase64Url as b64Encode } from "https://deno.land/std@0.224.0/encoding/base64url.ts";
 
 const jsonHeaders = { "Content-Type": "application/json" };
 
