@@ -1,5 +1,6 @@
 import { SportType, ActionType, PointType, OTHER_ACTION_KEYS } from '@/types/sports';
 import { getCurrentUserId, patchCloudSettings } from './cloudSettings';
+import { userStorage } from './userStorage';
 
 const STORAGE_KEY = 'myvolley-actions-config';
 
@@ -27,7 +28,7 @@ export interface ActionsConfig {
 
 function getConfig(): ActionsConfig {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = userStorage.getItem(STORAGE_KEY);
     if (!raw) return getDefaultConfig();
     return JSON.parse(raw);
   } catch { return getDefaultConfig(); }
@@ -38,7 +39,7 @@ function getDefaultConfig(): ActionsConfig {
 }
 
 function saveConfig(config: ActionsConfig) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  userStorage.setItem(STORAGE_KEY, JSON.stringify(config));
   syncActionsToCloud(config);
 }
 
@@ -60,7 +61,7 @@ export function hydrateActionsConfig(cloud: { customActions?: CustomAction[]; hi
     customActions: cloud.customActions ?? local.customActions,
     defaultActionsConfig: cloud.defaultActionsConfig ?? local.defaultActionsConfig ?? {}
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+  userStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
 }
 
 export function toggleActionVisibility(actionKey: string): ActionsConfig {

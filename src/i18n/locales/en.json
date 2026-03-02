@@ -415,9 +415,9 @@
     "helpTitle": "How does it work?",
     "helpVolleyP1": "1. Tap \"+\" below the score of the relevant team. An animated arrow indicates the selected team.",
     "helpVolleyP2": "2. Choose the tab: Points Won (Attack, Ace, Block, Tip, Second touch) or Opponent Faults (Out, Net, Missed serve, Block Out).",
-    "helpVolleyP3": "3. Click the action then place it on the court (allowed zone lights up) and select the player.",
+    "helpVolleyP3": "3. Click the action then place it on the court (allowed zone lights up) and select the player. You can also rate the quality of the action if enabled.",
     "helpVolleyP4": "4. Manage sets: \"End Set\" finishes and swaps sides. The winner 🏆 = most sets won.",
-    "helpVolleyP5": "5. Statistics: Stats tab to see points ⚡ and faults ❌ per player (expandable) + heatmap.",
+    "helpVolleyP5": "5. Statistics & Replay: Stats tab to see points per player + heatmap. Click on a completed set in the history to activate Replay mode.",
     "helpVolleyP6": "6. Export & Share: PNG stats, court per set, Excel, or share the score via WhatsApp / Telegram / X."
   },
   "actions": {

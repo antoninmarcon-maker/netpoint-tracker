@@ -19,6 +19,7 @@ import { SavedPlayersManager } from '@/components/SavedPlayersManager';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useTranslation } from 'react-i18next';
+import { userStorage } from '@/lib/userStorage';
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -91,7 +92,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const saved = localStorage.getItem('customLogo');
+    const saved = userStorage.getItem('customLogo');
     if (saved) setCustomLogo(saved);
   }, []);
 
@@ -181,7 +182,7 @@ export default function Home() {
     if (!user || !authLoaded) return;
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     if (!isStandalone) return;
-    const hasCreated = localStorage.getItem('hasCreatedMatch');
+    const hasCreated = userStorage.getItem('hasCreatedMatch');
     const hasDeclined = localStorage.getItem('hasDeclinedPushPrompt');
     if (!hasCreated || hasDeclined) return;
     const perm = getNotificationPermission();
@@ -200,7 +201,7 @@ export default function Home() {
 
     saveMatch(match);
     setActiveMatchId(match.id);
-    localStorage.setItem('hasCreatedMatch', 'true');
+    userStorage.setItem('hasCreatedMatch', 'true');
     if (user) {
       saveCloudMatch(user.id, match).catch(err => { if (import.meta.env.DEV) console.error('Cloud save failed:', err); }
       );

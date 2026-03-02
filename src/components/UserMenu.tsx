@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import type { User as SupaUser } from '@supabase/supabase-js';
+import { userStorage } from '@/lib/userStorage';
 
 interface UserMenuProps {
   user: SupaUser;
@@ -25,12 +26,12 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     // Purge all local data to prevent data bleed to the next user
-    localStorage.removeItem('volley-tracker-matches');
-    localStorage.removeItem('volley-tracker-active-match-id');
-    localStorage.removeItem('volley-tracker-last-roster');
-    localStorage.removeItem('volley-tracker-saved-players');
-    localStorage.removeItem('myvolley-player-numbers');
-    localStorage.removeItem('myvolley-jersey-config');
+    userStorage.removeItem('volley-tracker-matches');
+    userStorage.removeItem('volley-tracker-active-match-id');
+    userStorage.removeItem('volley-tracker-last-roster');
+    userStorage.removeItem('volley-tracker-saved-players');
+    userStorage.removeItem('myvolley-player-numbers');
+    userStorage.removeItem('myvolley-jersey-config');
     setShowMenu(false);
     window.location.reload();
   };

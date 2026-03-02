@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { userStorage } from '@/lib/userStorage';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -13,12 +14,12 @@ function applyTheme(theme: Theme) {
 
 export function useTheme() {
   const [theme, setThemeState] = useState<Theme>(() => {
-    return (localStorage.getItem('theme') as Theme) || 'dark';
+    return (userStorage.getItem('theme') as Theme) || 'dark';
   });
 
   useEffect(() => {
     applyTheme(theme);
-    localStorage.setItem('theme', theme);
+    userStorage.setItem('theme', theme);
   }, [theme]);
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { MatchSummary, Player, SportType } from '@/types/sports';
+import { userStorage } from './userStorage';
 
 const MATCHES_KEY = 'volley-tracker-matches';
 const ACTIVE_MATCH_KEY = 'volley-tracker-active-match-id';
@@ -73,7 +74,7 @@ const MatchSummarySchema = z.object({
 
 export function getAllMatches(): MatchSummary[] {
   try {
-    const raw = localStorage.getItem(MATCHES_KEY);
+    const raw = userStorage.getItem(MATCHES_KEY);
     if (import.meta.env.DEV) console.log('[DEBUG] getAllMatches raw entries:', raw ? JSON.parse(raw).length : 0);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
@@ -109,34 +110,34 @@ export function saveMatch(match: MatchSummary) {
   } else {
     matches.push(match);
   }
-  localStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
+  userStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
 }
 
 export function deleteMatch(id: string) {
   const matches = getAllMatches().filter(m => m.id !== id);
-  localStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
+  userStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
   if (getActiveMatchId() === id) clearActiveMatchId();
 }
 
 export function getActiveMatchId(): string | null {
-  return localStorage.getItem(ACTIVE_MATCH_KEY);
+  return userStorage.getItem(ACTIVE_MATCH_KEY);
 }
 
 export function setActiveMatchId(id: string) {
-  localStorage.setItem(ACTIVE_MATCH_KEY, id);
+  userStorage.setItem(ACTIVE_MATCH_KEY, id);
 }
 
 export function clearActiveMatchId() {
-  localStorage.removeItem(ACTIVE_MATCH_KEY);
+  userStorage.removeItem(ACTIVE_MATCH_KEY);
 }
 
 export function saveLastRoster(players: Player[]) {
-  localStorage.setItem(LAST_ROSTER_KEY, JSON.stringify(players));
+  userStorage.setItem(LAST_ROSTER_KEY, JSON.stringify(players));
 }
 
 export function getLastRoster(): Player[] {
   try {
-    const raw = localStorage.getItem(LAST_ROSTER_KEY);
+    const raw = userStorage.getItem(LAST_ROSTER_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     const result = z.array(PlayerSchema).safeParse(parsed);

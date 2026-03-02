@@ -4,6 +4,7 @@ import { getVisibleActions } from '@/lib/actionsConfig';
 import { Input } from '@/components/ui/input';
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { userStorage } from '@/lib/userStorage';
 
 interface ScoreBoardProps {
   onCustomActionLabel?: (label: string) => void;
@@ -43,7 +44,7 @@ interface ScoreBoardProps {
   rallyInProgress?: boolean;
   rallyActionCount?: number;
   awaitingRating?: boolean;
-  onSelectRating?: (rating: 'negative' | 'neutral' | 'positive') => void;
+  onSelectRating?: (rating: 'negative' | 'neutral' | 'positive' | 'none') => void;
   pendingActionMeta?: {
     placeOnCourt: boolean;
     assignToPlayer: boolean;
@@ -82,14 +83,14 @@ export function ScoreBoard({
   const [confirmEndMatch, setConfirmEndMatch] = useState(false);
 
   const [showPerfOnboarding, setShowPerfOnboarding] = useState(() => {
-    if (metadata?.isPerformanceMode && !localStorage.getItem('myvolley-hasSeenPerfOnboarding')) {
+    if (metadata?.isPerformanceMode && !userStorage.getItem('myvolley-hasSeenPerfOnboarding')) {
       return true;
     }
     return false;
   });
 
   const handleClosePerfOnboarding = () => {
-    localStorage.setItem('myvolley-hasSeenPerfOnboarding', 'true');
+    userStorage.setItem('myvolley-hasSeenPerfOnboarding', 'true');
     setShowPerfOnboarding(false);
   };
 
@@ -328,23 +329,30 @@ export function ScoreBoard({
 
       {/* Rating UI */}
       {awaitingRating && onSelectRating && (
-        <div className="bg-card rounded-xl border border-border p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-bold text-foreground">Évaluer la qualité de l'action</p>
-            <button onClick={onCancelSelection} className="p-1 rounded-md text-muted-foreground hover:text-foreground"><X size={16} /></button>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <button onClick={() => onSelectRating('negative')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 border-2 border-transparent hover:border-destructive/30 transition-all active:scale-95">
-              <span className="text-3xl">🔴</span>
-              <span className="text-xs font-bold">Négatif (-)</span>
-            </button>
-            <button onClick={() => onSelectRating('neutral')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 border-2 border-transparent hover:border-orange-500/30 transition-all active:scale-95">
-              <span className="text-3xl">🟠</span>
-              <span className="text-xs font-bold">Neutre (!)</span>
-            </button>
-            <button onClick={() => onSelectRating('positive')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-green-500/10 text-green-500 hover:bg-green-500/20 border-2 border-transparent hover:border-green-500/30 transition-all active:scale-95">
-              <span className="text-3xl">🟢</span>
-              <span className="text-xs font-bold">Positif (+)</span>
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-end justify-center sm:items-center p-4">
+          <div className="bg-card rounded-2xl p-4 max-w-sm w-full border border-border space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-bold text-foreground">Évaluer la qualité de l'action</p>
+              <button onClick={onCancelSelection} className="p-1 rounded-md text-muted-foreground hover:text-foreground">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button onClick={() => onSelectRating('negative')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 border-2 border-transparent hover:border-destructive/30 transition-all active:scale-95">
+                <span className="text-3xl">🔴</span>
+                <span className="text-xs font-bold">Négatif (-)</span>
+              </button>
+              <button onClick={() => onSelectRating('neutral')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 border-2 border-transparent hover:border-orange-500/30 transition-all active:scale-95">
+                <span className="text-3xl">🟠</span>
+                <span className="text-xs font-bold">Neutre (!)</span>
+              </button>
+              <button onClick={() => onSelectRating('positive')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-green-500/10 text-green-500 hover:bg-green-500/20 border-2 border-transparent hover:border-green-500/30 transition-all active:scale-95">
+                <span className="text-3xl">🟢</span>
+                <span className="text-xs font-bold">Positif (+)</span>
+              </button>
+            </div>
+            <button onClick={() => onSelectRating('none')} className="w-full py-2 text-xs font-medium text-muted-foreground rounded-lg bg-secondary hover:bg-secondary/80 transition-all">
+              Ignorer
             </button>
           </div>
         </div>

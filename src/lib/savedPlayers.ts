@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Player, SportType } from '@/types/sports';
 import { getCurrentUserId, patchCloudSettings } from './cloudSettings';
+import { userStorage } from './userStorage';
 
 const SAVED_PLAYERS_KEY = 'volley-tracker-saved-players';
 const JERSEY_CONFIG_KEY = 'myvolley-jersey-config';
@@ -20,7 +21,7 @@ const DEFAULT_JERSEY_CONFIG: Record<SportType, boolean> = {
 
 export function getJerseyConfig(): Record<SportType, boolean> {
   try {
-    const raw = localStorage.getItem(JERSEY_CONFIG_KEY);
+    const raw = userStorage.getItem(JERSEY_CONFIG_KEY);
     if (!raw) return { ...DEFAULT_JERSEY_CONFIG };
     return { ...DEFAULT_JERSEY_CONFIG, ...JSON.parse(raw) };
   } catch {
@@ -31,9 +32,9 @@ export function getJerseyConfig(): Record<SportType, boolean> {
 export function setJerseyEnabled(sport: SportType, enabled: boolean): Record<SportType, boolean> {
   const config = getJerseyConfig();
   config[sport] = enabled;
-  localStorage.setItem(JERSEY_CONFIG_KEY, JSON.stringify(config));
+  userStorage.setItem(JERSEY_CONFIG_KEY, JSON.stringify(config));
   getCurrentUserId().then(uid => {
-    if (uid) patchCloudSettings(uid, { jerseyConfig: config }).catch(() => {});
+    if (uid) patchCloudSettings(uid, { jerseyConfig: config }).catch(() => { });
   });
   return config;
 }
@@ -42,7 +43,7 @@ export function setJerseyEnabled(sport: SportType, enabled: boolean): Record<Spo
 
 function getLocalSavedPlayers(sport: SportType): SavedPlayer[] {
   try {
-    const raw = localStorage.getItem(SAVED_PLAYERS_KEY);
+    const raw = userStorage.getItem(SAVED_PLAYERS_KEY);
     if (!raw) return [];
     const all: SavedPlayer[] = JSON.parse(raw);
     return all.filter(p => p.sport === sport);
@@ -51,11 +52,11 @@ function getLocalSavedPlayers(sport: SportType): SavedPlayer[] {
 
 function saveLocalSavedPlayers(players: SavedPlayer[]) {
   try {
-    const raw = localStorage.getItem(SAVED_PLAYERS_KEY);
+    const raw = userStorage.getItem(SAVED_PLAYERS_KEY);
     const existing: SavedPlayer[] = raw ? JSON.parse(raw) : [];
     const sport = players[0]?.sport;
     const others = sport ? existing.filter(p => p.sport !== sport) : existing;
-    localStorage.setItem(SAVED_PLAYERS_KEY, JSON.stringify([...others, ...players]));
+    userStorage.setItem(SAVED_PLAYERS_KEY, JSON.stringify([...others, ...players]));
   } catch { }
 }
 
@@ -177,7 +178,7 @@ const JERSEY_NUMBERS_KEY = 'myvolley-player-numbers';
 
 function getPlayerNumbersMap(): Record<string, string> {
   try {
-    const raw = localStorage.getItem(JERSEY_NUMBERS_KEY);
+    const raw = userStorage.getItem(JERSEY_NUMBERS_KEY);
     return raw ? JSON.parse(raw) : {};
   } catch { return {}; }
 }
@@ -189,7 +190,7 @@ function savePlayerNumber(id: string, number: string) {
   } else {
     delete map[id];
   }
-  localStorage.setItem(JERSEY_NUMBERS_KEY, JSON.stringify(map));
+  userStorage.setItem(JERSEY_NUMBERS_KEY, JSON.stringify(map));
 }
 
 export function getPlayerNumber(id: string): string | undefined {

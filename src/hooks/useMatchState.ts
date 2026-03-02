@@ -46,7 +46,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
   const [preSelectedPlayerId, setPreSelectedPlayerId] = useState<string | null>(null);
 
   // Pre-selected rating: chosen BEFORE court click if ratings are enabled
-  const [preSelectedRating, setPreSelectedRating] = useState<'negative' | 'neutral' | 'positive' | null>(null);
+  const [preSelectedRating, setPreSelectedRating] = useState<'negative' | 'neutral' | 'positive' | 'none' | null>(null);
 
   // --- Pending action metadata (replaces window.__pending* globals) ---
   interface PendingActionMeta {
@@ -225,7 +225,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       ...(sigil ? { sigil } : {}),
       ...(showOnCourt ? { showOnCourt: true } : {}),
       ...(preSelectedPlayerId ? { playerId: preSelectedPlayerId } : {}),
-      ...(preSelectedRating ? { rating: preSelectedRating } : {}),
+      ...(preSelectedRating && preSelectedRating !== 'none' ? { rating: preSelectedRating } : {}),
     };
 
     setDirectionOrigin(null);
@@ -283,7 +283,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
         ...(customSigil ? { sigil: customSigil } : {}),
         ...(customShowOnCourt ? { showOnCourt: true } : {}),
         ...(preSelectedPlayerId ? { playerId: preSelectedPlayerId } : {}),
-        ...(preSelectedRating ? { rating: preSelectedRating } : {}),
+        ...(preSelectedRating && preSelectedRating !== 'none' ? { rating: preSelectedRating } : {}),
       };
 
       const team = selectedTeam;
@@ -308,7 +308,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       ...(customLabel ? { customActionLabel: customLabel } : {}),
       ...(customSigil ? { sigil: customSigil } : {}),
       ...(customShowOnCourt ? { showOnCourt: true } : {}),
-      ...(preSelectedRating ? { rating: preSelectedRating } : {}),
+      ...(preSelectedRating && preSelectedRating !== 'none' ? { rating: preSelectedRating } : {}),
     };
     // Show player selector for blue team scored points + red team fault points + neutral points
     if (players.length > 0 && (point.type === 'neutral' || (point.team === 'blue' && point.type === 'scored') || (point.team === 'red' && point.type === 'fault'))) {

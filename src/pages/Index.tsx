@@ -171,8 +171,9 @@ const Index = () => {
   }, []);
 
   const handleBackToLive = useCallback(() => {
-    setViewingPointIndex(null);
     setViewingActionIndex(0);
+    setViewingPointIndex(null);
+    setReplaySetIndex(null);
   }, []);
 
   const handleSelectReplaySet = useCallback((index: number) => {
@@ -199,6 +200,11 @@ const Index = () => {
     }
     return { actions: [], point };
   }, [viewingPointIndex, viewingActionIndex, allPoints, replayNavPoints, isFinished, cumulativeMode]);
+
+  const getPlayerName = useCallback((id: string) => {
+    const p = players.find(p => p.id === id);
+    return p ? p.name : `#${id.slice(0, 4)}`;
+  }, [players]);
 
   // Points to show on court in overview mode (all points of the set)
   const courtPoints = useMemo(() => {
@@ -312,7 +318,9 @@ const Index = () => {
   }
 
   // Determine if we're in replay viewing mode (overview or specific point)
-  const isInReplayView = isFinished && viewingPointIndex !== null;
+  const isViewingOldSet = !isFinished && replaySetIndex !== null;
+  const isReplayModeActive = isFinished || isViewingOldSet;
+  const isInReplayView = isReplayModeActive && (viewingPointIndex !== null || isViewingOldSet);
   const isOverview = viewingPointIndex === null;
 
   return (
@@ -348,26 +356,26 @@ const Index = () => {
               teamNames={teamNames}
               isFinished={isFinished}
               sport={sport}
-              selectedSetIndex={isFinished ? replaySetIndex : undefined}
-              onSelectSet={isFinished ? handleSelectReplaySet : undefined}
+              selectedSetIndex={replaySetIndex ?? undefined}
+              onSelectSet={handleSelectReplaySet}
             />
             {!isFinished && (
               <PlayerRoster players={players} onSetPlayers={setPlayers} teamName={teamNames.blue} sport={sport} userId={user?.id} readOnly={isFinished} />
             )}
             <ScoreBoard
-              score={isFinished && replaySetIndex !== null && completedSets[replaySetIndex]
+              score={replaySetIndex !== null && completedSets[replaySetIndex]
                 ? completedSets[replaySetIndex].score
                 : score}
-              points={isFinished ? replaySetAllPoints : points}
+              points={isReplayModeActive ? replaySetAllPoints : points}
               selectedTeam={selectedTeam} selectedPointType={selectedPointType} selectedAction={selectedAction}
-              currentSetNumber={isFinished && replaySetIndex !== null && completedSets[replaySetIndex]
+              currentSetNumber={replaySetIndex !== null && completedSets[replaySetIndex]
                 ? completedSets[replaySetIndex].number
                 : currentSetNumber}
               teamNames={teamNames} sidesSwapped={sidesSwapped} chronoRunning={chronoRunning} chronoSeconds={chronoSeconds}
               servingTeam={servingTeam} sport={sport} metadata={metadata}
               onSelectAction={selectAction} onCancelSelection={cancelSelection} onUndo={undo} onEndSet={endSet} onFinishMatch={matchState.finishMatch} onReset={resetMatch}
               onSwitchSides={switchSides} onStartChrono={startChrono} onPauseChrono={pauseChrono} onSetTeamNames={setTeamNames}
-              canUndo={canUndo} isFinished={isFinished} waitingForNewSet={waitingForNewSet} lastEndedSetScore={lastEndedSetScore} onStartNewSet={startNewSet}
+              canUndo={canUndo} isFinished={isReplayModeActive} waitingForNewSet={waitingForNewSet} lastEndedSetScore={lastEndedSetScore} onStartNewSet={startNewSet}
               rallyInProgress={rallyInProgress} rallyActionCount={currentRallyActions.length}
               awaitingRating={awaitingRating}
               onSelectRating={setPreSelectedRating}
@@ -384,21 +392,23 @@ const Index = () => {
               </div>
             )}
 
-            {/* Play-by-Play Navigator: shown in replay mode OR live viewing mode */}
-            {isFinished && replayNavPoints.length > 0 && (
+            {/* Play-by-Play Navigator: shown for selected past sets (finished or not) */}
+            {replaySetIndex !== null && replayNavPoints.length > 0 && (
               <PlayByPlayNavigator
                 points={replayNavPoints}
                 viewingPointIndex={viewingPointIndex}
                 viewingActionIndex={viewingActionIndex}
                 onChangePoint={handleChangePoint}
                 onChangeAction={handleChangeAction}
-                isReplayMode={true}
+                onBackToLive={isFinished ? undefined : handleBackToLive}
+                isReplayMode={isFinished}
                 isPerformanceMode={isPerformanceMode}
                 cumulativeMode={cumulativeMode}
                 onToggleCumulative={setCumulativeMode}
+                getPlayerName={getPlayerName}
               />
             )}
-            {!isFinished && isViewingMode && (
+            {!isReplayModeActive && viewingPointIndex !== null && (
               <PlayByPlayNavigator
                 points={allPoints}
                 viewingPointIndex={viewingPointIndex}
@@ -409,6 +419,7 @@ const Index = () => {
                 isPerformanceMode={isPerformanceMode}
                 cumulativeMode={cumulativeMode}
                 onToggleCumulative={setCumulativeMode}
+                getPlayerName={getPlayerName}
               />
             )}
 
@@ -419,11 +430,11 @@ const Index = () => {
 
               return (
                 <VolleyballCourt
-                  points={isFinished && isOverview ? replaySetAllPoints : (isFinished ? [] : courtPoints)}
+                  points={isReplayModeActive && isOverview ? replaySetAllPoints : (isReplayModeActive ? [] : courtPoints)}
                   selectedTeam={isInReplayView ? null : (pendingDirectionAction ? null : selectedTeam)}
                   selectedAction={isInReplayView ? null : (pendingDirectionAction ? null : selectedAction)}
                   selectedPointType={isInReplayView ? null : (pendingDirectionAction ? null : selectedPointType)}
-                  sidesSwapped={isFinished && replaySetIndex !== null ? (replaySetIndex % 2 !== 0) : sidesSwapped}
+                  sidesSwapped={isReplayModeActive && replaySetIndex !== null ? (replaySetIndex % 2 !== 0) : sidesSwapped}
                   teamNames={teamNames}
                   onCourtClick={addPoint}
                   directionOrigin={isInReplayView ? null : directionOrigin}

@@ -86,13 +86,28 @@ export default function ActionsConfig() {
             <div key={a.key} className={`rounded-lg border transition-all ${isHidden ? 'border-border/50 bg-muted/30 opacity-60' : 'border-border bg-card'}`}>
               <div className="flex items-center justify-between p-3">
                 {isEditing ? (
-                  <div className="flex items-center gap-2 flex-1 flex-wrap">
-                    <span className="text-sm font-medium text-foreground flex-1 min-w-[100px]">{t(`actions.${a.key}`, a.label)}</span>
-                    <div className="flex items-center gap-1.5"><Switch checked={editAssignToPlayer} onCheckedChange={setEditAssignToPlayer} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.assignToPlayer')}</Label></div>
-                    <div className="flex items-center gap-1.5"><Switch checked={editHasDirection} onCheckedChange={setEditHasDirection} className="scale-75" /><Label className="text-[10px] text-muted-foreground">Indiquer une trajectoire</Label></div>
-                    <div className="flex items-center gap-1.5"><Switch checked={editHasRating} onCheckedChange={setEditHasRating} className="scale-75" /><Label className="text-[10px] text-muted-foreground">Évaluer la qualité (+ / -)</Label></div>
-                    <button onClick={() => handleUpdateDefault(a.key)} className="p-1 text-primary"><Check size={16} /></button>
-                    <button onClick={() => setEditingId(null)} className="p-1 text-muted-foreground"><X size={16} /></button>
+                  <div className="flex flex-col gap-3 w-full">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-foreground flex-1 min-w-[100px]">{t(`actions.${a.key}`, a.label)}</span>
+                      <div className="flex items-center gap-2 w-auto">
+                        <button onClick={() => handleUpdateDefault(a.key)} className="p-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-all"><Check size={16} /></button>
+                        <button onClick={() => setEditingId(null)} className="p-1.5 rounded-md bg-secondary text-muted-foreground hover:bg-secondary/80 transition-all"><X size={16} /></button>
+                      </div>
+                    </div>
+                    <div className="bg-muted/40 p-3 rounded-xl space-y-3.5 border border-border/50">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">👤</span> {t('actionsConfig.assignToPlayer')}</Label>
+                        <Switch checked={editAssignToPlayer} onCheckedChange={setEditAssignToPlayer} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">🎯</span> Indiquer une trajectoire</Label>
+                        <Switch checked={editHasDirection} onCheckedChange={setEditHasDirection} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">⭐️</span> Évaluer la qualité (+ / -)</Label>
+                        <Switch checked={editHasRating} onCheckedChange={setEditHasRating} />
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -147,17 +162,36 @@ export default function ActionsConfig() {
           return (
             <div key={c.id} className={`flex items-center justify-between p-3 rounded-lg border transition-all ${isHidden ? 'border-border/50 bg-muted/30 opacity-60' : 'border-primary/20 bg-primary/5'}`}>
               {editingId === c.id ? (
-                <div className="flex items-center gap-2 flex-1 flex-wrap">
-                  <Input value={editLabel} onChange={e => setEditLabel(e.target.value)} className="h-8 text-sm flex-1 min-w-[100px]" onKeyDown={e => e.key === 'Enter' && handleUpdate(c.id)} autoFocus />
-                  <>
-                    <div className="flex items-center gap-1.5"><Switch checked={editHasDirection ? true : editShowOnCourt} onCheckedChange={v => { setEditShowOnCourt(v); if (!v) setEditHasDirection(false); }} disabled={editHasDirection} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.showOnCourt')}</Label></div>
-                    <div className="flex items-center gap-1.5"><Switch checked={editAssignToPlayer} onCheckedChange={setEditAssignToPlayer} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.assignToPlayer')}</Label></div>
-                    <div className="flex items-center gap-1.5"><Switch checked={editHasDirection} onCheckedChange={v => { setEditHasDirection(v); if (v) setEditShowOnCourt(true); }} className="scale-75" /><Label className="text-[10px] text-muted-foreground">Indiquer une trajectoire</Label></div>
-                    <div className="flex items-center gap-1.5"><Switch checked={editHasRating} onCheckedChange={setEditHasRating} className="scale-75" /><Label className="text-[10px] text-muted-foreground">Évaluer la qualité (+ / -)</Label></div>
-                    {editShowOnCourt && category === 'neutral' && (<div className="flex items-center gap-1.5"><Input value={editSigil} onChange={e => setEditSigil(e.target.value.slice(0, 2).toUpperCase())} placeholder={t('actionsConfig.sigilPlaceholder')} className="h-8 text-sm w-14" /><span className="text-[10px] text-muted-foreground">{t('actionsConfig.sigilHelp')}</span></div>)}
-                  </>
-                  <button onClick={() => handleUpdate(c.id)} className="p-1 text-primary"><Check size={16} /></button>
-                  <button onClick={() => setEditingId(null)} className="p-1 text-muted-foreground"><X size={16} /></button>
+                <div className="flex flex-col gap-3 w-full">
+                  <div className="flex items-center gap-2">
+                    <Input value={editLabel} onChange={e => setEditLabel(e.target.value)} className="h-9 text-sm font-semibold flex-1 min-w-0" onKeyDown={e => e.key === 'Enter' && handleUpdate(c.id)} autoFocus />
+                    <button onClick={() => handleUpdate(c.id)} className="p-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-all"><Check size={16} /></button>
+                    <button onClick={() => setEditingId(null)} className="p-1.5 rounded-md bg-secondary text-muted-foreground hover:bg-secondary/80 transition-all"><X size={16} /></button>
+                  </div>
+                  <div className="bg-background/80 p-3 rounded-xl space-y-3.5 border border-border/50 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">👤</span> {t('actionsConfig.assignToPlayer')}</Label>
+                      <Switch checked={editAssignToPlayer} onCheckedChange={setEditAssignToPlayer} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">📍</span> {category !== 'neutral' ? t('actionsConfig.showOnCourt') : 'Placer sur le terrain'}</Label>
+                      <Switch checked={editHasDirection ? true : editShowOnCourt} onCheckedChange={v => { setEditShowOnCourt(v); if (!v) setEditHasDirection(false); }} disabled={editHasDirection} />
+                    </div>
+                    {editShowOnCourt && category === 'neutral' && (
+                      <div className="flex items-center justify-between pl-6 border-l-2 border-primary/20 ml-2 mb-1">
+                        <Label className="text-[11px] text-muted-foreground">Sigle à afficher (max 2 car.)</Label>
+                        <Input value={editSigil} onChange={e => setEditSigil(e.target.value.slice(0, 2).toUpperCase())} placeholder={t('actionsConfig.sigilPlaceholder')} className="h-8 text-[11px] w-14 font-bold text-center uppercase" />
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">🎯</span> Indiquer une trajectoire</Label>
+                      <Switch checked={editHasDirection} onCheckedChange={v => { setEditHasDirection(v); if (v) setEditShowOnCourt(true); }} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">⭐️</span> Évaluer la qualité (+ / -)</Label>
+                      <Switch checked={editHasRating} onCheckedChange={setEditHasRating} />
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -181,18 +215,35 @@ export default function ActionsConfig() {
         })}
 
         {addingCategory === category && (
-          <div className="flex flex-col gap-2 p-2 rounded-lg border border-primary/30 bg-primary/5">
+          <div className="flex flex-col gap-3 p-3 rounded-xl border-2 border-primary border-dashed bg-primary/5 shadow-sm">
             <div className="flex items-center gap-2">
-              <Input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder={t('actionsConfig.newActionPlaceholder')} className="h-8 text-sm flex-1 min-w-[100px]" onKeyDown={e => e.key === 'Enter' && handleAdd()} autoFocus />
-              <button onClick={handleAdd} disabled={!newLabel.trim()} className="p-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50"><Check size={16} /></button>
-              <button onClick={() => setAddingCategory(null)} className="p-1 text-muted-foreground"><X size={16} /></button>
+              <Input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder={t('actionsConfig.newActionPlaceholder')} className="h-9 text-sm font-semibold flex-1 min-w-0" onKeyDown={e => e.key === 'Enter' && handleAdd()} autoFocus />
+              <button onClick={handleAdd} disabled={!newLabel.trim()} className="p-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50 hover:bg-primary/90 transition-all"><Check size={16} /></button>
+              <button onClick={() => setAddingCategory(null)} className="p-1.5 rounded-md bg-secondary text-muted-foreground hover:bg-secondary/80 transition-all"><X size={16} /></button>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1.5"><Switch checked={newHasDirection ? true : newShowOnCourt} onCheckedChange={v => { setNewShowOnCourt(v); if (!v) setNewHasDirection(false); }} disabled={newHasDirection} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.showOnCourt')}</Label></div>
-              <div className="flex items-center gap-1.5"><Switch checked={newAssignToPlayer} onCheckedChange={setNewAssignToPlayer} className="scale-75" /><Label className="text-[10px] text-muted-foreground">{t('actionsConfig.assignToPlayer')}</Label></div>
-              <div className="flex items-center gap-1.5"><Switch checked={newHasDirection} onCheckedChange={v => { setNewHasDirection(v); if (v) setNewShowOnCourt(true); }} className="scale-75" /><Label className="text-[10px] text-muted-foreground">Indiquer une trajectoire</Label></div>
-              <div className="flex items-center gap-1.5"><Switch checked={newHasRating} onCheckedChange={setNewHasRating} className="scale-75" /><Label className="text-[10px] text-muted-foreground">Évaluer la qualité (+ / -)</Label></div>
-              {newShowOnCourt && category === 'neutral' && (<div className="flex items-center gap-1.5"><Input value={newSigil} onChange={e => setNewSigil(e.target.value.slice(0, 2).toUpperCase())} placeholder={t('actionsConfig.sigilPlaceholder')} className="h-8 text-sm w-14" /><span className="text-[10px] text-muted-foreground">{t('actionsConfig.sigilHelp')}</span></div>)}
+            <div className="bg-background/80 p-3 rounded-xl space-y-3.5 border border-border/50">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">👤</span> {t('actionsConfig.assignToPlayer')}</Label>
+                <Switch checked={newAssignToPlayer} onCheckedChange={setNewAssignToPlayer} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">📍</span> {category !== 'neutral' ? t('actionsConfig.showOnCourt') : 'Placer sur le terrain'}</Label>
+                <Switch checked={newHasDirection ? true : newShowOnCourt} onCheckedChange={v => { setNewShowOnCourt(v); if (!v) setNewHasDirection(false); }} disabled={newHasDirection} />
+              </div>
+              {newShowOnCourt && category === 'neutral' && (
+                <div className="flex items-center justify-between pl-6 border-l-2 border-primary/20 ml-2 mb-1">
+                  <Label className="text-[11px] text-muted-foreground">Sigle à afficher (max 2 car.)</Label>
+                  <Input value={newSigil} onChange={e => setNewSigil(e.target.value.slice(0, 2).toUpperCase())} placeholder={t('actionsConfig.sigilPlaceholder')} className="h-8 text-[11px] w-14 font-bold text-center uppercase" />
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">🎯</span> Indiquer une trajectoire</Label>
+                <Switch checked={newHasDirection} onCheckedChange={v => { setNewHasDirection(v); if (v) setNewShowOnCourt(true); }} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">⭐️</span> Évaluer la qualité (+ / -)</Label>
+                <Switch checked={newHasRating} onCheckedChange={setNewHasRating} />
+              </div>
             </div>
           </div>
         )}

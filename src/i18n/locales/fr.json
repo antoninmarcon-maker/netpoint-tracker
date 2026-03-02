@@ -415,9 +415,9 @@
     "helpTitle": "Comment ça marche ?",
     "helpVolleyP1": "1. Appuyez sur « + » sous le score de l'équipe concernée. Une flèche animée indique l'équipe sélectionnée.",
     "helpVolleyP2": "2. Choisissez l'onglet : Points Gagnés (Attaque, Ace, Block, Bidouille, Seconde main) ou Fautes adverses (Out, Filet, Service loupé, Block Out).",
-    "helpVolleyP3": "3. Cliquez sur l'action puis placez-la sur le terrain (zone autorisée illuminée) et sélectionnez le joueur.",
+    "helpVolleyP3": "3. Cliquez sur l'action puis placez-la sur le terrain (zone autorisée illuminée) et sélectionnez le joueur. Vous pouvez aussi évaluer la qualité de l'action si l'option est activée.",
     "helpVolleyP4": "4. Gérez les sets : « Fin du Set » termine et inverse les côtés. Le gagnant 🏆 = le plus de sets remportés.",
-    "helpVolleyP5": "5. Statistiques : onglet Stats pour voir les points ⚡ et fautes ❌ par joueur (dépliables) + heatmap.",
+    "helpVolleyP5": "5. Statistiques & Replay : onglet Stats pour voir les points par joueur + heatmap. Cliquez sur un set terminé dans l'historique pour activer le mode Replay.",
     "helpVolleyP6": "6. Exportez & Partagez : stats PNG, terrain par set, Excel, ou partagez le score via WhatsApp / Telegram / X."
   },
   "actions": {

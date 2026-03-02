@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/hooks/useTheme';
 import { isPushSupported, isIOSSafari, getNotificationPermission, subscribeToPush } from '@/lib/pushNotifications';
 import type { User } from '@supabase/supabase-js';
+import { userStorage } from '@/lib/userStorage';
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
@@ -29,7 +30,7 @@ export default function Settings() {
   const [savingPassword, setSavingPassword] = useState(false);
 
   // Feedback
-  const [customLogo, setCustomLogo] = useState<string | null>(() => localStorage.getItem('customLogo'));
+  const [customLogo, setCustomLogo] = useState<string | null>(() => userStorage.getItem('customLogo'));
   const logoInputId = 'logo-file-input';
   const [feedbackMsg, setFeedbackMsg] = useState('');
   const [sendingFeedback, setSendingFeedback] = useState(false);
@@ -319,7 +320,7 @@ export default function Settings() {
                       ctx.drawImage(img, 0, 0, w, h);
                       const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
                       try {
-                        localStorage.setItem('customLogo', dataUrl);
+                        userStorage.setItem('customLogo', dataUrl);
                         setCustomLogo(dataUrl);
                         toast.success(t('settings.logoUpdated'));
                         navigate('/');
@@ -337,9 +338,9 @@ export default function Settings() {
                 {customLogo && (
                   <button
                     onClick={() => {
-                      localStorage.removeItem('customLogo');
+                      userStorage.removeItem('customLogo');
                       setCustomLogo(null);
-                      
+
                       toast.success(t('settings.logoRemoved'));
                     }}
                     className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-destructive/10 text-destructive font-semibold text-sm hover:bg-destructive/20 transition-colors"

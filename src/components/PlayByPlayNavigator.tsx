@@ -17,6 +17,7 @@ interface PlayByPlayNavigatorProps {
   /** Cumulative toggle */
   cumulativeMode?: boolean;
   onToggleCumulative?: (value: boolean) => void;
+  getPlayerName?: (id: string) => string;
 }
 
 const ACTION_LABELS: Partial<Record<ActionType, string>> = {
@@ -32,6 +33,7 @@ export function PlayByPlayNavigator({
   onChangePoint, onChangeAction, onBackToLive,
   isReplayMode = false, isPerformanceMode = false,
   cumulativeMode = true, onToggleCumulative,
+  getPlayerName,
 }: PlayByPlayNavigatorProps) {
   const { t } = useTranslation();
 
@@ -189,7 +191,7 @@ export function PlayByPlayNavigator({
               </span>
               {currentAction?.playerId && (
                 <span className="text-muted-foreground ml-1">
-                  (#{currentAction.playerId.slice(0, 4)})
+                  ({getPlayerName ? getPlayerName(currentAction.playerId) : `#${currentAction.playerId.slice(0, 4)}`})
                 </span>
               )}
             </p>

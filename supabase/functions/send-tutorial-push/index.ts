@@ -18,6 +18,14 @@ const TUTORIAL_MESSAGES: Record<number, { title: string; body: string }> = {
     title: "Passez au niveau supérieur 🚀",
     body: "Étape 3 : Lancez l'analyse IA sur votre dernier match pour obtenir des conseils tactiques personnalisés.",
   },
+  3: {
+    title: "Nouveau : Évaluez vos actions ! ⭐",
+    body: "Étape 4 : Activez l'évaluation des actions dans les paramètres pour noter la qualité de chaque touche de balle.",
+  },
+  4: {
+    title: "Revivez vos meilleurs sets ⏪",
+    body: "Étape 5 : Le mode Replay est disponible ! Cliquez sur un set terminé dans l'historique pour revoir chaque point en détail.",
+  },
 };
 
 /** Convert a raw base64url-encoded uncompressed EC P-256 public key (65 bytes)
@@ -78,11 +86,11 @@ Deno.serve(async (req) => {
       vapidKeys,
     });
 
-    // Fetch all subscriptions with tutorial_step < 3
+    // Fetch all subscriptions with tutorial_step < 5
     const { data: subscriptions, error } = await supabase
       .from("push_subscriptions")
       .select("*")
-      .lt("tutorial_step", 3);
+      .lt("tutorial_step", 5);
 
     if (error) {
       throw new Error(`DB query error: ${error.message}`);
@@ -106,7 +114,7 @@ Deno.serve(async (req) => {
         };
 
         const subscriber = await appServer.subscribe(pushSubscription);
-        
+
         const payload = JSON.stringify({
           title: message.title,
           body: message.body,
