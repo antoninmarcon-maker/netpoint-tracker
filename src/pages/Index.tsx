@@ -244,6 +244,7 @@ const Index = () => {
     }
 
     setAwaitingRating(false);
+    setAwaitingPlayerBeforeCourt(false);
 
     const isAutoPoint =
       metadata?.hasCourt === false ||

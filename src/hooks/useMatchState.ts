@@ -319,7 +319,10 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     setSelectedTeam(null);
     setSelectedPointType(null);
     setSelectedAction(null);
-    setPreSelectedRating(null);
+    // Let the player assignation step clean up the rating if we enter player selection mode
+    if (!players.length || (point.type !== 'neutral' && !(point.team === 'blue' && point.type === 'scored') && !(point.team === 'red' && point.type === 'fault'))) {
+      setPreSelectedRating(null);
+    }
   }, [selectedTeam, selectedPointType, selectedAction, chronoRunning, players.length, isPerformanceMode, directionOrigin, pendingDirectionAction, completeDirectionAction, cancelSelection, startDirectionMode, processRallyAction, preSelectedPlayerId, preSelectedRating, pendingActionMeta]);
 
   const assignPlayer = useCallback((playerId: string) => {
@@ -332,12 +335,14 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     }
     setPoints(prev => [...prev, { ...pendingPoint, playerId }]);
     setPendingPoint(null);
+    setPreSelectedRating(null); // Clean up custom rating once player is selected
   }, [pendingPoint, players]);
 
   const skipPlayerAssignment = useCallback(() => {
     if (!pendingPoint) return;
     setPoints(prev => [...prev, pendingPoint]);
     setPendingPoint(null);
+    setPreSelectedRating(null); // Clean up custom rating if skipped
   }, [pendingPoint]);
 
   // --- Smart Undo ---

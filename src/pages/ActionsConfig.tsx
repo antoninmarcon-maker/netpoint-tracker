@@ -104,7 +104,7 @@ export default function ActionsConfig() {
                         <Switch checked={editHasDirection} onCheckedChange={setEditHasDirection} />
                       </div>
                       <div className="flex items-center justify-between">
-                        <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">⭐️</span> Évaluer la qualité (+ / -)</Label>
+                        <Label className="text-xs font-medium text-foreground flex items-center gap-2">Évaluer la qualité (+ / -)</Label>
                         <Switch checked={editHasRating} onCheckedChange={setEditHasRating} />
                       </div>
                     </div>
@@ -164,7 +164,7 @@ export default function ActionsConfig() {
               {editingId === c.id ? (
                 <div className="flex flex-col gap-3 w-full">
                   <div className="flex items-center gap-2">
-                    <Input value={editLabel} onChange={e => setEditLabel(e.target.value)} className="h-9 text-sm font-semibold flex-1 min-w-0" onKeyDown={e => e.key === 'Enter' && handleUpdate(c.id)} autoFocus />
+                    <Input value={editLabel} onChange={e => setEditLabel(e.target.value)} className="h-9 text-sm font-semibold flex-1 min-w-0" onKeyDown={e => e.key === 'Enter' && handleUpdate(c.id)} />
                     <button onClick={() => handleUpdate(c.id)} className="p-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-all"><Check size={16} /></button>
                     <button onClick={() => setEditingId(null)} className="p-1.5 rounded-md bg-secondary text-muted-foreground hover:bg-secondary/80 transition-all"><X size={16} /></button>
                   </div>
@@ -188,7 +188,7 @@ export default function ActionsConfig() {
                       <Switch checked={editHasDirection} onCheckedChange={v => { setEditHasDirection(v); if (v) setEditShowOnCourt(true); }} />
                     </div>
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">⭐️</span> Évaluer la qualité (+ / -)</Label>
+                      <Label className="text-xs font-medium text-foreground flex items-center gap-2">Évaluer la qualité (+ / -)</Label>
                       <Switch checked={editHasRating} onCheckedChange={setEditHasRating} />
                     </div>
                   </div>
@@ -217,7 +217,7 @@ export default function ActionsConfig() {
         {addingCategory === category && (
           <div className="flex flex-col gap-3 p-3 rounded-xl border-2 border-primary border-dashed bg-primary/5 shadow-sm">
             <div className="flex items-center gap-2">
-              <Input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder={t('actionsConfig.newActionPlaceholder')} className="h-9 text-sm font-semibold flex-1 min-w-0" onKeyDown={e => e.key === 'Enter' && handleAdd()} autoFocus />
+              <Input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder={t('actionsConfig.newActionPlaceholder')} className="h-9 text-sm font-semibold flex-1 min-w-0" onKeyDown={e => e.key === 'Enter' && handleAdd()} />
               <button onClick={handleAdd} disabled={!newLabel.trim()} className="p-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50 hover:bg-primary/90 transition-all"><Check size={16} /></button>
               <button onClick={() => setAddingCategory(null)} className="p-1.5 rounded-md bg-secondary text-muted-foreground hover:bg-secondary/80 transition-all"><X size={16} /></button>
             </div>
@@ -241,7 +241,7 @@ export default function ActionsConfig() {
                 <Switch checked={newHasDirection} onCheckedChange={v => { setNewHasDirection(v); if (v) setNewShowOnCourt(true); }} />
               </div>
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium text-foreground flex items-center gap-2"><span className="text-base">⭐️</span> Évaluer la qualité (+ / -)</Label>
+                <Label className="text-xs font-medium text-foreground flex items-center gap-2">Évaluer la qualité (+ / -)</Label>
                 <Switch checked={newHasRating} onCheckedChange={setNewHasRating} />
               </div>
             </div>
