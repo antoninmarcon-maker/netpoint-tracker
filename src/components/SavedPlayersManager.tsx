@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { X, Pencil, Check, Trash2, Users, ChevronDown, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SportType, getScoredActionsForSport, getFaultActionsForSport } from '@/types/sports';
-import { getSavedPlayers, removeSavedPlayer } from '@/lib/savedPlayers';
+import { getSavedPlayers, removeSavedPlayer, updateSavedPlayerName, updateSavedPlayerNumber } from '@/lib/savedPlayers';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,7 @@ interface SavedPlayersManagerProps {
 interface SavedPlayer {
   id: string;
   name: string;
+  number?: string;
   sport: SportType;
 }
 
@@ -33,8 +34,10 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [editNumber, setEditNumber] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'name' | 'number' | 'matches'>('name');
 
   const loadPlayers = useCallback(async () => {
     setLoading(true);
@@ -60,7 +63,7 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
         for (const mp of matchPlayers) {
           const sp = saved.find(s => s.name === mp.name);
           if (!sp) continue;
-          
+
           if (!statsMap.has(sp.id)) {
             statsMap.set(sp.id, { points: 0, faults: 0, matches: new Set(), actions: {} });
           }
@@ -107,16 +110,17 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
     toast.success(t('savedPlayers.playerDeleted'));
   };
 
-  const handleSaveName = async (id: string) => {
+  const handleSavePlayer = async (id: string) => {
     if (!editName.trim()) return;
-    const { error } = await supabase
-      .from('saved_players')
-      .update({ name: editName.trim() })
-      .eq('id', id);
-    if (error) { toast.error(t('savedPlayers.nameChangeError')); return; }
-    setEditingId(null);
-    loadPlayers();
-    toast.success(t('savedPlayers.nameChanged'));
+    try {
+      await updateSavedPlayerName(id, editName.trim(), sport, userId);
+      await updateSavedPlayerNumber(id, editNumber.trim(), userId);
+      setEditingId(null);
+      loadPlayers();
+      toast.success(t('savedPlayers.nameChanged', 'Joueur mis à jour'));
+    } catch (e) {
+      toast.error(t('savedPlayers.nameChangeError', 'Erreur lors de la mise à jour'));
+    }
   };
 
   const scoredActions = getScoredActionsForSport(sport);
@@ -182,13 +186,29 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
             <button
               key={s.key}
               onClick={() => { setSport(s.key); setExpandedId(null); }}
-              className={`py-2 rounded-xl font-bold text-xs transition-all border-2 ${
-                sport === s.key
-                  ? 'bg-primary/15 text-primary border-primary/40'
-                  : 'bg-secondary text-secondary-foreground border-transparent hover:bg-secondary/80'
-              }`}
+              className={`py-2 rounded-xl font-bold text-xs transition-all border-2 ${sport === s.key
+                ? 'bg-primary/15 text-primary border-primary/40'
+                : 'bg-secondary text-secondary-foreground border-transparent hover:bg-secondary/80'
+                }`}
             >
               {s.icon} {s.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Sort Controls */}
+        <div className="flex items-center gap-2 justify-end mb-2">
+          <span className="text-xs text-muted-foreground mr-1">{t('savedPlayers.sortBy', 'Trier par :')}</span>
+          {(['name', 'number', 'matches'] as const).map(s => (
+            <button
+              key={s}
+              onClick={() => setSortBy(s)}
+              className={`px-2 py-1 rounded-md text-[10px] font-semibold transition-colors ${sortBy === s
+                  ? 'bg-primary/20 text-primary'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                }`}
+            >
+              {s === 'name' ? t('savedPlayers.sortName', 'Nom') : s === 'number' ? t('savedPlayers.sortNumber', 'Numéro') : t('savedPlayers.sortMatches', 'Matchs')}
             </button>
           ))}
         </div>
@@ -199,7 +219,16 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
           <p className="text-sm text-muted-foreground text-center py-8">{t('savedPlayers.noPlayers')}</p>
         ) : (
           <div className="space-y-2">
-            {players.map(p => (
+            {[...players].sort((a, b) => {
+              if (sortBy === 'matches') return b.matchCount - a.matchCount;
+              if (sortBy === 'number') {
+                const numA = a.number ? parseInt(a.number, 10) : Infinity;
+                const numB = b.number ? parseInt(b.number, 10) : Infinity;
+                if (numA !== numB) return numA - numB;
+                // fallback to name
+              }
+              return (a.name || '').localeCompare(b.name || '');
+            }).map(p => (
               <div key={p.id} className="bg-secondary/50 rounded-xl px-3 py-2.5 space-y-1">
                 <div className="flex items-center gap-2">
                   {/* Expand toggle */}
@@ -214,18 +243,34 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
                       <input
                         value={editName}
                         onChange={e => setEditName(e.target.value)}
-                        className="h-7 flex-1 rounded-md border border-border bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        className="h-7 flex-1 min-w-0 rounded-md border border-border bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                         placeholder="Nom"
-                        onKeyDown={e => { if (e.key === 'Enter') handleSaveName(p.id); }}
+                        onKeyDown={e => { if (e.key === 'Enter') handleSavePlayer(p.id); }}
                         autoFocus
                       />
-                      <button onClick={() => handleSaveName(p.id)} className="p-1 text-primary"><Check size={14} /></button>
+                      <input
+                        value={editNumber}
+                        onChange={e => setEditNumber(e.target.value)}
+                        className="h-7 w-12 rounded-md border border-border bg-background px-2 text-xs text-foreground text-center focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        placeholder="N°"
+                        type="tel"
+                        maxLength={3}
+                        onKeyDown={e => { if (e.key === 'Enter') handleSavePlayer(p.id); }}
+                      />
+                      <button onClick={() => handleSavePlayer(p.id)} className="p-1 text-primary"><Check size={14} /></button>
                       <button onClick={() => setEditingId(null)} className="p-1 text-muted-foreground"><X size={14} /></button>
                     </>
                   ) : (
                     <>
-                      <span className="flex-1 text-sm font-medium text-foreground truncate">{p.name || '—'}</span>
-                      <button onClick={() => { setEditingId(p.id); setEditName(p.name); }} className="p-1 text-muted-foreground hover:text-foreground"><Pencil size={13} /></button>
+                      <div className="flex-1 flex items-center gap-2 overflow-hidden">
+                        <span className="text-sm font-medium text-foreground truncate">{p.name || '—'}</span>
+                        {p.number && (
+                          <span className="shrink-0 px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold">
+                            N°{p.number}
+                          </span>
+                        )}
+                      </div>
+                      <button onClick={() => { setEditingId(p.id); setEditName(p.name); setEditNumber(p.number || ''); }} className="p-1 text-muted-foreground hover:text-foreground"><Pencil size={13} /></button>
                       <button onClick={() => setDeletingId(p.id)} className="p-1 text-destructive/60 hover:text-destructive"><Trash2 size={13} /></button>
                     </>
                   )}
