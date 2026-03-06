@@ -504,7 +504,7 @@ export default function Home() {
         )}
 
         <Dialog open={showNew} onOpenChange={setShowNew}>
-          <DialogContent className="max-w-sm rounded-2xl">
+          <DialogContent className="max-w-sm rounded-2xl" onOpenAutoFocus={(e) => e.preventDefault()}>
             <DialogHeader>
               <DialogTitle className="text-center text-lg font-bold">{t('home.createMatch')}</DialogTitle>
             </DialogHeader>

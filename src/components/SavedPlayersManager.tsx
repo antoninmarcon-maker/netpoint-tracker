@@ -167,7 +167,7 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-md rounded-2xl max-h-[80vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-center text-lg font-bold">
             <Users size={18} className="inline mr-2" />
@@ -204,8 +204,8 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
               key={s}
               onClick={() => setSortBy(s)}
               className={`px-2 py-1 rounded-md text-[10px] font-semibold transition-colors ${sortBy === s
-                  ? 'bg-primary/20 text-primary'
-                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                ? 'bg-primary/20 text-primary'
+                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                 }`}
             >
               {s === 'name' ? t('savedPlayers.sortName', 'Nom') : s === 'number' ? t('savedPlayers.sortNumber', 'Numéro') : t('savedPlayers.sortMatches', 'Matchs')}

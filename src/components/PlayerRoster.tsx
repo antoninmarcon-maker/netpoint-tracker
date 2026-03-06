@@ -33,7 +33,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
   const [showAddForm, setShowAddForm] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [selectedImportIds, setSelectedImportIds] = useState<Set<string>>(new Set());
-  const [playerStats, setPlayerStats] = useState<Record<string, { matches: number; scored: number; faults: number }>>({}); 
+  const [playerStats, setPlayerStats] = useState<Record<string, { matches: number; scored: number; faults: number }>>({});
   const nameRef = useRef<HTMLInputElement>(null);
   const numberRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -78,7 +78,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
   const suggestions = useMemo(() => {
     const query = newName.trim().toLowerCase();
     if (!query) return [];
-    
+
     return savedPlayers.filter(sp => {
       if (players.some(p => p.name === sp.name)) return false;
       return sp.name.toLowerCase().includes(query);
@@ -292,7 +292,7 @@ export function PlayerRoster({ players, onSetPlayers, teamName, sport = 'volleyb
 
           {/* Import Dialog */}
           <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-            <DialogContent className="max-w-sm rounded-2xl max-h-[80vh] overflow-auto">
+            <DialogContent className="max-w-sm rounded-2xl max-h-[80vh] overflow-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
               <DialogHeader>
                 <DialogTitle className="text-center text-lg font-bold">{t('roster.importTitle')}</DialogTitle>
               </DialogHeader>
