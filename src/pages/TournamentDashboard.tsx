@@ -135,7 +135,7 @@ export default function TournamentDashboard() {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            <header className="px-4 pt-safe-top py-3 border-b border-border space-y-3">
+            <header className="px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] border-b border-border space-y-3">
                 <div className="flex items-center gap-3">
                     <button onClick={() => navigate('/tournaments')} className="p-1.5 rounded-full bg-secondary text-muted-foreground"><ArrowLeft size={18} /></button>
                     <div className="flex-1 min-w-0">

@@ -95,9 +95,11 @@ export default function TournamentJoin() {
     );
 
     return (
-        <div className="min-h-screen bg-background flex flex-col">
-            <header className="px-4 pt-safe-top py-3 border-b border-border flex items-center gap-3">
-                <button onClick={() => navigate(-1)} className="p-1.5 rounded-full bg-secondary text-muted-foreground"><ArrowLeft size={18} /></button>
+        <div className="min-h-screen bg-background flex flex-col pb-20">
+            <header className="px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] border-b border-border flex items-center gap-3 sticky top-0 bg-background z-40">
+                <button onClick={() => navigate('/tournaments')} className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground">
+                    <ArrowLeft size={18} />
+                </button>
                 <div className="flex-1">
                     <h1 className="font-black text-foreground text-base truncate">{tournament.name}</h1>
                     <p className="text-xs text-muted-foreground">Rejoindre le tournoi</p>

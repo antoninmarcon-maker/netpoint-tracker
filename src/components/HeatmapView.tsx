@@ -100,6 +100,12 @@ function buildExportContainer(teamNames: { blue: string; red: string }, label: s
     if (ds[team].neutral > 0) {
       statsEl.appendChild(createStatRow('📊 Faits de jeu', ds[team].neutral, { borderTop: true }));
     }
+    if (Object.keys(ds[team].customStats).length > 0) {
+      statsEl.appendChild(createStatRow('✨ Personnalisés', '', { borderTop: true, bold: true }));
+      for (const [l, v] of Object.entries(ds[team].customStats)) {
+        statsEl.appendChild(createStatRow(l, v, { indent: true }));
+      }
+    }
     statsEl.appendChild(createStatRow('Total', ds[team].scored + ds[team].faults + ds[team].neutral, { borderTop: true }));
     card.appendChild(statsEl);
     grid.appendChild(card);
@@ -116,9 +122,10 @@ function buildExportContainer(teamNames: { blue: string; red: string }, label: s
 }
 
 interface TeamStats {
-  scored: number; faults: number; neutral: number;
+  scored: number; faults: number; neutral: number; customNeutralCount: number;
   attacks: number; aces: number; blocks: number; bidouilles: number; secondeMains: number; otherOffensive: number;
   outs: number; netFaults: number; serviceMisses: number; blockOuts: number;
+  customStats: Record<string, number>;
 }
 
 function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: number } {
@@ -127,9 +134,25 @@ function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: n
     const scored = pts.filter(p => p.team === team && p.type === 'scored');
     const opponentFaults = pts.filter(p => p.team === opponent && p.type === 'fault');
     const neutralPts = pts.filter(p => p.team === team && p.type === 'neutral');
+
+    const customStats: Record<string, number> = {};
+    pts.forEach(p => {
+      // For neutral, it implies p.team === team
+      // For scored, p.team === team
+      // For faults, it's counted when opponent faults, so p.team === opponent
+      const isRelevant = (p.type === 'neutral' && p.team === team) ||
+        (p.type === 'scored' && p.team === team) ||
+        (p.type === 'fault' && p.team === opponent);
+
+      if (isRelevant && p.customActionLabel) {
+        customStats[p.customActionLabel] = (customStats[p.customActionLabel] || 0) + 1;
+      }
+    });
+    const customNeutralCount = neutralPts.filter(p => !['timeout', 'sub_in', 'sub_out', 'yellow_card', 'red_card'].includes(p.action)).length;
     return {
       scored: scored.length,
       neutral: neutralPts.length,
+      customNeutralCount,
       faults: opponentFaults.length,
       attacks: scored.filter(p => p.action === 'attack').length,
       aces: scored.filter(p => p.action === 'ace').length,
@@ -141,6 +164,7 @@ function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: n
       netFaults: opponentFaults.filter(p => p.action === 'net_fault').length,
       serviceMisses: opponentFaults.filter(p => p.action === 'service_miss').length,
       blockOuts: opponentFaults.filter(p => p.action === 'block_out').length,
+      customStats,
     };
   };
   return { blue: byTeam('blue'), red: byTeam('red'), total: pts.length };
@@ -492,6 +516,30 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
                     <span className="font-bold text-foreground text-[11px]">{val as number}</span>
                   </div>
                 ))}
+
+                <div className="flex justify-between border-t border-border pt-1 mt-1">
+                  <span className="text-muted-foreground font-semibold text-xs text-primary/80">Faits de jeu</span>
+                  <span className="font-bold text-foreground text-xs">{ds[team].neutral}</span>
+                </div>
+                {ds[team].customNeutralCount > 0 && (
+                  <div className="flex justify-between pl-2">
+                    <span className="text-muted-foreground text-[11px]">Faits personnalisés</span>
+                    <span className="font-bold text-foreground text-[11px]">{ds[team].customNeutralCount}</span>
+                  </div>
+                )}
+                {Object.keys(ds[team].customStats).length > 0 && (
+                  <>
+                    <div className="flex justify-between border-t border-border/50 pt-1 mt-1">
+                      <span className="text-muted-foreground font-semibold text-[11px]">✨ Personnalisés</span>
+                    </div>
+                    {Object.entries(ds[team].customStats).map(([label, val]) => (
+                      <div key={label} className="flex justify-between pl-2">
+                        <span className="text-muted-foreground text-[11px]">{label}</span>
+                        <span className="font-bold text-foreground text-[11px]">{val}</span>
+                      </div>
+                    ))}
+                  </>
+                )}
 
                 <div className="flex justify-between border-t border-border pt-1 mt-1">
                   <span className="text-muted-foreground text-xs">{t('common.total')}</span>

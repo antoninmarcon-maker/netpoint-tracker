@@ -93,7 +93,7 @@ export default function TournamentSpectator() {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            <header className="px-4 pt-safe-top py-4 border-b border-border">
+            <header className="px-4 pt-[max(0.75rem,env(safe-area-inset-top))] py-4 border-b border-border">
                 <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                         <Trophy size={18} className="text-primary" />

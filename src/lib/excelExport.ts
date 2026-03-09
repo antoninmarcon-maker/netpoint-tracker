@@ -53,9 +53,11 @@ function teamSetStats(pts: Point[], team: 'blue' | 'red') {
   const opponent = team === 'blue' ? 'red' : 'blue';
   const scored = pts.filter(p => p.team === team && p.type === 'scored');
   const opponentFaults = pts.filter(p => p.team === opponent && p.type === 'fault');
+  const neutrals = pts.filter(p => p.team === team && p.type === 'neutral');
   return {
     scored: scored.length,
     faults: opponentFaults.length,
+    neutrals: neutrals.length,
     details: OFFENSIVE_ACTIONS.map(a => [a.label, scored.filter(p => p.action === a.key).length] as [string, number]),
     faultDetails: FAULT_ACTIONS.map(a => [a.label, opponentFaults.filter(p => p.action === a.key).length] as [string, number]),
   };
@@ -95,8 +97,12 @@ export function exportMatchToExcel(
       rows.push({ '#': teamNames[team] });
       rows.push({ '#': '', 'Joueur': 'Pts gagnés', 'Col3': ts.scored });
       ts.details.forEach(([l, v]) => rows.push({ '#': '', 'Joueur': `  ${l}`, 'Col3': v }));
-      rows.push({ '#': '', 'Joueur': 'Fautes', 'Col3': ts.faults });
+      rows.push({ '#': '', 'Joueur': 'Fautes adv', 'Col3': ts.faults });
       ts.faultDetails.forEach(([l, v]) => rows.push({ '#': '', 'Joueur': `  ${l}`, 'Col3': v }));
+      if (ts.neutrals > 0) {
+        rows.push({ '#': '', 'Joueur': 'Faits de jeu', 'Col3': ts.neutrals });
+      }
+      rows.push({ '#': '', 'Joueur': 'Total', 'Col3': ts.scored + ts.faults + ts.neutrals });
       rows.push({});
     });
     const ws = XLSX.utils.json_to_sheet(rows);
@@ -130,7 +136,7 @@ export function exportMatchToExcel(
   summaryRows.push({ 'Info': '— Stats Équipe Globales —' });
   (['blue', 'red'] as const).forEach(team => {
     const ts = teamSetStats(allPoints, team);
-    summaryRows.push({ 'Info': teamNames[team], 'Valeur': `Pts: ${ts.scored}`, 'Détail': `Fautes: ${ts.faults}` });
+    summaryRows.push({ 'Info': teamNames[team], 'Valeur': `Pts: ${ts.scored}`, 'Détail': `Fautes adv: ${ts.faults}`, 'Col4': `Faits jeu: ${ts.neutrals}` });
   });
   const summaryWs = XLSX.utils.json_to_sheet(summaryRows);
   summaryWs['!cols'] = [{ wch: 35 }, { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
