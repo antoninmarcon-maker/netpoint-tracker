@@ -260,18 +260,14 @@ const Index = () => {
     }
   }, [matchState.selectedPointType, selectedTeam, selectedAction, addPoint, isPerformanceMode, players.length, preSelectedPlayerId, preSelectedRating, pendingActionMeta]);
 
-  // Player assignment logic
+  // Player assignment logic: The decision to show the popup is now fully handled in useMatchState
+  // If pendingPoint is set, it means the popup SHOULD be shown. We just need a failsafe to skip
+  // if players were removed in the background, though players.length is also checked in useMatchState.
   useEffect(() => {
-    if (!pendingPoint || players.length === 0) return;
-    // assignToPlayer is now handled via pendingActionMeta inside addPoint
-    const isBlueScored = pendingPoint.team === 'blue' && pendingPoint.type === 'scored';
-    const isRedScored = pendingPoint.team === 'red' && pendingPoint.type === 'scored';
-    const isRedFault = pendingPoint.team === 'red' && pendingPoint.type === 'fault';
-    const isNeutral = pendingPoint.type === 'neutral';
-    if (!isBlueScored && !isRedScored && !isRedFault && !isNeutral) {
+    if (pendingPoint && players.length === 0) {
       skipPlayerAssignment();
     }
-  }, [pendingPoint, players, skipPlayerAssignment, assignPlayer]);
+  }, [pendingPoint, players.length, skipPlayerAssignment]);
 
   // Cloud save
   const cloudSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -503,12 +499,14 @@ const Index = () => {
               <PlayerSelector players={players} prompt={t('playerSelector.whoDidAction')} onSelect={assignPlayer} onSkip={skipPlayerAssignment} sport={sport} team={pendingPoint.team} teamName={teamNames[pendingPoint.team]} />
             );
           }
-          const showSelector = pendingPoint.type === 'scored' || (pendingPoint.team === 'red' && pendingPoint.type === 'fault');
-          if (!showSelector) return null;
-          const isFaultByBlue = pendingPoint.team === 'red' && (pendingPoint.type === 'fault' || pendingPoint.type === 'scored');
-          const faultingTeam = pendingPoint.team === 'blue' ? 'red' : 'blue';
+          // useMatchState already filtered out invalid combinations (e.g. red scored, blue fault)
+          // So we only need to ask: 'Who scored?' (blue scored) or 'Who faulted?' (red fault)
+          const isFaultByRed = pendingPoint.team === 'red' && pendingPoint.type === 'fault';
+          const popupTeam = isFaultByRed ? 'red' : pendingPoint.team;
+          const prompt = isFaultByRed ? t('playerSelector.whoFaulted') : t('playerSelector.whoScored');
+
           return (
-            <PlayerSelector players={players} prompt={isFaultByBlue ? t('playerSelector.whoFaulted') : t('playerSelector.whoScored')} onSelect={assignPlayer} onSkip={skipPlayerAssignment} sport={sport} team={isFaultByBlue ? faultingTeam : pendingPoint.team} teamName={teamNames[isFaultByBlue ? faultingTeam : pendingPoint.team]} />
+            <PlayerSelector players={players} prompt={prompt} onSelect={assignPlayer} onSkip={skipPlayerAssignment} sport={sport} team={popupTeam} teamName={teamNames[popupTeam]} />
           );
         })()}
       </main>

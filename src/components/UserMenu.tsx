@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Settings, User, MessageSquare, Users, Zap } from 'lucide-react';
+import { LogOut, Settings, User, MessageSquare, Users, Zap, Trophy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
@@ -53,6 +53,9 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
             </a>
             <button onClick={() => { setShowMenu(false); navigate('/players'); }} className="w-full flex items-center gap-2.5 py-3 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-all">
               <Users size={16} className="text-primary" /> {t('userMenu.savedPlayers')}
+            </button>
+            <button onClick={() => { setShowMenu(false); navigate('/tournaments'); }} className="w-full flex items-center gap-2.5 py-3 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-all">
+              <Trophy size={16} className="text-primary" /> {t('userMenu.tournaments')}
             </button>
             <button onClick={() => { setShowMenu(false); navigate('/actions'); }} className="w-full flex items-center gap-2.5 py-3 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-all">
               <Zap size={16} className="text-primary" /> {t('userMenu.customActions')}

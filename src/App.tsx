@@ -18,6 +18,10 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Credits = lazy(() => import("./pages/Credits"));
 const ActionsConfig = lazy(() => import("./pages/ActionsConfig"));
 const Players = lazy(() => import("./pages/Players"));
+const Tournaments = lazy(() => import("./pages/Tournaments"));
+const TournamentDashboard = lazy(() => import("./pages/TournamentDashboard"));
+const TournamentJoin = lazy(() => import("./pages/TournamentJoin"));
+const TournamentSpectator = lazy(() => import("./pages/TournamentSpectator"));
 
 const queryClient = new QueryClient();
 
@@ -39,6 +43,10 @@ const AppInner = () => {
             <Route path="/credits" element={<Credits />} />
             <Route path="/actions" element={<ActionsConfig />} />
             <Route path="/players" element={<Players />} />
+            <Route path="/tournaments" element={<Tournaments />} />
+            <Route path="/tournaments/:id" element={<TournamentDashboard />} />
+            <Route path="/tournaments/:id/join" element={<TournamentJoin />} />
+            <Route path="/tournaments/:id/spectate" element={<TournamentSpectator />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
