@@ -143,7 +143,7 @@ export default function TournamentDashboard() {
                         <p className="text-xs text-muted-foreground">{tournament.location}{tournament.date && ` • ${new Date(tournament.date).toLocaleDateString('fr-FR')}`}</p>
                     </div>
                     {isAdmin && (
-                        <button onClick={() => setTournament(p => p ? { ...p, strict_validation: !p.strict_validation } : p) || toggleStrictValidation(tournament.id, !tournament.strict_validation)}
+                        <button onClick={() => { setTournament(p => p ? { ...p, strict_validation: !p.strict_validation } : p); toggleStrictValidation(tournament.id, !tournament.strict_validation); }}
                             className={`p-1.5 rounded-lg ${tournament.strict_validation ? 'bg-amber-500/15 text-amber-500' : 'bg-secondary text-muted-foreground'}`}>
                             {tournament.strict_validation ? <Lock size={16} /> : <Unlock size={16} />}
                         </button>
