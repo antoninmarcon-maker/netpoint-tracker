@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { Activity, BarChart3, HelpCircle, X, ArrowLeft, Check } from 'lucide-react';
-import { useMatchState } from '@/hooks/useMatchState';
+import { useMatchState, needsPlayerAssignment } from '@/hooks/useMatchState';
 import { ScoreBoard } from '@/components/ScoreBoard';
 import { VolleyballCourt } from '@/components/VolleyballCourt';
 import { HeatmapView } from '@/components/HeatmapView';
@@ -224,8 +224,8 @@ const Index = () => {
     }
 
     const meta = pendingActionMeta;
-    const isStandardAssignmentNeeded = selectedPointType === 'neutral' || (selectedTeam === 'blue' && selectedPointType === 'scored') || (selectedTeam === 'red' && selectedPointType === 'fault');
-    const needsAssignToPlayer = meta?.assignToPlayer !== false && isStandardAssignmentNeeded;
+    // Utilize the centralized logic from useMatchState:
+    const needsAssignToPlayer = needsPlayerAssignment(players.length > 0, selectedTeam, selectedPointType, meta?.assignToPlayer);
     const needsCourtPlacement = meta?.placeOnCourt !== false && metadata?.hasCourt !== false && !SERVICE_FAULT_ACTIONS.includes(selectedAction);
     const globalRatingsEnabled = metadata?.enableRatings !== false;
     const perActionRating = meta?.hasRating === true;

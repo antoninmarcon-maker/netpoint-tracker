@@ -11,7 +11,7 @@ import { getMatch, saveMatch, saveLastRoster } from '@/lib/matchStorage';
  */
 export function needsPlayerAssignment(hasPlayers: boolean, team: Team, type: PointType, assignToPlayer: boolean | undefined): boolean {
   if (!hasPlayers) return false;
-  if (assignToPlayer === false) return false;
+  if (assignToPlayer !== undefined) return assignToPlayer;
   return type === 'neutral' || (team === 'blue' && type === 'scored') || (team === 'red' && type === 'fault');
 }
 
