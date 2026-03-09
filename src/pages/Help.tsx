@@ -7,35 +7,6 @@ import { useTranslation } from 'react-i18next';
 
 export default function Help() {
   const { t } = useTranslation();
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedbackMsg, setFeedbackMsg] = useState('');
-  const [sending, setSending] = useState(false);
-  const feedbackRef = useRef<HTMLElement>(null);
-
-  const handleFeedback = async () => {
-    if (!feedbackMsg.trim()) return;
-    setSending(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    const userId = session?.user?.id;
-    if (!userId) {
-      toast.error(t('help.loginForFeedback'));
-      setSending(false);
-      return;
-    }
-    const { error } = await supabase.from('feedback').insert({
-      user_id: userId,
-      message: feedbackMsg.trim(),
-      email: session.user.email ?? '',
-    });
-    setSending(false);
-    if (error) {
-      toast.error(t('help.feedbackError'));
-    } else {
-      toast.success(t('help.feedbackSent'));
-      setFeedbackMsg('');
-      setFeedbackOpen(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
