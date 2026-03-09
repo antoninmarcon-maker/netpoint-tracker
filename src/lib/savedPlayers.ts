@@ -84,12 +84,25 @@ async function getCloudSavedPlayers(sport: SportType, userId?: string): Promise<
   if (userId) query = query.eq('user_id', userId);
   const { data, error } = await query;
   if (error || !data) return [];
-  return data.map((r: any) => ({
+  const players = data.map((r: any) => ({
     id: r.id,
     name: r.name,
     sport: r.sport as SportType,
     ...(r.jersey_number ? { number: r.jersey_number } : {}),
   }));
+  // Hydrate localStorage with cloud jersey numbers
+  const map = getPlayerNumbersMap();
+  let changed = false;
+  for (const p of players) {
+    if (p.number && map[p.id] !== p.number) {
+      map[p.id] = p.number;
+      changed = true;
+    }
+  }
+  if (changed) {
+    userStorage.setItem(JERSEY_NUMBERS_KEY, JSON.stringify(map));
+  }
+  return players;
 }
 
 async function mergeCloudPlayers(userId: string, sport: SportType, matchPlayers: Player[]) {
