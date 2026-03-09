@@ -92,24 +92,6 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-center text-lg font-bold">{t('userMenu.feedbackTitle')}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <textarea value={feedbackMessage} onChange={e => setFeedbackMessage(e.target.value)} placeholder={t('userMenu.feedbackPlaceholder')} className="w-full min-h-[120px] rounded-lg border border-border bg-background p-3 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/30" maxLength={2000} />
-            <div className="flex gap-2">
-              <button onClick={() => setShowFeedback(false)} className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm">
-                {t('common.cancel')}
-              </button>
-              <button onClick={handleSendFeedback} disabled={sendingFeedback || !feedbackMessage.trim()} className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50">
-                {sendingFeedback ? t('common.sending') : t('common.send')}
-              </button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
