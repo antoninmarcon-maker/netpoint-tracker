@@ -40,7 +40,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
   const [directionDest, setDirectionDest] = useState<{ x: number; y: number } | null>(null);
   const [pendingDirectionAction, setPendingDirectionAction] = useState<{
     team: Team; type: PointType; action: ActionType;
-    customLabel?: string; sigil?: string; showOnCourt?: boolean;
+    customLabel?: string; sigil?: string; showOnCourt?: boolean; assignToPlayer?: boolean;
   } | null>(null);
 
   // Pre-selected player: chosen BEFORE court click in performance mode (Action→Player→Court flow)
@@ -163,10 +163,10 @@ export function useMatchState(matchId: string, ready: boolean = true) {
   }, []);
 
   // --- Direction mode helpers ---
-  const startDirectionMode = useCallback((team: Team, type: PointType, action: ActionType, x: number, y: number, customLabel?: string, sigil?: string, showOnCourt?: boolean) => {
+  const startDirectionMode = useCallback((team: Team, type: PointType, action: ActionType, x: number, y: number, customLabel?: string, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean) => {
     setDirectionOrigin({ x, y });
     setDirectionDest({ x, y }); // default to origin so they are superimposed initially
-    setPendingDirectionAction({ team, type, action, customLabel, sigil, showOnCourt });
+    setPendingDirectionAction({ team, type, action, customLabel, sigil, showOnCourt, assignToPlayer });
   }, []);
 
   const updateDirectionDest = useCallback((x: number, y: number) => {
@@ -205,8 +205,12 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       if (rallyAction.playerId) {
         setPoints(prev => [...prev, point]);
       } else {
+        // Use explicit assignToPlayer from rally action if present, otherwise fall back to category-based heuristic
         const shouldAssignPlayer = players.length > 0 && (
-          rallyAction.type === 'neutral' || (team === 'blue' && type === 'scored') || (team === 'red' && type === 'fault')
+          rallyAction.assignToPlayer === true ||
+          (rallyAction.assignToPlayer === undefined && (
+            rallyAction.type === 'neutral' || (team === 'blue' && type === 'scored') || (team === 'red' && type === 'fault')
+          ))
         );
         if (shouldAssignPlayer) {
           setPendingPoint(point);
@@ -220,7 +224,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
 
   const confirmDirectionAction = useCallback(() => {
     if (!pendingDirectionAction || !directionOrigin || !directionDest) return;
-    const { team, type, action, customLabel, sigil, showOnCourt } = pendingDirectionAction;
+    const { team, type, action, customLabel, sigil, showOnCourt, assignToPlayer } = pendingDirectionAction;
     const rallyAction: RallyAction = {
       id: crypto.randomUUID(),
       team, type, action,
@@ -231,6 +235,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
       ...(customLabel ? { customActionLabel: customLabel } : {}),
       ...(sigil ? { sigil } : {}),
       ...(showOnCourt ? { showOnCourt: true } : {}),
+      ...(assignToPlayer !== undefined ? { assignToPlayer } : {}),
       ...(preSelectedPlayerId ? { playerId: preSelectedPlayerId } : {}),
       ...(preSelectedRating && preSelectedRating !== 'none' ? { rating: preSelectedRating } : {}),
     };
@@ -305,7 +310,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
 
     // --- Mode with direction: 1st click (origin) ---
     if (hasDirection && !directionOrigin) {
-      startDirectionMode(selectedTeam, selectedPointType, selectedAction, x, y, customLabel, customSigil, customShowOnCourt);
+      startDirectionMode(selectedTeam, selectedPointType, selectedAction, x, y, customLabel, customSigil, customShowOnCourt, meta?.assignToPlayer);
       // Do NOT clear selectedTeam here — keeps the "touch destination" banner visible
       return;
     }

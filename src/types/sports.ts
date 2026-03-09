@@ -122,6 +122,8 @@ export interface RallyAction {
   /** Direction tracking: end coordinates */
   endX?: number;
   endY?: number;
+  /** Whether this action should prompt for player assignment */
+  assignToPlayer?: boolean;
   rating?: 'negative' | 'neutral' | 'positive';
 }
 
