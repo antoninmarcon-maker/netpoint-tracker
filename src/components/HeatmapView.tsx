@@ -567,15 +567,18 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
                   <span className="font-bold text-foreground text-xs">{ds[team].scored}</span>
                 </div>
                 {[
-                  [t('heatmap.attacks'), ds[team].attacks],
-                  [t('heatmap.aces'), ds[team].aces],
-                  [t('heatmap.blocks'), ds[team].blocks],
-                  [t('heatmap.bidouilles'), ds[team].bidouilles],
-                  [t('heatmap.secondeMains'), ds[team].secondeMains],
-                  [t('heatmap.others'), ds[team].otherOffensive],
-                ].map(([label, val]) => (
-                  <div key={label as string} className="flex justify-between pl-2">
-                    <span className="text-muted-foreground text-[11px]">{label}</span>
+                  [t('heatmap.attacks'), ds[team].attacks, 'attack'],
+                  [t('heatmap.aces'), ds[team].aces, 'ace'],
+                  [t('heatmap.blocks'), ds[team].blocks, 'block'],
+                  [t('heatmap.bidouilles'), ds[team].bidouilles, 'bidouille'],
+                  [t('heatmap.secondeMains'), ds[team].secondeMains, 'seconde_main'],
+                  [t('heatmap.others'), ds[team].otherOffensive, 'other_offensive'],
+                ].map(([label, val, key]) => (
+                  <div key={label as string} className="flex items-center justify-between pl-2">
+                    <span className="text-muted-foreground text-[11px] flex items-center gap-1">
+                      {label}
+                      {showRatings && ds[team].actionRatings[key as string] && <InlineRatingDots r={ds[team].actionRatings[key as string]} />}
+                    </span>
                     <span className="font-bold text-foreground text-[11px]">{val as number}</span>
                   </div>
                 ))}
