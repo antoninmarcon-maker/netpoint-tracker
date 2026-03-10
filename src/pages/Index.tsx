@@ -456,20 +456,12 @@ const Index = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex justify-between items-center bg-card p-3 rounded-xl border border-border">
-              <div className="flex items-center gap-2">
-                <Switch id="show-ratings" checked={showRatings} onCheckedChange={setShowRatings} />
-                <Label htmlFor="show-ratings" className="text-sm font-semibold text-muted-foreground cursor-pointer">
-                  {t('playerStats.showRatings', 'Notations (+/!)')}
-                </Label>
-              </div>
-              <AiAnalysis points={allPoints} completedSets={completedSets} currentSetPoints={points} teamNames={teamNames} players={players} sport={sport} isLoggedIn={!!user} onLoginRequired={() => setShowAuthForAi(true)} finished={isFinished} matchId={matchId} />
-            </div>
             {metadata?.hasCourt === false ? (
-              <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} hasCourt={false} showRatings={showRatings} />
+              <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} hasCourt={false} showRatings={true} />
             ) : (
-              <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} onSelectPoint={handleSelectViewPoint} viewingPointIndex={viewingPointIndex} showRatings={showRatings} />
+              <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} onSelectPoint={handleSelectViewPoint} viewingPointIndex={viewingPointIndex} showRatings={true} />
             )}
+            <AiAnalysis points={allPoints} completedSets={completedSets} currentSetPoints={points} teamNames={teamNames} players={players} sport={sport} isLoggedIn={!!user} onLoginRequired={() => setShowAuthForAi(true)} finished={isFinished} matchId={matchId} />
           </div>
         )}
 
