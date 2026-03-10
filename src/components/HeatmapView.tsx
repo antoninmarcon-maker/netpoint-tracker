@@ -610,6 +610,32 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
                   <span className="text-muted-foreground text-xs">{t('common.total')}</span>
                   <span className="font-bold text-foreground text-xs">{ds[team].scored + ds[team].faults + ds[team].neutral}</span>
                 </div>
+
+                {(ds[team].ratingsPositive > 0 || ds[team].ratingsNeutral > 0 || ds[team].ratingsNegative > 0) && (
+                  <div className="flex items-center justify-between border-t border-border pt-1 mt-1">
+                    <span className="text-muted-foreground font-semibold text-xs">Notations</span>
+                    <div className="flex items-center gap-2">
+                      {ds[team].ratingsPositive > 0 && (
+                        <span className="inline-flex items-center gap-0.5">
+                          <span className="w-2 h-2 rounded-full bg-green-500" />
+                          <span className="text-[11px] font-bold text-green-500">{ds[team].ratingsPositive}</span>
+                        </span>
+                      )}
+                      {ds[team].ratingsNeutral > 0 && (
+                        <span className="inline-flex items-center gap-0.5">
+                          <span className="w-2 h-2 rounded-full bg-orange-500" />
+                          <span className="text-[11px] font-bold text-orange-500">{ds[team].ratingsNeutral}</span>
+                        </span>
+                      )}
+                      {ds[team].ratingsNegative > 0 && (
+                        <span className="inline-flex items-center gap-0.5">
+                          <span className="w-2 h-2 rounded-full bg-destructive" />
+                          <span className="text-[11px] font-bold text-destructive">{ds[team].ratingsNegative}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}
