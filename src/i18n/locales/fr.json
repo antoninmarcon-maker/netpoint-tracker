@@ -94,7 +94,11 @@
     "whatsNewPerfModeBtn": "Démarrer en Perf",
     "whatsNewTournaments": "Gestion de Tournois",
     "whatsNewTournamentsDesc": "Organise, inscris tes équipes et partage les scores en direct avec les joueurs et les spectateurs.",
-    "whatsNewTournamentsBtn": "Découvrir les tournois"
+    "whatsNewTournamentsBtn": "Découvrir les tournois",
+    "whatsNewSpots": "Où jouer ?",
+    "whatsNewSpotsDesc": "Trouvez des terrains de volley près de chez vous, ajoutez vos spots préférés et consultez les photos et commentaires d'autres joueurs.",
+    "whatsNewSpotsBtn": "Ouvrir la Carte",
+    "learnMore": "En savoir plus"
   },
   "credits": {
     "title": "Histoire du projet",
