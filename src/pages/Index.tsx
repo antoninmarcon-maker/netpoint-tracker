@@ -12,8 +12,6 @@ import { PlayerSelector } from '@/components/PlayerSelector';
 import { PlayByPlayNavigator } from '@/components/PlayByPlayNavigator';
 import { AiAnalysis } from '@/components/AiAnalysis';
 import { AuthDialog } from '@/components/AuthDialog';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { getMatch, saveMatch } from '@/lib/matchStorage';
 import { getCloudMatchById, saveCloudMatch } from '@/lib/cloudStorage';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,7 +27,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('match');
   const [showHelp, setShowHelp] = useState(false);
-  const [showRatings, setShowRatings] = useState(true);
+  
   const [user, setUser] = useState<User | null>(null);
   const [showAuthForAi, setShowAuthForAi] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -456,20 +454,12 @@ const Index = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex justify-between items-center bg-card p-3 rounded-xl border border-border">
-              <div className="flex items-center gap-2">
-                <Switch id="show-ratings" checked={showRatings} onCheckedChange={setShowRatings} />
-                <Label htmlFor="show-ratings" className="text-sm font-semibold text-muted-foreground cursor-pointer">
-                  {t('playerStats.showRatings', 'Notations (+/!)')}
-                </Label>
-              </div>
-              <AiAnalysis points={allPoints} completedSets={completedSets} currentSetPoints={points} teamNames={teamNames} players={players} sport={sport} isLoggedIn={!!user} onLoginRequired={() => setShowAuthForAi(true)} finished={isFinished} matchId={matchId} />
-            </div>
             {metadata?.hasCourt === false ? (
-              <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} hasCourt={false} showRatings={showRatings} />
+              <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} hasCourt={false} showRatings={true} />
             ) : (
-              <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} onSelectPoint={handleSelectViewPoint} viewingPointIndex={viewingPointIndex} showRatings={showRatings} />
+              <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} onSelectPoint={handleSelectViewPoint} viewingPointIndex={viewingPointIndex} showRatings={true} />
             )}
+            <AiAnalysis points={allPoints} completedSets={completedSets} currentSetPoints={points} teamNames={teamNames} players={players} sport={sport} isLoggedIn={!!user} onLoginRequired={() => setShowAuthForAi(true)} finished={isFinished} matchId={matchId} />
           </div>
         )}
 
