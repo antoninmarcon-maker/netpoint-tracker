@@ -109,9 +109,8 @@ export default function Home() {
       images: ["/assets/whatsnew/tournoi1.PNG", "/assets/whatsnew/tournoi2.PNG", "/assets/whatsnew/tournoi3.PNG"],
       title: t('home.whatsNewTournaments'),
       desc: t('home.whatsNewTournamentsDesc'),
-      btnText: t('home.newMatch'),
-      action: () => setShowNew(true),
-      gradientBtn: true
+      btnText: t('home.whatsNewTournamentsBtn', 'Découvrir les tournois'),
+      action: () => navigate('/tournaments'),
     },
     {
       id: 'perf',
@@ -119,13 +118,12 @@ export default function Home() {
       images: ["/assets/whatsnew/Mode perf.jpeg"],
       title: t('home.whatsNewPerfMode'),
       desc: t('home.whatsNewPerfModeDesc'),
-      btnText: t('home.newMatch'),
+      btnText: t('home.whatsNewPerfModeBtn', 'Démarrer en Perf'),
       action: () => {
         setHasCourt(true);
         setIsPerformanceMode(true);
         setShowNew(true);
       },
-      gradientBtn: true
     },
     {
       id: 'actions',
