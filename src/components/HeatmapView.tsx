@@ -64,6 +64,23 @@ function createStatRow(label: string, value: string | number, opts?: { bold?: bo
   return row;
 }
 
+function createRatingDotsEl(r: ActionRating): HTMLElement {
+  const wrapper = createStyledEl('span', { display: 'inline-flex', alignItems: 'center', gap: '3px', marginLeft: '4px' });
+  const addDot = (color: string, count: number) => {
+    if (count <= 0) return;
+    const dot = createStyledEl('span', { display: 'inline-flex', alignItems: 'center', gap: '1px' });
+    const circle = createStyledEl('span', { width: '5px', height: '5px', borderRadius: '50%', backgroundColor: color, display: 'inline-block' });
+    dot.appendChild(circle);
+    const num = createStyledEl('span', { fontSize: '9px', fontWeight: '600', color }, String(count));
+    dot.appendChild(num);
+    wrapper.appendChild(dot);
+  };
+  addDot('hsl(142, 71%, 45%)', r.positive);
+  addDot('hsl(25, 95%, 53%)', r.neutral);
+  addDot('hsl(0, 84%, 60%)', r.negative);
+  return wrapper;
+}
+
 function buildExportContainer(teamNames: { blue: string; red: string }, label: string, ds: ReturnType<typeof computeStats>): HTMLElement {
   const container = document.createElement('div');
   container.style.cssText = 'position:absolute;left:-9999px;top:0;width:400px;';
@@ -88,18 +105,34 @@ function buildExportContainer(teamNames: { blue: string; red: string }, label: s
 
     const statsEl = createStyledEl('div', { fontSize: '11px', color: 'hsl(var(--foreground))' });
     statsEl.appendChild(createStatRow('⚡ Gagnés', ds[team].scored, { bold: true }));
-    const scoredRows: [string, number][] = [
-      ['Attaques', ds[team].attacks], ['Aces', ds[team].aces], ['Blocks', ds[team].blocks],
-      ['Bidouilles', ds[team].bidouilles], ['2ndes mains', ds[team].secondeMains], ['Autres', ds[team].otherOffensive],
+    const scoredRows: [string, number, string][] = [
+      ['Attaques', ds[team].attacks, 'attack'], ['Aces', ds[team].aces, 'ace'], ['Blocks', ds[team].blocks, 'block'],
+      ['Bidouilles', ds[team].bidouilles, 'bidouille'], ['2ndes mains', ds[team].secondeMains, 'seconde_main'], ['Autres', ds[team].otherOffensive, 'other_offensive'],
     ];
-    for (const [l, v] of scoredRows) statsEl.appendChild(createStatRow(l, v, { indent: true }));
+    for (const [l, v, key] of scoredRows) {
+      const row = createStatRow(l, v, { indent: true });
+      const ar = ds[team].actionRatings[key];
+      if (ar) row.firstChild?.appendChild(createRatingDotsEl(ar));
+      statsEl.appendChild(row);
+    }
     statsEl.appendChild(createStatRow('❌ Fautes adv.', ds[team].faults, { bold: true, borderTop: true, valueColor: 'hsl(var(--destructive))' }));
-    const faultRows: [string, number][] = [
-      ['Out', ds[team].outs], ['Filet', ds[team].netFaults], ['Srv loupés', ds[team].serviceMisses], ['Block Out', ds[team].blockOuts],
+    const faultRows: [string, number, string][] = [
+      ['Out', ds[team].outs, 'out'], ['Filet', ds[team].netFaults, 'net_fault'], ['Srv loupés', ds[team].serviceMisses, 'service_miss'], ['Block Out', ds[team].blockOuts, 'block_out'],
     ];
-    for (const [l, v] of faultRows) statsEl.appendChild(createStatRow(l, v, { indent: true }));
+    for (const [l, v, key] of faultRows) {
+      const row = createStatRow(l, v, { indent: true });
+      const ar = ds[team].actionRatings[key];
+      if (ar) row.firstChild?.appendChild(createRatingDotsEl(ar));
+      statsEl.appendChild(row);
+    }
     if (ds[team].neutral > 0) {
       statsEl.appendChild(createStatRow('📊 Faits de jeu', ds[team].neutral, { borderTop: true }));
+      for (const [nLabel, nVal] of Object.entries(ds[team].neutralBreakdown)) {
+        const row = createStatRow(nLabel, nVal, { indent: true });
+        const ar = ds[team].actionRatings[nLabel];
+        if (ar) row.firstChild?.appendChild(createRatingDotsEl(ar));
+        statsEl.appendChild(row);
+      }
     }
     if (Object.keys(ds[team].customStats).length > 0) {
       statsEl.appendChild(createStatRow('✨ Personnalisés', '', { borderTop: true, bold: true }));
