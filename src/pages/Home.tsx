@@ -83,7 +83,10 @@ export default function Home() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteSending, setInviteSending] = useState(false);
   const [selectedWhatsNew, setSelectedWhatsNew] = useState<any | null>(null);
-  
+  const [sharingMatch, setSharingMatch] = useState<MatchSummary | null>(null);
+  const [generatingShareLink, setGeneratingShareLink] = useState(false);
+  const [shareLinkUrl, setShareLinkUrl] = useState('');
+  const [shareLinkDialogOpen, setShareLinkDialogOpen] = useState(false);
 
   const [scrollProgress, setScrollProgress] = useState(0);
 
