@@ -978,6 +978,10 @@ export default function Home() {
                                   <BarChart2 className="mr-2 h-4 w-4 text-muted-foreground" />
                                   <span className="font-medium text-xs">{t('home.viewStats', 'Statistiques détaillées')}</span>
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => exportMatchToExcel(match.completedSets, match.points, match.currentSetNumber, match.teamNames, match.players || [])} className="cursor-pointer py-2.5">
+                                  <FileSpreadsheet className="mr-2 h-4 w-4 text-muted-foreground" />
+                                  <span className="font-medium text-xs">{t('heatmap.excelXlsx', 'Excel (.xlsx)')}</span>
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setSharingMatch(match)} className="cursor-pointer py-2.5">
                                   <Share2 className="mr-2 h-4 w-4 text-muted-foreground" />
                                   <span className="font-medium text-xs">{t('home.shareMatch', 'Partager le match')}</span>
