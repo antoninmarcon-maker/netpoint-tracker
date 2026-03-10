@@ -639,7 +639,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     rallyInProgress,
     directionOrigin,
     directionDest,
-    pendingDirectionAction,
+    directionDestSet,
     canUndo,
     preSelectedPlayerId,
     setPreSelectedPlayerId,
