@@ -528,45 +528,45 @@ export default function Home() {
         <PwaInstallBanner />
 
         {visibleWhatsNew.length > 0 && (
-          <section className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">✨</span>
-              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('home.whatsNew')}</h2>
+          <section className="space-y-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-base">✨</span>
+              <h2 className="text-xs font-bold text-foreground uppercase tracking-wider">{t('home.whatsNew')}</h2>
             </div>
 
             <div
               ref={scrollContainerRef}
-              className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar px-1 cursor-grab active:cursor-grabbing"
+              className="flex gap-3 overflow-x-auto pb-3 snap-x hide-scrollbar px-1 cursor-grab active:cursor-grabbing"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               onTouchStart={() => setIsHovered(true)}
               onTouchEnd={() => setIsHovered(false)}
             >
               {visibleWhatsNew.map((card) => (
-                <div key={card.id} className="min-w-full snap-center shrink-0">
+                <div key={card.id} className="min-w-[75%] max-w-[280px] snap-center shrink-0">
                   <div className="bg-card rounded-xl border border-border overflow-hidden h-full flex flex-col relative w-full">
                     <button
                       onClick={() => handleDismissWhatsNew(card.id)}
-                      className="absolute top-2 right-2 z-10 p-1.5 bg-black/40 hover:bg-black/60 text-white rounded-full transition-colors"
+                      className="absolute top-1.5 right-1.5 z-10 p-1 bg-black/40 hover:bg-black/60 text-white rounded-full transition-colors"
                       title={t('common.close')}
                     >
-                      <X size={14} />
+                      <X size={12} />
                     </button>
-                    <div className="p-5 flex flex-col flex-1 gap-2">
+                    <div className="p-3 flex flex-col flex-1 gap-1.5">
                       {card.icon}
-                      <h3 className="font-bold text-foreground leading-tight text-lg">{card.title}</h3>
-                      <p className="text-[13px] text-muted-foreground flex-1 leading-snug">{card.desc}</p>
+                      <h3 className="font-bold text-foreground leading-tight text-sm">{card.title}</h3>
+                      <p className="text-[11px] text-muted-foreground flex-1 leading-relaxed">{card.desc}</p>
                     </div>
-                    <div className="px-4 pb-4 space-y-2">
+                    <div className="px-3 pb-3 space-y-1.5">
                       <button
                         onClick={() => setSelectedWhatsNew(card)}
-                        className="w-full py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-xs hover:bg-secondary/80 transition-all flex items-center justify-center gap-2"
+                        className="w-full py-2 rounded-lg bg-secondary text-secondary-foreground font-semibold text-[11px] hover:bg-secondary/80 transition-all flex items-center justify-center gap-1.5"
                       >
-                        <Eye size={16} /> {t('home.learnMore', 'En savoir plus')}
+                        <Eye size={14} /> {t('home.learnMore', 'En savoir plus')}
                       </button>
                       <button
                         onClick={() => handleDismissWhatsNew(card.id, card.action)}
-                        className="w-full py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-xs hover:bg-secondary/80 transition-all"
+                        className="w-full py-2 rounded-lg bg-secondary text-secondary-foreground font-semibold text-[11px] hover:bg-secondary/80 transition-all"
                       >
                         {card.btnText}
                       </button>
