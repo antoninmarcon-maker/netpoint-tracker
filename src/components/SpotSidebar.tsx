@@ -1,5 +1,5 @@
-import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2 } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
 import SpotForm from '@/components/SpotForm';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,10 @@ export default function SpotSidebar({
   const [photos, setPhotos] = useState<any[]>([]);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [newRating, setNewRating] = useState<number>(0);
+  const [newPhotos, setNewPhotos] = useState<File[]>([]);
   const [postingComment, setPostingComment] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsOpen(!!selectedSpotId || isAddingMode);
@@ -78,7 +81,8 @@ export default function SpotSidebar({
 
   const handlePostComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !selectedSpotId) return;
+    if (!selectedSpotId) return;
+    if (!newComment.trim() && newRating === 0 && newPhotos.length === 0) return;
 
     setPostingComment(true);
     try {
@@ -89,15 +93,42 @@ export default function SpotSidebar({
         return;
       }
 
+      // Upload photos sequentially
+      const uploadedUrls: string[] = [];
+      for (const file of newPhotos) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+        const filePath = `${selectedSpotId}/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('spot-photos')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          toast.error(`Erreur upload: ${file.name}`);
+          continue; // Skip failed file
+        }
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('spot-photos')
+          .getPublicUrl(filePath);
+          
+        uploadedUrls.push(publicUrl);
+      }
+
       const { error } = await (supabase as any).from('spot_comments').insert([{
         spot_id: selectedSpotId,
         user_id: user.id,
-        content: newComment.trim()
+        content: newComment.trim(),
+        rating: newRating > 0 ? newRating : null,
+        photos: uploadedUrls.length > 0 ? uploadedUrls : null
       }]);
 
       if (error) throw error;
       
       setNewComment('');
+      setNewRating(0);
+      setNewPhotos([]);
       loadSpotDetails(selectedSpotId);
       toast.success(t('spots.commentPosted'));
     } catch (err) {
@@ -107,6 +138,39 @@ export default function SpotSidebar({
       setPostingComment(false);
     }
   };
+
+  const confirmSpot = async () => {
+    if (!spot) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error(t('spots.loginRequired')); return; }
+      
+      const { error } = await supabase.from('spots')
+        .update({ is_verified: true, status: 'validated' })
+        .eq('id', spot.id);
+        
+      if (error) throw error;
+      toast.success("Terrain confirmé ! Merci.");
+      loadSpotDetails(spot.id);
+    } catch(err) {
+      toast.error("Erreur, impossible de confirmer.");
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      if (newPhotos.length + files.length > 5) {
+        toast.error("Maximum 5 photos.");
+        return;
+      }
+      setNewPhotos([...newPhotos, ...files]);
+    }
+  };
+
+  const averageRating = comments.length > 0 
+    ? (comments.reduce((acc, c) => acc + (c.rating || 0), 0) / comments.filter(c => c.rating).length) || 0
+    : 0;
 
   const getTypeLabel = (type: string) => {
     switch (type) {
@@ -168,9 +232,29 @@ export default function SpotSidebar({
             </div>
           ) : spot ? (
             <div className="space-y-6">
-              <div className="inline-block px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold tracking-wide">
-                {getTypeLabel(spot.type)}
+              <div className="flex items-center justify-between">
+                <div className="inline-block px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold tracking-wide">
+                  {getTypeLabel(spot.type)}
+                </div>
+                {averageRating > 0 && (
+                  <div className="flex items-center gap-1 text-yellow-500 font-bold">
+                    <Star size={18} fill="currentColor" />
+                    <span>{averageRating.toFixed(1)}/5</span>
+                  </div>
+                )}
               </div>
+
+              {!spot.is_verified && spot.status === 'waiting_for_validation' && (
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 flex flex-col gap-3">
+                  <div className="flex items-start gap-3 text-orange-600 dark:text-orange-400">
+                    <Info size={18} className="shrink-0 mt-0.5" />
+                    <p className="text-sm font-medium">Ce terrain a été importé automatiquement et n'a pas encore été vérifié par la communauté.</p>
+                  </div>
+                  <Button onClick={confirmSpot} variant="outline" className="w-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 border-orange-500/50">
+                    <CheckCircle2 size={16} className="mr-2" /> Confirmer l'existence de ce terrain
+                  </Button>
+                </div>
+              )}
 
               {photos.length > 0 ? (
                 <div className="flex overflow-x-auto snap-x hide-scrollbar gap-2 pb-2 -mx-4 px-4">
@@ -210,30 +294,61 @@ export default function SpotSidebar({
                   <MessageSquare size={16} /> {t('spots.comments')} ({comments.length})
                 </h3>
                 
-                <form onSubmit={handlePostComment} className="flex gap-2">
+                <form onSubmit={handlePostComment} className="flex flex-col gap-3 bg-secondary/20 p-4 rounded-xl border border-border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-medium text-muted-foreground mr-2">Note :</span>
+                    {[1,2,3,4,5].map(star => (
+                      <button key={star} type="button" onClick={() => setNewRating(star)} className="focus:outline-none">
+                        <Star size={20} className={star <= newRating ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground/30"} />
+                      </button>
+                    ))}
+                  </div>
                   <Input 
                     placeholder={t('spots.addComment')} 
                     value={newComment} 
                     onChange={e => setNewComment(e.target.value)}
-                    className="flex-1 bg-secondary/50"
+                    className="flex-1 bg-background"
                   />
-                  <Button type="submit" disabled={postingComment || !newComment.trim()}>
-                    <Plus size={16} />
-                  </Button>
+                  <div className="flex items-center justify-between">
+                     <div className="flex gap-2 items-center">
+                        <input type="file" ref={fileInputRef} onChange={handleFileChange} multiple accept="image/*" className="hidden" />
+                        <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                          <Upload size={14} className="mr-2"/> Photos ({newPhotos.length}/5)
+                        </Button>
+                     </div>
+                    <Button type="submit" disabled={postingComment || (!newComment.trim() && newRating === 0 && newPhotos.length === 0)}>
+                      <Plus size={16} className="mr-2" /> Envoyer
+                    </Button>
+                  </div>
                 </form>
 
-                <div className="space-y-3">
+                <div className="space-y-4 mt-6">
                   {comments.map((c: any, i: number) => (
-                    <div key={i} className="bg-secondary/30 p-3 rounded-xl">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-xs text-foreground">{c.authorName}</span>
-                        <span className="text-[10px] text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</span>
+                    <div key={i} className="bg-secondary/30 p-4 rounded-xl border border-border/50">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-sm text-foreground">{c.authorName}</span>
+                        <div className="flex items-center gap-2">
+                           {c.rating && (
+                              <div className="flex items-center text-yellow-500">
+                                <Star size={12} fill="currentColor" className="mr-1"/>
+                                <span className="text-xs font-bold">{c.rating}</span>
+                              </div>
+                           )}
+                           <span className="text-[10px] text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</span>
+                        </div>
                       </div>
-                      <p className="text-sm text-foreground/80">{c.content}</p>
+                      {c.content && <p className="text-sm text-foreground/80 leading-relaxed">{c.content}</p>}
+                      {c.photos && c.photos.length > 0 && (
+                        <div className="flex overflow-x-auto gap-2 mt-3 snap-x hide-scrollbar pb-1">
+                          {c.photos.map((url: string, idx: number) => (
+                             <img key={idx} src={url} alt="Avis" className="w-20 h-20 object-cover rounded-lg shrink-0 snap-center" />
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                   {comments.length === 0 && (
-                    <p className="text-xs text-center text-muted-foreground py-4">{t('spots.firstComment')}</p>
+                    <p className="text-sm text-center text-muted-foreground py-6 bg-secondary/10 rounded-xl border border-dashed border-border">{t('spots.firstComment')}</p>
                   )}
                 </div>
               </div>

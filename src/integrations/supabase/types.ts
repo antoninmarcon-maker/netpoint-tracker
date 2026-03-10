@@ -326,6 +326,8 @@ export type Database = {
           id: string
           spot_id: string
           user_id: string
+          rating: number | null
+          photos: string[] | null
         }
         Insert: {
           content: string
@@ -333,6 +335,8 @@ export type Database = {
           id?: string
           spot_id: string
           user_id: string
+          rating?: number | null
+          photos?: string[] | null
         }
         Update: {
           content?: string
@@ -340,6 +344,8 @@ export type Database = {
           id?: string
           spot_id?: string
           user_id?: string
+          rating?: number | null
+          photos?: string[] | null
         }
         Relationships: [
           {
@@ -410,6 +416,10 @@ export type Database = {
           type: string
           updated_at: string
           user_id: string
+          is_temporary: boolean | null
+          google_place_id: string | null
+          availability_months: number[] | null
+          is_verified: boolean | null
         }
         Insert: {
           availability_period?: string | null
@@ -423,6 +433,10 @@ export type Database = {
           type?: string
           updated_at?: string
           user_id: string
+          is_temporary?: boolean | null
+          google_place_id?: string | null
+          availability_months?: number[] | null
+          is_verified?: boolean | null
         }
         Update: {
           availability_period?: string | null
@@ -436,6 +450,10 @@ export type Database = {
           type?: string
           updated_at?: string
           user_id?: string
+          is_temporary?: boolean | null
+          google_place_id?: string | null
+          availability_months?: number[] | null
+          is_verified?: boolean | null
         }
         Relationships: []
       }
@@ -658,6 +676,10 @@ export type Database = {
           status: string | null
           type: string | null
           user_id: string | null
+          is_temporary: boolean | null
+          google_place_id: string | null
+          availability_months: number[] | null
+          is_verified: boolean | null
         }
         Insert: {
           availability_period?: string | null
@@ -670,6 +692,10 @@ export type Database = {
           status?: string | null
           type?: string | null
           user_id?: string | null
+          is_temporary?: boolean | null
+          google_place_id?: string | null
+          availability_months?: number[] | null
+          is_verified?: boolean | null
         }
         Update: {
           availability_period?: string | null
@@ -682,6 +708,10 @@ export type Database = {
           status?: string | null
           type?: string | null
           user_id?: string | null
+          is_temporary?: boolean | null
+          google_place_id?: string | null
+          availability_months?: number[] | null
+          is_verified?: boolean | null
         }
         Relationships: []
       }

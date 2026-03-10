@@ -30,7 +30,21 @@ function getConfig(): ActionsConfig {
   try {
     const raw = userStorage.getItem(STORAGE_KEY);
     if (!raw) return getDefaultConfig();
-    return JSON.parse(raw);
+    
+    // Purge old test actions that the user wants strictly removed
+    const parsed: ActionsConfig = JSON.parse(raw);
+    if (parsed.customActions) {
+      const prevLength = parsed.customActions.length;
+      parsed.customActions = parsed.customActions.filter(
+        a => !a.label.toLowerCase().includes('test direction') && !a.label.toLowerCase().includes('super attaque')
+      );
+      if (parsed.customActions.length !== prevLength) {
+        // Save the cleaned version immediately
+        setTimeout(() => saveConfig(parsed), 0);
+      }
+    }
+    
+    return parsed;
   } catch { return getDefaultConfig(); }
 }
 
@@ -73,7 +87,7 @@ function getDefaultConfig(): ActionsConfig {
       },
       {
         id: 'default-3m',
-        label: 'Pour gagner 3 mètres',
+        label: '3m',
         sport: 'volleyball',
         category: 'scored',
         sigil: '3M',
