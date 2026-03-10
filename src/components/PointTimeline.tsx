@@ -138,9 +138,7 @@ export function PointTimeline({ points, teamNames, onSelectPoint, viewingPointIn
                 </span>
                 <span className="flex-1 truncate text-foreground">
                   {p.customActionLabel || (ACTION_LABELS[p.action]?.full ?? p.action)}
-                  {p.rating === 'positive' && <span className="ml-1 text-green-500 font-bold">(+)</span>}
-                  {p.rating === 'neutral' && <span className="ml-1 text-orange-500 font-bold">(!)</span>}
-                  {p.rating === 'negative' && <span className="ml-1 text-destructive font-bold">(-)</span>}
+                  {p.rating && <RatingDot rating={p.rating} size={7} className="ml-1" />}
                 </span>
                 {hasRally && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent text-accent-foreground font-semibold">
