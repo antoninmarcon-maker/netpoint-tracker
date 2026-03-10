@@ -174,11 +174,15 @@ function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: n
         const isScoredByUs = a.type === 'scored' && a.team === team;
         const isFaultByOpponent = a.type === 'fault' && a.team === opponent;
 
-        const isOurAction = isNeutral || isScoredByUs || isFaultByOpponent;
-        if (isOurAction && 'rating' in a) {
+        if (isOurAction && 'rating' in a && a.rating) {
           if (a.rating === 'positive') ratingsPositive++;
           else if (a.rating === 'neutral') ratingsNeutral++;
           else if (a.rating === 'negative') ratingsNegative++;
+
+          const actionLabel = a.customActionLabel || a.action;
+          if (!actionRatings[actionLabel]) actionRatings[actionLabel] = { positive: 0, neutral: 0, negative: 0, total: 0 };
+          actionRatings[actionLabel][a.rating]++;
+          actionRatings[actionLabel].total++;
         }
 
         if (isNeutral) {
