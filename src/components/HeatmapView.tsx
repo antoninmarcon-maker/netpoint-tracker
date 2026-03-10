@@ -117,6 +117,13 @@ function buildExportContainer(teamNames: { blue: string; red: string }, label: s
   return container;
 }
 
+interface ActionRating {
+  positive: number;
+  neutral: number;
+  negative: number;
+  total: number;
+}
+
 interface TeamStats {
   scored: number; faults: number; neutral: number; customNeutralCount: number;
   attacks: number; aces: number; blocks: number; bidouilles: number; secondeMains: number; otherOffensive: number;
@@ -124,12 +131,14 @@ interface TeamStats {
   customStats: Record<string, number>;
   neutralBreakdown: Record<string, number>;
   ratingsPositive: number; ratingsNeutral: number; ratingsNegative: number;
+  actionRatings: Record<string, ActionRating>;
 }
 
 function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: number } {
   const byTeam = (team: 'blue' | 'red'): TeamStats => {
     const opponent = team === 'blue' ? 'red' : 'blue';
 
+    const actionRatings: Record<string, ActionRating> = {};
     const customStats: Record<string, number> = {};
     const neutralBreakdown: Record<string, number> = {};
     let scoredTotal = 0;
@@ -166,10 +175,15 @@ function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: n
         const isFaultByOpponent = a.type === 'fault' && a.team === opponent;
 
         const isOurAction = isNeutral || isScoredByUs || isFaultByOpponent;
-        if (isOurAction && 'rating' in a) {
+        if (isOurAction && 'rating' in a && a.rating) {
           if (a.rating === 'positive') ratingsPositive++;
           else if (a.rating === 'neutral') ratingsNeutral++;
           else if (a.rating === 'negative') ratingsNegative++;
+
+          const actionLabel = a.customActionLabel || a.action;
+          if (!actionRatings[actionLabel]) actionRatings[actionLabel] = { positive: 0, neutral: 0, negative: 0, total: 0 };
+          actionRatings[actionLabel][a.rating]++;
+          actionRatings[actionLabel].total++;
         }
 
         if (isNeutral) {
@@ -212,7 +226,7 @@ function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: n
       attacks, aces, blocks, bidouilles, secondeMains, otherOffensive,
       outs, netFaults, serviceMisses, blockOuts,
       customStats, neutralBreakdown,
-      ratingsPositive, ratingsNeutral, ratingsNegative,
+      ratingsPositive, ratingsNeutral, ratingsNegative, actionRatings,
     };
   };
 
@@ -612,28 +626,60 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
                 </div>
 
                 {(ds[team].ratingsPositive > 0 || ds[team].ratingsNeutral > 0 || ds[team].ratingsNegative > 0) && (
-                  <div className="flex items-center justify-between border-t border-border pt-1 mt-1">
-                    <span className="text-muted-foreground font-semibold text-xs">Notations</span>
-                    <div className="flex items-center gap-2">
-                      {ds[team].ratingsPositive > 0 && (
-                        <span className="inline-flex items-center gap-0.5">
-                          <span className="w-2 h-2 rounded-full bg-green-500" />
-                          <span className="text-[11px] font-bold text-green-500">{ds[team].ratingsPositive}</span>
-                        </span>
-                      )}
-                      {ds[team].ratingsNeutral > 0 && (
-                        <span className="inline-flex items-center gap-0.5">
-                          <span className="w-2 h-2 rounded-full bg-orange-500" />
-                          <span className="text-[11px] font-bold text-orange-500">{ds[team].ratingsNeutral}</span>
-                        </span>
-                      )}
-                      {ds[team].ratingsNegative > 0 && (
-                        <span className="inline-flex items-center gap-0.5">
-                          <span className="w-2 h-2 rounded-full bg-destructive" />
-                          <span className="text-[11px] font-bold text-destructive">{ds[team].ratingsNegative}</span>
-                        </span>
-                      )}
+                  <div className="border-t border-border pt-1 mt-1 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground font-semibold text-xs">Notations</span>
+                      <div className="flex items-center gap-2">
+                        {ds[team].ratingsPositive > 0 && (
+                          <span className="inline-flex items-center gap-0.5">
+                            <span className="w-2 h-2 rounded-full bg-green-500" />
+                            <span className="text-[11px] font-bold text-green-500">{ds[team].ratingsPositive}</span>
+                          </span>
+                        )}
+                        {ds[team].ratingsNeutral > 0 && (
+                          <span className="inline-flex items-center gap-0.5">
+                            <span className="w-2 h-2 rounded-full bg-orange-500" />
+                            <span className="text-[11px] font-bold text-orange-500">{ds[team].ratingsNeutral}</span>
+                          </span>
+                        )}
+                        {ds[team].ratingsNegative > 0 && (
+                          <span className="inline-flex items-center gap-0.5">
+                            <span className="w-2 h-2 rounded-full bg-destructive" />
+                            <span className="text-[11px] font-bold text-destructive">{ds[team].ratingsNegative}</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
+                    {showRatings && Object.keys(ds[team].actionRatings).length > 0 && (
+                      <div className="space-y-0.5 pl-1">
+                        {Object.entries(ds[team].actionRatings).map(([action, r]) => (
+                          <div key={action} className="flex items-center justify-between text-[10px]">
+                            <span className="text-muted-foreground truncate flex-1">{action}</span>
+                            <div className="flex items-center gap-1.5 ml-2">
+                              <span className="text-muted-foreground font-mono w-4 text-right">{r.total}</span>
+                              {r.positive > 0 && (
+                                <span className="inline-flex items-center gap-0.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                  <span className="font-semibold text-green-500">{r.positive}</span>
+                                </span>
+                              )}
+                              {r.neutral > 0 && (
+                                <span className="inline-flex items-center gap-0.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                  <span className="font-semibold text-orange-500">{r.neutral}</span>
+                                </span>
+                              )}
+                              {r.negative > 0 && (
+                                <span className="inline-flex items-center gap-0.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
+                                  <span className="font-semibold text-destructive">{r.negative}</span>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
