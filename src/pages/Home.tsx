@@ -103,27 +103,27 @@ export default function Home() {
       id: 'players',
       icon: <Users size={32} className="text-muted-foreground/30 absolute" />,
       image: "/assets/placeholder-players.png",
-      title: t('home.whatsNewSavedPlayers'),
-      desc: t('home.whatsNewSavedPlayersDesc'),
-      btnText: t('home.whatsNewSavedPlayersBtn'),
+      title: t('whatsNewSavedPlayers'),
+      desc: t('whatsNewSavedPlayersDesc'),
+      btnText: t('whatsNewSavedPlayersBtn'),
       action: () => navigate('/players')
     },
     {
       id: 'actions',
       icon: <Settings2 size={32} className="text-muted-foreground/30 absolute" />,
       image: "/assets/placeholder-actions.png",
-      title: t('home.whatsNewCustomActions'),
-      desc: t('home.whatsNewCustomActionsDesc'),
-      btnText: t('home.whatsNewCustomActionsBtn'),
+      title: t('whatsNewCustomActions'),
+      desc: t('whatsNewCustomActionsDesc'),
+      btnText: t('whatsNewCustomActionsBtn'),
       action: () => navigate('/actions')
     },
     {
       id: 'perf',
       icon: <Activity size={32} className="text-muted-foreground/30 absolute" />,
       image: "/assets/placeholder-perf.png",
-      title: t('home.whatsNewPerfMode'),
-      desc: t('home.whatsNewPerfModeDesc'),
-      btnText: t('home.whatsNewPerfModeBtn'),
+      title: t('whatsNewPerfMode'),
+      desc: t('whatsNewPerfModeDesc'),
+      btnText: t('whatsNewPerfModeBtn'),
       action: () => {
         setHasCourt(true);
         setIsPerformanceMode(true);
@@ -134,9 +134,9 @@ export default function Home() {
       id: 'tournaments',
       icon: <Trophy size={32} className="text-muted-foreground/30 absolute" />,
       image: "/assets/placeholder-tournaments.png",
-      title: t('home.whatsNewTournaments'),
-      desc: t('home.whatsNewTournamentsDesc'),
-      btnText: t('home.whatsNewTournamentsBtn'),
+      title: t('whatsNewTournaments'),
+      desc: t('whatsNewTournamentsDesc'),
+      btnText: t('whatsNewTournamentsBtn'),
       action: () => navigate('/tournaments'),
       gradientBtn: true
     }
@@ -457,7 +457,7 @@ export default function Home() {
           <section className="space-y-3">
             <div className="flex items-center gap-2">
               <span className="text-xl">✨</span>
-              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('home.whatsNew')}</h2>
+              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('whatsNew', "Nouveautés")}</h2>
             </div>
             <Carousel className="w-full">
               <CarouselContent className="-ml-3 pb-2 pt-1 pl-1 pr-1">
