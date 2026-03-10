@@ -462,8 +462,9 @@ const Index = () => {
             <div className="flex justify-between items-center bg-card p-3 rounded-xl border border-border">
               <div className="flex items-center gap-2">
                 <Switch id="show-ratings" checked={showRatings} onCheckedChange={setShowRatings} />
-                <Label htmlFor="show-ratings" className="text-sm font-semibold text-muted-foreground cursor-pointer">
-                  {t('playerStats.showRatings', 'Notations (+/!)')}
+                <Label htmlFor="show-ratings" className="text-sm font-semibold text-muted-foreground cursor-pointer flex items-center gap-1.5">
+                  {t('playerStats.showRatings', 'Notations')}
+                  <span className="inline-flex items-center gap-0.5"><span className="w-2 h-2 rounded-full bg-green-500" /><span className="w-2 h-2 rounded-full bg-orange-500" /><span className="w-2 h-2 rounded-full bg-destructive" /></span>
                 </Label>
               </div>
               <AiAnalysis points={allPoints} completedSets={completedSets} currentSetPoints={points} teamNames={teamNames} players={players} sport={sport} isLoggedIn={!!user} onLoginRequired={() => setShowAuthForAi(true)} finished={isFinished} matchId={matchId} />
