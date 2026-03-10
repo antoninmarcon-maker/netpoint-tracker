@@ -342,16 +342,16 @@ export function ScoreBoard({
             </div>
             <div className="grid grid-cols-3 gap-2">
               <button onClick={() => onSelectRating('negative')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 border-2 border-transparent hover:border-destructive/30 transition-all active:scale-95">
-                <span className="text-3xl">🔴</span>
-                <span className="text-xs font-bold">Négatif (-)</span>
+                <span className="w-8 h-8 rounded-full bg-destructive" />
+                <span className="text-xs font-bold">Négatif</span>
               </button>
               <button onClick={() => onSelectRating('neutral')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 border-2 border-transparent hover:border-orange-500/30 transition-all active:scale-95">
-                <span className="text-3xl">🟠</span>
-                <span className="text-xs font-bold">Neutre (!)</span>
+                <span className="w-8 h-8 rounded-full bg-orange-500" />
+                <span className="text-xs font-bold">Neutre</span>
               </button>
               <button onClick={() => onSelectRating('positive')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-green-500/10 text-green-500 hover:bg-green-500/20 border-2 border-transparent hover:border-green-500/30 transition-all active:scale-95">
-                <span className="text-3xl">🟢</span>
-                <span className="text-xs font-bold">Positif (+)</span>
+                <span className="w-8 h-8 rounded-full bg-green-500" />
+                <span className="text-xs font-bold">Positif</span>
               </button>
             </div>
             <button onClick={() => onSelectRating('none')} className="w-full py-2 text-xs font-medium text-muted-foreground rounded-lg bg-secondary hover:bg-secondary/80 transition-all">

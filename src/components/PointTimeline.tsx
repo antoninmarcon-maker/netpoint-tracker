@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
 import { Eye } from 'lucide-react';
+import { RatingDot } from '@/components/RatingDot';
 
 const ACTION_LABELS: Partial<Record<ActionType, { abbr: string; full: string }>> = {
   attack: { abbr: 'ATK', full: 'Attaque' },
