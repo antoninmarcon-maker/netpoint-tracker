@@ -1,10 +1,11 @@
 // @ts-nocheck — react-leaflet types mismatch with current version
 import { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { supabase } from '@/integrations/supabase/client';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { useTranslation } from 'react-i18next';
 
-// Fix typical missing marker icons issue in leaflet due to bundlers
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
@@ -23,10 +24,10 @@ interface SpotMapProps {
   onNewSpotLocationChange?: (latlng: [number, number]) => void;
 }
 
-// Default center: France
 const defaultCenter: [number, number] = [46.603354, 1.888334];
 
 function UserLocationMarker() {
+  const { t } = useTranslation();
   const [position, setPosition] = useState<L.LatLng | null>(null);
   const map = useMap();
 
@@ -39,7 +40,7 @@ function UserLocationMarker() {
 
   return position === null ? null : (
     <Marker position={position}>
-      <Popup>Vous êtes ici</Popup>
+      <Popup>{t('spots.youAreHere')}</Popup>
     </Marker>
   );
 }
@@ -70,11 +71,10 @@ export default function SpotMap({
   newSpotLocation,
   onNewSpotLocationChange
 }: SpotMapProps) {
-  
+  const { t } = useTranslation();
   const [spots, setSpots] = useState<any[]>([]);
 
   useEffect(() => {
-    // Only fetch validated spots
     supabase.from('spots_with_coords')
       .select('id, name, type, lat, lng')
       .eq('status', 'validated')
@@ -115,8 +115,8 @@ export default function SpotMap({
             }}
           >
             <Popup>
-              <div className="text-center font-medium">Déplacez-moi !</div>
-              <div className="text-xs text-muted-foreground mt-1">Placez ce marqueur sur le terrain</div>
+              <div className="text-center font-medium">{t('spots.dragMarker')}</div>
+              <div className="text-xs text-muted-foreground mt-1">{t('spots.dragMarkerHint')}</div>
             </Popup>
           </Marker>
         )}

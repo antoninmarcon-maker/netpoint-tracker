@@ -24,7 +24,6 @@ export default function Spots() {
 
   return (
     <div className="flex flex-col h-dvh bg-background overflow-hidden relative">
-      {/* Header */}
       <header className="flex-none bg-background/80 backdrop-blur-md border-b border-border z-20" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
         <div className="flex items-center justify-between p-4">
           <button
@@ -35,22 +34,20 @@ export default function Spots() {
           </button>
           
           <h1 className="text-xl font-black text-foreground">
-            Où jouer ?
+            {t('spots.title')}
           </h1>
 
           <button
             onClick={handleStartAdding}
             className={`p-2 rounded-full transition-colors shadow-lg ${isAddingMode ? 'bg-secondary text-foreground' : 'bg-primary text-primary-foreground hover:opacity-90'}`}
-            title="Ajouter un terrain"
+            title={t('spots.addSpot')}
           >
             <Plus size={20} className={isAddingMode ? "rotate-45" : ""} />
           </button>
         </div>
       </header>
 
-      {/* Main Content Area */}
       <div className="flex-1 relative flex">
-        {/* Map */}
         <div className="flex-1 h-full z-0 relative">
           <SpotMap 
             selectedSpotId={selectedSpotId}
@@ -61,7 +58,6 @@ export default function Spots() {
           />
         </div>
 
-        {/* Sidebar overlay for selected spot or adding new spot */}
         <SpotSidebar 
           selectedSpotId={selectedSpotId}
           onClose={() => setSelectedSpotId(null)}

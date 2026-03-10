@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ImagePlus, X, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface SpotFormProps {
   location: [number, number] | null;
@@ -15,6 +16,7 @@ interface SpotFormProps {
 }
 
 export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProps) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -26,7 +28,7 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
     if (e.target.files) {
       const selected = Array.from(e.target.files);
       if (photos.length + selected.length > 5) {
-        toast.error("Vous ne pouvez ajouter que 5 photos maximum.");
+        toast.error(t('spots.photosMax'));
         return;
       }
       setPhotos([...photos, ...selected]);
@@ -39,20 +41,18 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return toast.error("Le nom du terrain est requis.");
-    if (!location) return toast.error("Veuillez choisir un emplacement sur la carte.");
+    if (!name.trim()) return toast.error(t('spots.spotNameRequired'));
+    if (!location) return toast.error(t('spots.chooseLocation'));
 
     setLoading(true);
     try {
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("Vous devez être connecté pour ajouter un terrain.");
+        toast.error(t('spots.loginRequired'));
         setLoading(false);
         return;
       }
 
-      // Step 1: Insert spot into DB
       const { data: spotData, error: spotError } = await supabase
         .from('spots')
         .insert([{
@@ -71,7 +71,6 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
 
       const spotId = spotData.id;
 
-      // Step 2: Upload photos if any
       for (const file of photos) {
         const fileExt = file.name.split('.').pop();
         const filePath = `${spotId}/${crypto.randomUUID()}.${fileExt}`;
@@ -81,26 +80,26 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
           .upload(filePath, file);
           
         if (uploadError) {
-          console.error("Erreur lors de l'upload de l'image:", uploadError);
-          continue; // Skip failed uploads but continue with others
+          console.error("Upload error:", uploadError);
+          continue;
         }
 
         const { data: { publicUrl } } = supabase.storage
           .from('spot-photos')
           .getPublicUrl(filePath);
 
-        await supabase.from('spot_photos').insert({
+        await supabase.from('spot_photos').insert([{
           spot_id: spotId,
           photo_url: publicUrl,
           user_id: user.id
-        });
+        }]);
       }
 
-      toast.success("Terrain ajouté et en attente de validation !");
+      toast.success(t('spots.spotAdded'));
       onSuccess();
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Erreur lors de l'ajout du terrain.");
+      toast.error(err.message || t('spots.spotAddError'));
     } finally {
       setLoading(false);
     }
@@ -112,7 +111,7 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
         {!location ? (
           <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-xl flex items-center gap-2">
             <MapPin size={16} />
-            <p>Déplacez la carte pour positionner le marqueur.</p>
+            <p>{t('spots.positionMarker')}</p>
           </div>
         ) : (
           <div className="bg-primary/10 text-primary text-xs p-2 rounded-lg flex items-center gap-2">
@@ -122,10 +121,10 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
         )}
 
         <div className="space-y-1.5">
-          <Label htmlFor="name">Nom du terrain <span className="text-destructive">*</span></Label>
+          <Label htmlFor="name">{t('spots.spotName')} <span className="text-destructive">*</span></Label>
           <Input 
             id="name" 
-            placeholder="Ex: Terrain de la plage des Blancs Sablons" 
+            placeholder={t('spots.spotNamePlaceholder')} 
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -134,25 +133,25 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="type">Type de terrain</Label>
+          <Label htmlFor="type">{t('spots.spotType')}</Label>
           <Select value={type} onValueChange={setType}>
             <SelectTrigger className="bg-secondary/50">
-              <SelectValue placeholder="Sélectionnez le type" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="beach">Beach Volley (Sable)</SelectItem>
-              <SelectItem value="outdoor_hard">Extérieur (Dur/Goudron)</SelectItem>
-              <SelectItem value="outdoor_grass">Extérieur (Herbe)</SelectItem>
-              <SelectItem value="indoor">En salle (Gymnase)</SelectItem>
+              <SelectItem value="beach">{t('spots.typeBeach')}</SelectItem>
+              <SelectItem value="outdoor_hard">{t('spots.typeOutdoorHard')}</SelectItem>
+              <SelectItem value="outdoor_grass">{t('spots.typeOutdoorGrass')}</SelectItem>
+              <SelectItem value="indoor">{t('spots.typeIndoor')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="availability">Période de disponibilité annuelle</Label>
+          <Label htmlFor="availability">{t('spots.availability')}</Label>
           <Input 
             id="availability" 
-            placeholder="Ex: De mai à septembre (filets retirés l'hiver)" 
+            placeholder={t('spots.availabilityPlaceholder')} 
             value={availability}
             onChange={(e) => setAvailability(e.target.value)}
             className="bg-secondary/50"
@@ -160,10 +159,10 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="description">Description et infos pratiques</Label>
+          <Label htmlFor="description">{t('spots.description')}</Label>
           <Textarea 
             id="description" 
-            placeholder="Ex: Accès libre, point d'eau à proximité, prévoir son propre ballon... " 
+            placeholder={t('spots.descriptionPlaceholder')} 
             className="h-24 resize-none bg-secondary/50"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -171,7 +170,7 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
         </div>
 
         <div className="space-y-2">
-          <Label>Photos ({photos.length}/5)</Label>
+          <Label>{t('spots.photos')} ({photos.length}/5)</Label>
           
           <div className="grid grid-cols-3 gap-2">
             {photos.map((photo, idx) => (
@@ -190,7 +189,7 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
             {photos.length < 5 && (
               <label className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors bg-secondary/10 hover:bg-secondary/30 text-muted-foreground hover:text-primary">
                 <ImagePlus size={20} />
-                <span className="text-[10px] uppercase font-bold tracking-wider">Ajouter</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider">{t('spots.photoAdd')}</span>
                 <input 
                   type="file" 
                   accept="image/*" 
@@ -206,10 +205,10 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
 
       <div className="flex gap-2 pt-4 border-t border-border mt-auto">
         <Button type="button" variant="secondary" onClick={onCancel} className="flex-1" disabled={loading}>
-          Annuler
+          {t('common.cancel')}
         </Button>
         <Button type="submit" className="flex-1" disabled={loading || !location}>
-          {loading ? <Loader2 size={16} className="animate-spin" /> : 'Proposer le terrain'}
+          {loading ? <Loader2 size={16} className="animate-spin" /> : t('spots.submitSpot')}
         </Button>
       </div>
     </form>
