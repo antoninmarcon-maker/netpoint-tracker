@@ -79,7 +79,7 @@ const Index = () => {
     score, stats, setsScore, currentSetNumber, completedSets,
     teamNames, sidesSwapped, chronoRunning, chronoSeconds,
     players, pendingPoint, servingTeam, sport,
-    isPerformanceMode, currentRallyActions, rallyInProgress, directionOrigin, directionDest, pendingDirectionAction, canUndo,
+    isPerformanceMode, currentRallyActions, rallyInProgress, directionOrigin, directionDest, pendingDirectionAction, directionDestSet, canUndo,
     preSelectedPlayerId, setPreSelectedPlayerId, preSelectedRating, setPreSelectedRating, pendingActionMeta,
     setTeamNames, setPlayers, selectAction, cancelSelection, addPoint, confirmDirectionAction,
     assignPlayer, skipPlayerAssignment,
@@ -385,12 +385,18 @@ const Index = () => {
             {/* Direction mode indicator (live only) */}
             {!isFinished && pendingDirectionAction && directionOrigin && (
               <div className="flex items-center justify-between gap-2 py-2 px-3 rounded-lg bg-accent/20 border border-accent">
-                <span className="text-xs font-bold text-accent-foreground flex-1">🎯 {t('scoreboard.confirmTrajectory')}</span>
+                <span className="text-xs font-bold text-accent-foreground flex-1">
+                  🎯 {directionDestSet ? t('scoreboard.confirmTrajectory') : t('scoreboard.tapDestination', 'Touchez la destination sur le terrain')}
+                </span>
                 <div className="flex gap-2">
                   <button onClick={cancelSelection} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-secondary text-secondary-foreground text-xs font-semibold hover:bg-secondary/80">
                     <X size={14} /> {t('common.cancel', 'Annuler')}
                   </button>
-                  <button onClick={confirmDirectionAction} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90">
+                  <button
+                    onClick={confirmDirectionAction}
+                    disabled={!directionDestSet}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
                     <Check size={14} /> {t('common.confirm', 'Valider')}
                   </button>
                 </div>
