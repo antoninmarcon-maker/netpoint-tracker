@@ -368,22 +368,68 @@ export default function Home() {
     await loadMatches(user);
   };
 
-  const handleShareMatch = async (match: MatchSummary) => {
-    const url = `${window.location.origin}/match/${match.id}`;
+  const getMatchScoreText = (match: MatchSummary) => {
+    const sc = match.completedSets.reduce((acc, s) => ({ blue: acc.blue + s.blueScore, red: acc.red + s.redScore }), { blue: 0, red: 0 });
+    const pts = match.points || [];
+    sc.blue += pts.filter(p => p.team === 'blue').length;
+    sc.red += pts.filter(p => p.team === 'red').length;
+    return `${match.teamNames.blue} ${sc.blue} - ${sc.red} ${match.teamNames.red}`;
+  };
+
+  const handleShareNative = async (match: MatchSummary) => {
+    const text = getMatchScoreText(match);
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Match: ${match.teamNames.blue} vs ${match.teamNames.red}`,
-          text: t('home.shareMatchText', 'Regarde les statistiques de ce match !'),
-          url,
-        });
-      } catch {
-        // ignore cancellation
-      }
+      try { await navigator.share({ title: `Match: ${match.teamNames.blue} vs ${match.teamNames.red}`, text }); } catch {}
     } else {
-      navigator.clipboard.writeText(url)
-        .then(() => toast.success(t('heatmap.linkCopied', 'Lien copié')))
-        .catch(() => toast.error(t('heatmap.linkCopyError', 'Erreur de copie')));
+      navigator.clipboard.writeText(text).then(() => toast.success(t('heatmap.linkCopied'))).catch(() => {});
+    }
+  };
+
+  const handleCopyScore = (match: MatchSummary) => {
+    navigator.clipboard.writeText(getMatchScoreText(match))
+      .then(() => toast.success(t('heatmap.linkCopied')))
+      .catch(() => toast.error(t('heatmap.linkCopyError')));
+  };
+
+  const handleShareWhatsApp = (match: MatchSummary) => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(getMatchScoreText(match))}`, '_blank');
+  };
+
+  const handleShareTelegram = (match: MatchSummary) => {
+    window.open(`https://t.me/share/url?text=${encodeURIComponent(getMatchScoreText(match))}`, '_blank');
+  };
+
+  const handleShareX = (match: MatchSummary) => {
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(getMatchScoreText(match))}`, '_blank');
+  };
+
+  const handleGenerateShareLink = async (match: MatchSummary) => {
+    if (!user) { toast.error(t('heatmap.loginForLink')); return; }
+    setGeneratingShareLink(true);
+    try {
+      let token = match.shareToken;
+      if (!token) {
+        token = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+        const { error } = await supabase.from('matches').update({ share_token: token }).eq('id', match.id);
+        if (error) throw error;
+      }
+      const url = `https://www.my-volley.com/shared/${token}`;
+      setShareLinkUrl(url);
+      setSharingMatch(null);
+      setShareLinkDialogOpen(true);
+    } catch {
+      toast.error(t('heatmap.linkError'));
+    } finally {
+      setGeneratingShareLink(false);
+    }
+  };
+
+  const handleCopyShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareLinkUrl);
+      toast.success(t('heatmap.linkCopied'));
+    } catch {
+      toast.error(t('heatmap.linkCopyError'));
     }
   };
 
