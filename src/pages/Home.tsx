@@ -543,7 +543,7 @@ export default function Home() {
               onTouchEnd={() => setIsHovered(false)}
             >
               {visibleWhatsNew.map((card) => (
-                <div key={card.id} className="min-w-[85%] md:min-w-[300px] snap-center shrink-0">
+                <div key={card.id} className="min-w-full snap-center shrink-0">
                   <div className="bg-card rounded-xl border border-border overflow-hidden h-full flex flex-col relative w-full">
                     <button
                       onClick={() => handleDismissWhatsNew(card.id)}
