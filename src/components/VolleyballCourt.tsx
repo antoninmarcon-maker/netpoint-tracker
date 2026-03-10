@@ -244,23 +244,24 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
         onCourtClick(normalizedX, y);
       }
     },
-    [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped, onCourtClick, pendingDirectionAction, directionOrigin, isPerformanceMode]
+    [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped, onCourtClick, pendingDirectionAction, directionOrigin, isPerformanceMode, pendingHasDirection]
   );
 
   const handlePointerDown = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
-    if (!hasSelection) return;
+    const inDirectionMode = !!(pendingDirectionAction && directionOrigin);
+    if (!hasSelection && !inDirectionMode) return;
     setIsPointerDown(true);
     (e.target as Element).setPointerCapture(e.pointerId);
     handleInteraction(e.clientX, e.clientY);
-  }, [hasSelection, handleInteraction]);
+  }, [hasSelection, handleInteraction, pendingDirectionAction, directionOrigin]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
     if (!isPointerDown) return;
     // Only actively trace coords if we are in direction mode
-    if (pendingDirectionAction) {
+    if (pendingDirectionAction && directionOrigin) {
       handleInteraction(e.clientX, e.clientY);
     }
-  }, [isPointerDown, pendingDirectionAction, handleInteraction]);
+  }, [isPointerDown, pendingDirectionAction, directionOrigin, handleInteraction]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
     if (!isPointerDown) return;
