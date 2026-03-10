@@ -36,7 +36,7 @@ function getConfig(): ActionsConfig {
 
 function getDefaultConfig(): ActionsConfig {
   return {
-    hiddenActions: ['other_offensive', 'other_volley_fault', 'other_volley_neutral'],
+    hiddenActions: ['other_offensive', 'other_volley_fault', 'other_volley_neutral', 'opponent_fault'],
     customActions: [
       {
         id: 'default-reception',
@@ -70,6 +70,17 @@ function getDefaultConfig(): ActionsConfig {
         assignToPlayer: true,
         hasDirection: true,
         hasRating: true,
+      },
+      {
+        id: 'default-3m',
+        label: 'Pour gagner 3 mètres',
+        sport: 'volleyball',
+        category: 'scored',
+        sigil: '3M',
+        showOnCourt: true,
+        assignToPlayer: true,
+        hasDirection: true,
+        hasRating: true,
       }
     ],
     defaultActionsConfig: {
@@ -77,7 +88,11 @@ function getDefaultConfig(): ActionsConfig {
       'ace': { assignToPlayer: true, hasDirection: true, hasRating: true },
       'block': { assignToPlayer: true, hasDirection: true, hasRating: true },
       'bidouille': { assignToPlayer: true, hasDirection: true, hasRating: true },
-      'seconde_main': { assignToPlayer: true, hasDirection: true, hasRating: true }
+      'seconde_main': { assignToPlayer: true, hasDirection: true, hasRating: true },
+      'out': { hasDirection: true },
+      'net_fault': { hasDirection: true },
+      'service_miss': { hasDirection: true },
+      'block_out': { hasDirection: true }
     }
   };
 }
