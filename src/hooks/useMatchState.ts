@@ -173,7 +173,8 @@ export function useMatchState(matchId: string, ready: boolean = true) {
 
   const startDirectionMode = useCallback((team: Team, type: PointType, action: ActionType, x: number, y: number, customLabel?: string, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean) => {
     setDirectionOrigin({ x, y });
-    setDirectionDest({ x, y }); // default to origin so they are superimposed initially
+    setDirectionDest({ x, y }); // visual default, but not confirmed yet
+    setDirectionDestSet(false); // user hasn't set a destination yet
     setPendingDirectionAction({ team, type, action, customLabel, sigil, showOnCourt, assignToPlayer });
   }, []);
 
