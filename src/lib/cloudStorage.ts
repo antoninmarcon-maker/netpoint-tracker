@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { MatchSummary, SetData, Point, Player } from '@/types/sports';
-import { getAllMatches as getLocalMatches } from './matchStorage';
+import { getAllMatches as getLocalMatches, deleteMatch } from './matchStorage';
 
 // Helper: get current session user id, or null
 async function getSessionUserId(): Promise<string | null> {
@@ -26,8 +26,14 @@ export async function syncLocalMatchesToCloud(userId: string) {
     if (!existing) {
       await saveCloudMatch(userId, match);
     }
+    
+    // Purge local storage for this match ONLY if it's finished and now synced
+    if (match.finished) {
+      deleteMatch(match.id);
+    }
   }
-  // Clean up local storage after successful sync (including demo match)
+  
+  // Clean up legacy global local storage key if it still exists (guest migration)
   localStorage.removeItem('volley-tracker-matches');
 }
 
@@ -59,6 +65,10 @@ export async function saveCloudMatch(userId: string, match: MatchSummary) {
     updated_at: new Date().toISOString(),
   });
 
+  if (matchError) {
+    if (import.meta.env.DEV) console.error('Cloud save error:', matchError);
+    throw new Error(matchError.message);
+  }
 }
 
 // Delete match from cloud

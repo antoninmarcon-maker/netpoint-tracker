@@ -388,7 +388,11 @@ export default function Home() {
       }
       const updated = { ...match, finished: true, updatedAt: Date.now() };
       saveMatch(updated);
-      if (user) await saveCloudMatch(user.id, updated);
+      if (user) {
+        await saveCloudMatch(user.id, updated);
+        // Delete from local storage only if cloud save was successful
+        deleteMatch(updated.id);
+      }
       loadMatches(user);
       setFinishingId(null);
     } catch (err) {
