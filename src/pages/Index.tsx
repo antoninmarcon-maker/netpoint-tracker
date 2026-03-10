@@ -27,7 +27,9 @@ const Index = () => {
   const { t } = useTranslation();
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>('match');
+  const searchParams = new URLSearchParams(window.location.search);
+  const initialTab = searchParams.get('tab') === 'stats' ? 'stats' : 'match';
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [showHelp, setShowHelp] = useState(false);
   const [showRatings, setShowRatings] = useState(true);
   
