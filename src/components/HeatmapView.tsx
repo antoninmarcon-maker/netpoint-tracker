@@ -226,7 +226,7 @@ function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: n
       attacks, aces, blocks, bidouilles, secondeMains, otherOffensive,
       outs, netFaults, serviceMisses, blockOuts,
       customStats, neutralBreakdown,
-      ratingsPositive, ratingsNeutral, ratingsNegative,
+      ratingsPositive, ratingsNeutral, ratingsNegative, actionRatings,
     };
   };
 
