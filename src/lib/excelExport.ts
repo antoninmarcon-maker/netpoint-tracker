@@ -79,13 +79,33 @@ function teamSetStats(pts: Point[], team: 'blue' | 'red') {
   const neutralLabels = Array.from(new Set(neutrals.map(p => p.customActionLabel || p.action)));
   const neutralDetails = neutralLabels.map(label => [label, neutrals.filter(p => (p.customActionLabel || p.action) === label).length] as [string, number]);
 
+  // Ratings per action
+  const allActions = [...scored, ...opponentFaults, ...neutrals];
+  const ratingsByAction: Record<string, { pos: number; neu: number; neg: number }> = {};
+  allActions.forEach(p => {
+    if (!p.rating) return;
+    const key = p.customActionLabel || p.action;
+    if (!ratingsByAction[key]) ratingsByAction[key] = { pos: 0, neu: 0, neg: 0 };
+    if (p.rating === 'positive') ratingsByAction[key].pos++;
+    else if (p.rating === 'neutral') ratingsByAction[key].neu++;
+    else if (p.rating === 'negative') ratingsByAction[key].neg++;
+  });
+
+  const totalRatings = {
+    pos: allActions.filter(p => p.rating === 'positive').length,
+    neu: allActions.filter(p => p.rating === 'neutral').length,
+    neg: allActions.filter(p => p.rating === 'negative').length,
+  };
+
   return {
     scored: scored.length,
     faults: opponentFaults.length,
     neutrals: neutrals.length,
-    details: OFFENSIVE_ACTIONS.map(a => [a.label, scored.filter(p => p.action === a.key).length] as [string, number]),
-    faultDetails: FAULT_ACTIONS.map(a => [a.label, opponentFaults.filter(p => p.action === a.key).length] as [string, number]),
+    details: OFFENSIVE_ACTIONS.map(a => [a.label, scored.filter(p => p.action === a.key).length, a.key] as [string, number, string]),
+    faultDetails: FAULT_ACTIONS.map(a => [a.label, opponentFaults.filter(p => p.action === a.key).length, a.key] as [string, number, string]),
     neutralDetails,
+    ratingsByAction,
+    totalRatings,
   };
 }
 
