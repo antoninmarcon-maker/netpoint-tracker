@@ -52,17 +52,18 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
         return;
       }
 
-      // Step 1: Insert spot into DB with geography point
-      const pointStr = `POINT(${location[1]} ${location[0]})`; // Longitude, Latitude format correctly for PostGIS
+      // Step 1: Insert spot into DB
       const { data: spotData, error: spotError } = await supabase
         .from('spots')
-        .insert({
+        .insert([{
           name,
           description,
           type,
           availability_period: availability,
-          location: pointStr as any // Need to cast as any for RPC or handle via raw SQL if types complain, but PostGIS accepts EWKT strings.
-        })
+          lat: location[0],
+          lng: location[1],
+          user_id: user.id,
+        }])
         .select('id')
         .single();
 
