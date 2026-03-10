@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import SpotForm from '@/components/SpotForm';
