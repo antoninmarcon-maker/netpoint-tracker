@@ -136,7 +136,7 @@ export function PlayerStats({ points, players, teamName, matchId, showRatings = 
     }).filter(s => s.total > 0).sort((a, b) => b.scored - a.scored);
   }, [points, allPlayers, t, showRatings]);
 
-  // formatRatingSuffix replaced by RatingDots component - see render below
+  
 
   const togglePlayer = (playerId: string) => { setExpandedPlayers(prev => ({ ...prev, [playerId]: !prev[playerId] })); };
   const toggleSection = (playerId: string, section: 'scored' | 'faults' | 'neutral') => {
