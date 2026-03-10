@@ -163,6 +163,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     // Also cancel direction mode
     setDirectionOrigin(null);
     setDirectionDest(null);
+    setDirectionDestSet(false);
     setPendingDirectionAction(null);
     setPreSelectedPlayerId(null);
     setPreSelectedRating(null);
