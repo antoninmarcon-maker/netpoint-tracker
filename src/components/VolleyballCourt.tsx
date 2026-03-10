@@ -244,7 +244,7 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
         onCourtClick(normalizedX, y);
       }
     },
-    [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped, onCourtClick, pendingDirectionAction, directionOrigin, isPerformanceMode]
+    [hasSelection, selectedTeam, selectedAction, selectedPointType, sidesSwapped, onCourtClick, pendingDirectionAction, directionOrigin, isPerformanceMode, pendingHasDirection]
   );
 
   const handlePointerDown = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
