@@ -248,12 +248,13 @@ export function useMatchState(matchId: string, ready: boolean = true) {
   }, [currentRallyActions, players.length, preSelectedPlayerId, preSelectedRating]);
 
   const confirmDirectionAction = useCallback(() => {
-    if (!pendingDirectionAction || !directionOrigin || !directionDest) return;
+    if (!pendingDirectionAction || !directionOrigin || !directionDest || !directionDestSet) return;
     const { team, type, action, customLabel, sigil, showOnCourt, assignToPlayer } = pendingDirectionAction;
     const conclusionPlayerId = preSelectedPlayerId;
     const conclusionRating = preSelectedRating;
 
     setDirectionDest(null);
+    setDirectionDestSet(false);
     setPendingDirectionAction(null);
     setPreSelectedPlayerId(null);
     setPreSelectedRating(null);
