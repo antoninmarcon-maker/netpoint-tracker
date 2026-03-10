@@ -79,7 +79,7 @@ const Index = () => {
     score, stats, setsScore, currentSetNumber, completedSets,
     teamNames, sidesSwapped, chronoRunning, chronoSeconds,
     players, pendingPoint, servingTeam, sport,
-    isPerformanceMode, currentRallyActions, rallyInProgress, directionOrigin, directionDest, pendingDirectionAction, canUndo,
+    isPerformanceMode, currentRallyActions, rallyInProgress, directionOrigin, directionDest, pendingDirectionAction, directionDestSet, canUndo,
     preSelectedPlayerId, setPreSelectedPlayerId, preSelectedRating, setPreSelectedRating, pendingActionMeta,
     setTeamNames, setPlayers, selectAction, cancelSelection, addPoint, confirmDirectionAction,
     assignPlayer, skipPlayerAssignment,
