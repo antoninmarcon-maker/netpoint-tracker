@@ -180,10 +180,10 @@ function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: n
           else if (a.rating === 'neutral') ratingsNeutral++;
           else if (a.rating === 'negative') ratingsNegative++;
 
-          const actionLabel = a.customActionLabel || a.action;
-          if (!actionRatings[actionLabel]) actionRatings[actionLabel] = { positive: 0, neutral: 0, negative: 0, total: 0 };
-          actionRatings[actionLabel][a.rating]++;
-          actionRatings[actionLabel].total++;
+          const actionKey = a.action;
+          if (!actionRatings[actionKey]) actionRatings[actionKey] = { positive: 0, neutral: 0, negative: 0, total: 0 };
+          actionRatings[actionKey][a.rating]++;
+          actionRatings[actionKey].total++;
         }
 
         if (isNeutral) {
