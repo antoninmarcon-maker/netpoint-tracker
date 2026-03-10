@@ -123,6 +123,7 @@ interface TeamStats {
   outs: number; netFaults: number; serviceMisses: number; blockOuts: number;
   customStats: Record<string, number>;
   neutralBreakdown: Record<string, number>;
+  ratingsPositive: number; ratingsNeutral: number; ratingsNegative: number;
 }
 
 function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: number } {
