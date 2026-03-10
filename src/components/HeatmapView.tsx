@@ -138,6 +138,7 @@ function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: n
   const byTeam = (team: 'blue' | 'red'): TeamStats => {
     const opponent = team === 'blue' ? 'red' : 'blue';
 
+    const actionRatings: Record<string, ActionRating> = {};
     const customStats: Record<string, number> = {};
     const neutralBreakdown: Record<string, number> = {};
     let scoredTotal = 0;
