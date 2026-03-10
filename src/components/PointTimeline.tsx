@@ -195,9 +195,7 @@ function CustomTooltip({ active, payload, teamNames, onSelectPoint }: any) {
       <p className="text-muted-foreground">{d.type === 'scored' ? 'Point ✓' : 'Fault ✗'}</p>
       <p className="text-foreground">
         <span className="font-bold">{actionInfo?.abbr}</span> — {actionInfo?.full}
-        {d.rating === 'positive' && <span className="ml-1 text-green-500 font-bold">(+)</span>}
-        {d.rating === 'neutral' && <span className="ml-1 text-orange-500 font-bold">(!)</span>}
-        {d.rating === 'negative' && <span className="ml-1 text-destructive font-bold">(-)</span>}
+        {d.rating && <RatingDot rating={d.rating} size={7} className="ml-1" />}
       </p>
       <p className="text-muted-foreground">{teamNames.blue} {d.blue} - {d.red} {teamNames.red}</p>
       {d.hasRally && <p className="text-primary font-semibold">⚡ {d.rallyCount} actions</p>}
