@@ -117,6 +117,13 @@ function buildExportContainer(teamNames: { blue: string; red: string }, label: s
   return container;
 }
 
+interface ActionRating {
+  positive: number;
+  neutral: number;
+  negative: number;
+  total: number;
+}
+
 interface TeamStats {
   scored: number; faults: number; neutral: number; customNeutralCount: number;
   attacks: number; aces: number; blocks: number; bidouilles: number; secondeMains: number; otherOffensive: number;
@@ -124,6 +131,7 @@ interface TeamStats {
   customStats: Record<string, number>;
   neutralBreakdown: Record<string, number>;
   ratingsPositive: number; ratingsNeutral: number; ratingsNegative: number;
+  actionRatings: Record<string, ActionRating>;
 }
 
 function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: number } {
