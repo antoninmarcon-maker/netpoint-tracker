@@ -90,22 +90,20 @@ export function PlayerStats({ points, players, teamName, matchId, showRatings = 
       const scoredCount = playerScoredActions.length + playerFaultWins.length;
       const negativeCount = playerNegatives.length;
 
-      const faultBreakdown: { label: string; count: number }[] = [];
+      const faultBreakdown: { label: string; count: number; ratingItems: { rating?: string }[] }[] = [];
       const negScoredActions = OFFENSIVE_ACTIONS;
       const negFaultActions = FAULT_ACTIONS;
 
       for (const a of negScoredActions) {
         const actionPoints = playerNegatives.filter(p => p.type === 'scored' && p.action === a.key);
         if (actionPoints.length > 0) {
-          const suffix = formatRatingSuffix(actionPoints);
-          faultBreakdown.push({ label: a.label + suffix, count: actionPoints.length });
+          faultBreakdown.push({ label: a.label, count: actionPoints.length, ratingItems: actionPoints });
         }
       }
       for (const a of negFaultActions) {
         const actionPoints = playerNegatives.filter(p => p.type === 'fault' && p.action === a.key);
         if (actionPoints.length > 0) {
-          const suffix = formatRatingSuffix(actionPoints);
-          faultBreakdown.push({ label: a.label + suffix, count: actionPoints.length });
+          faultBreakdown.push({ label: a.label, count: actionPoints.length, ratingItems: actionPoints });
         }
       }
 
@@ -115,22 +113,20 @@ export function PlayerStats({ points, players, teamName, matchId, showRatings = 
       const scoredBreakdown = OFFENSIVE_ACTIONS.map(a => {
         const actionPoints = playerScoredActions.filter(p => p.action === a.key);
         if (actionPoints.length === 0) return null;
-        const suffix = formatRatingSuffix(actionPoints);
-        return { label: a.label + suffix, count: actionPoints.length };
-      }).filter((b): b is { label: string; count: number } => b !== null);
+        return { label: a.label, count: actionPoints.length, ratingItems: actionPoints as { rating?: string }[] };
+      }).filter((b): b is { label: string; count: number; ratingItems: { rating?: string }[] } => b !== null);
 
       if (playerFaultWins.length > 0) {
-        scoredBreakdown.push({ label: t('playerStats.faultsLabel'), count: playerFaultWins.length });
+        scoredBreakdown.push({ label: t('playerStats.faultsLabel'), count: playerFaultWins.length, ratingItems: [] });
       }
 
-      const neutralBreakdown: { label: string; count: number }[] = [];
+      const neutralBreakdown: { label: string; count: number; ratingItems: { rating?: string }[] }[] = [];
       const neutralLabels = new Set<string>();
       playerNeutrals.forEach(p => neutralLabels.add(p.customActionLabel || p.action));
 
       neutralLabels.forEach(label => {
         const matchingPoints = playerNeutrals.filter(p => (p.customActionLabel || p.action) === label);
-        const suffix = formatRatingSuffix(matchingPoints);
-        neutralBreakdown.push({ label: label + suffix, count: matchingPoints.length });
+        neutralBreakdown.push({ label, count: matchingPoints.length, ratingItems: matchingPoints });
       });
 
       return {
