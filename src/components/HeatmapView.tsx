@@ -236,6 +236,16 @@ function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: n
   return { blue: byTeam('blue'), red: byTeam('red'), total: scoreTotal };
 }
 
+function InlineRatingDots({ r }: { r: ActionRating }) {
+  return (
+    <span className="inline-flex items-center gap-1 ml-1">
+      {r.positive > 0 && <span className="inline-flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-green-500" /><span className="text-[10px] font-semibold text-green-500">{r.positive}</span></span>}
+      {r.neutral > 0 && <span className="inline-flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-orange-500" /><span className="text-[10px] font-semibold text-orange-500">{r.neutral}</span></span>}
+      {r.negative > 0 && <span className="inline-flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-destructive" /><span className="text-[10px] font-semibold text-destructive">{r.negative}</span></span>}
+    </span>
+  );
+}
+
 export function HeatmapView({ points, completedSets, currentSetPoints, currentSetNumber, stats, teamNames, players = [], sport = 'volleyball', matchId, isLoggedIn, hasCourt = true, onSelectPoint, viewingPointIndex, showRatings = true }: HeatmapViewProps) {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
