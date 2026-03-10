@@ -335,7 +335,7 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     const customLabel = meta?.customLabel;
     const customSigil = meta?.sigil;
     const customShowOnCourt = meta?.showOnCourt;
-    const hasDirection = isPerformanceMode || (meta?.hasDirection ?? false);
+    const hasDirection = isPerformanceMode && (meta?.hasDirection ?? false);
 
     // Clear pendingActionMeta after consuming
     setPendingActionMeta(null);
