@@ -894,7 +894,7 @@ export default function Home() {
               <div className="flex items-center space-x-2 bg-secondary/30 p-2 rounded-xl border border-border">
                 <Switch id="enable-ratings" checked={enableRatings} onCheckedChange={setEnableRatings} />
                 <div className="flex-1">
-                  <Label htmlFor="enable-ratings" className="text-xs font-semibold cursor-pointer flex items-center gap-1.5">⭐ Notations <span className="inline-flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-green-500" /><span className="w-1.5 h-1.5 rounded-full bg-orange-500" /><span className="w-1.5 h-1.5 rounded-full bg-destructive" /></span></Label>
+                  <Label htmlFor="enable-ratings" className="text-xs font-semibold cursor-pointer flex items-center gap-1.5">Notations <span className="inline-flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-green-500" /><span className="w-1.5 h-1.5 rounded-full bg-orange-500" /><span className="w-1.5 h-1.5 rounded-full bg-destructive" /></span></Label>
                   <p className="text-[9px] text-muted-foreground">Évaluer la qualité de chaque action</p>
                 </div>
               </div>
