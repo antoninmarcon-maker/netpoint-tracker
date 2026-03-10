@@ -459,7 +459,7 @@ const Index = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex justify-between items-center bg-card p-3 rounded-xl border border-border">
+            <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Switch id="show-ratings" checked={showRatings} onCheckedChange={setShowRatings} />
                 <Label htmlFor="show-ratings" className="text-sm font-semibold text-muted-foreground cursor-pointer flex items-center gap-1.5">
