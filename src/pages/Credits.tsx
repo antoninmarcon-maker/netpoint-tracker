@@ -99,6 +99,19 @@ export default function Credits() {
           </div>
         </section>
 
+        {/* Feedback */}
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold text-foreground">{t('home.feedback')}</h2>
+          <p className="text-sm text-muted-foreground">{t('credits.feedbackDesc', 'Une idée, un bug, une suggestion ? N\'hésitez pas à nous écrire !')}</p>
+          <Link
+            to="/help#feedback"
+            className="group flex items-center justify-center gap-2.5 w-full py-3.5 rounded-2xl font-bold text-sm bg-secondary text-foreground hover:bg-accent transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <MessageSquare size={18} />
+            {t('home.feedback')}
+          </Link>
+        </section>
+
         {/* Crédit technique */}
         <section className="pt-4 border-t border-border">
           <p className="text-xs text-muted-foreground text-center">{t('credits.techNote')}</p>

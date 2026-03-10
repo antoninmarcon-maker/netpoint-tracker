@@ -822,16 +822,6 @@ export default function Home() {
             <Plus size={20} className="relative z-10 transition-transform duration-300 group-hover:rotate-90" />
             <span className="relative z-10">{t('home.newMatch')}</span>
           </button>
-
-          <button
-            onClick={() => navigate('/spots')}
-            className="group flex-1 relative flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-white overflow-hidden transition-all duration-300 active:scale-[0.97] hover:shadow-lg hover:shadow-primary/25"
-            style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)))' }}
-          >
-            <span className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-300" />
-            <MapPin size={20} className="relative z-10 transition-transform duration-300 group-hover:-translate-y-1" />
-            <span className="relative z-10">{t('home.whatsNewSpots')}</span>
-          </button>
         </div>
 
         {!user && (
