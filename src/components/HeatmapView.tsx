@@ -145,6 +145,9 @@ function computeStats(pts: Point[]): { blue: TeamStats; red: TeamStats; total: n
     let netFaults = 0;
     let serviceMisses = 0;
     let blockOuts = 0;
+    let ratingsPositive = 0;
+    let ratingsNeutral = 0;
+    let ratingsNegative = 0;
 
     pts.forEach(p => {
       // If we have detailed rally actions, we process them individually
