@@ -107,9 +107,9 @@ export default function Home() {
       id: 'spot-explorer',
       icon: <MapPin size={32} className="text-primary mb-2" />,
       images: [],
-      title: "Où jouer ? (Nouveau)",
-      desc: "Trouvez des terrains de volley partout près de chez vous, ajoutez vos spots préférés et voyez les photos et commentaires d'autres joueurs.",
-      btnText: "Ouvrir la Carte",
+      title: t('home.whatsNewSpots'),
+      desc: t('home.whatsNewSpotsDesc'),
+      btnText: t('home.whatsNewSpotsBtn'),
       action: () => navigate('/spots'),
     },
     {
