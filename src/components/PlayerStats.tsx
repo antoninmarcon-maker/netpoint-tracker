@@ -140,13 +140,7 @@ export function PlayerStats({ points, players, teamName, matchId, showRatings = 
     }).filter(s => s.total > 0).sort((a, b) => b.scored - a.scored);
   }, [points, allPlayers, t, showRatings]);
 
-  function formatRatingSuffix(items: { rating?: string }[]) {
-    if (!showRatings) return '';
-    const pos = items.filter(p => p.rating === 'positive').length;
-    const neu = items.filter(p => p.rating === 'neutral').length;
-    const neg = items.filter(p => p.rating === 'negative').length;
-    return (pos || neu || neg) ? ` (${[pos && `${pos}+`, neu && `${neu}!`, neg && `${neg}-`].filter(Boolean).join(', ')})` : '';
-  }
+  // formatRatingSuffix replaced by RatingDots component - see render below
 
   const togglePlayer = (playerId: string) => { setExpandedPlayers(prev => ({ ...prev, [playerId]: !prev[playerId] })); };
   const toggleSection = (playerId: string, section: 'scored' | 'faults' | 'neutral') => {
