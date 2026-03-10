@@ -248,11 +248,12 @@ export function VolleyballCourt({ points, selectedTeam, selectedAction, selected
   );
 
   const handlePointerDown = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
-    if (!hasSelection) return;
+    const inDirectionMode = !!(pendingDirectionAction && directionOrigin);
+    if (!hasSelection && !inDirectionMode) return;
     setIsPointerDown(true);
     (e.target as Element).setPointerCapture(e.pointerId);
     handleInteraction(e.clientX, e.clientY);
-  }, [hasSelection, handleInteraction]);
+  }, [hasSelection, handleInteraction, pendingDirectionAction, directionOrigin]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
     if (!isPointerDown) return;
