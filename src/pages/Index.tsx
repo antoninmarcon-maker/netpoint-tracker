@@ -238,8 +238,8 @@ const Index = () => {
       isPerformanceMode
     );
 
-    // If action needs player AND court, show player selector first (performance mode)
-    if (isPerformanceMode && reqs.needsAssignToPlayer && reqs.needsCourtPlacement && !preSelectedPlayerId) {
+    // If action needs player, show player selector first (performance mode)
+    if (isPerformanceMode && reqs.needsAssignToPlayer && !preSelectedPlayerId) {
       setAwaitingPlayerBeforeCourt(true);
       return;
     }
