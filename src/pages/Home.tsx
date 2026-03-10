@@ -83,7 +83,7 @@ export default function Home() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteSending, setInviteSending] = useState(false);
   const [selectedWhatsNew, setSelectedWhatsNew] = useState<any | null>(null);
-  const [isImageZoomed, setIsImageZoomed] = useState(false);
+  
 
   const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -109,9 +109,8 @@ export default function Home() {
       images: ["/assets/whatsnew/tournoi1.PNG", "/assets/whatsnew/tournoi2.PNG", "/assets/whatsnew/tournoi3.PNG"],
       title: t('home.whatsNewTournaments'),
       desc: t('home.whatsNewTournamentsDesc'),
-      btnText: t('home.newMatch'),
-      action: () => setShowNew(true),
-      gradientBtn: true
+      btnText: t('home.whatsNewTournamentsBtn', 'Découvrir les tournois'),
+      action: () => navigate('/tournaments'),
     },
     {
       id: 'perf',
@@ -119,13 +118,12 @@ export default function Home() {
       images: ["/assets/whatsnew/Mode perf.jpeg"],
       title: t('home.whatsNewPerfMode'),
       desc: t('home.whatsNewPerfModeDesc'),
-      btnText: t('home.newMatch'),
+      btnText: t('home.whatsNewPerfModeBtn', 'Démarrer en Perf'),
       action: () => {
         setHasCourt(true);
         setIsPerformanceMode(true);
         setShowNew(true);
       },
-      gradientBtn: true
     },
     {
       id: 'actions',
@@ -189,6 +187,23 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, [isHovered, visibleWhatsNew.length]);
+
+  // Auto-scroll carousel in the "En savoir plus" modal
+  useEffect(() => {
+    if (!selectedWhatsNew || selectedWhatsNew.images.length <= 1) return;
+    const el = document.getElementById('whats-new-modal-carousel');
+    if (!el) return;
+    const interval = setInterval(() => {
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (el.scrollLeft >= maxScroll - 10) {
+        el.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        const itemWidth = el.scrollWidth / selectedWhatsNew.images.length;
+        el.scrollBy({ left: itemWidth, behavior: 'smooth' });
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [selectedWhatsNew]);
 
   useEffect(() => {
     if (localStorage.getItem('welcomeSeen') !== 'true') {
@@ -519,7 +534,7 @@ export default function Home() {
               onTouchEnd={() => setIsHovered(false)}
             >
               {visibleWhatsNew.map((card) => (
-                <div key={card.id} className="min-w-[85%] md:min-w-[300px] snap-center shrink-0">
+              <div key={card.id} className="min-w-full snap-center shrink-0">
                   <div className="bg-card rounded-xl border border-border overflow-hidden h-full flex flex-col relative w-full">
                     <button
                       onClick={() => handleDismissWhatsNew(card.id)}
@@ -538,15 +553,13 @@ export default function Home() {
                         onClick={() => setSelectedWhatsNew(card)}
                         className="w-full py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-xs hover:bg-secondary/80 transition-all flex items-center justify-center gap-2"
                       >
-                        <ImagePlus size={16} /> {t('home.learnMore', 'En savoir plus')}
+                        <Eye size={16} /> {t('home.learnMore', 'En savoir plus')}
                       </button>
                       <button
                         onClick={() => handleDismissWhatsNew(card.id, card.action)}
-                        className={card.gradientBtn ? "group w-full py-2.5 rounded-lg font-semibold text-xs text-white overflow-hidden relative" : "w-full py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-xs hover:bg-secondary/80 transition-all"}
-                        style={card.gradientBtn ? { background: 'linear-gradient(135deg, hsl(var(--action-cta)), hsl(var(--action-cta-end)))' } : {}}
+                        className="w-full py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-xs hover:bg-secondary/80 transition-all"
                       >
-                        {card.gradientBtn && <span className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-300" />}
-                        <span className="relative z-10">{card.btnText}</span>
+                        {card.btnText}
                       </button>
                     </div>
                   </div>
@@ -613,19 +626,14 @@ export default function Home() {
                   >
                     <X size={18} />
                   </button>
-                  <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar max-h-[65vh]">
+                  <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar max-h-[65vh]" id="whats-new-modal-carousel">
                     {selectedWhatsNew.images.map((img: string, idx: number) => (
-                      <div key={idx} className="min-w-full snap-center relative group cursor-zoom-in flex-shrink-0 flex items-center justify-center bg-black/5" onClick={() => setIsImageZoomed(true)}>
+                      <div key={idx} className="min-w-full snap-center relative flex-shrink-0 flex items-center justify-center bg-black/5">
                         <img
                           src={img}
                           alt={`${selectedWhatsNew.title} ${idx + 1}`}
-                          className="w-full h-auto object-contain max-h-[65vh] transition-transform duration-500 group-hover:scale-[1.02]"
+                          className="w-full h-auto object-contain max-h-[65vh]"
                         />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100">
-                          <div className="p-2 bg-black/40 rounded-full text-white backdrop-blur-md">
-                            <Plus size={24} />
-                          </div>
-                        </div>
                       </div>
                     ))}
                   </div>
@@ -647,11 +655,9 @@ export default function Home() {
                       setSelectedWhatsNew(null);
                       handleDismissWhatsNew(selectedWhatsNew.id, selectedWhatsNew.action);
                     }}
-                    className={selectedWhatsNew.gradientBtn ? "group mt-2 w-full py-3.5 rounded-xl font-bold text-sm text-white overflow-hidden relative shadow-lg" : "mt-2 w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-all shadow-lg"}
-                    style={selectedWhatsNew.gradientBtn ? { background: 'linear-gradient(135deg, hsl(var(--action-cta)), hsl(var(--action-cta-end)))' } : {}}
+                    className="mt-2 w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-all shadow-lg"
                   >
-                    {selectedWhatsNew.gradientBtn && <span className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-300" />}
-                    <span className="relative z-10">{selectedWhatsNew.btnText}</span>
+                    {selectedWhatsNew.btnText}
                   </button>
                 </div>
               </div>
@@ -659,30 +665,6 @@ export default function Home() {
           </DialogContent>
         </Dialog>
 
-        {/* Full Screen Image Zoom Overlay */}
-        {isImageZoomed && selectedWhatsNew && (
-          <div
-            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-in fade-in zoom-in duration-300 cursor-zoom-out p-4"
-            onClick={() => setIsImageZoomed(false)}
-          >
-            <button
-              className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors z-[110]"
-              onClick={() => setIsImageZoomed(false)}
-            >
-              <X size={24} />
-            </button>
-            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full h-full items-center gap-8 px-4" onClick={(e) => e.stopPropagation()}>
-              {selectedWhatsNew.images.map((img: string, idx: number) => (
-                <img
-                  key={idx}
-                  src={img}
-                  alt={`${selectedWhatsNew.title} ${idx + 1}`}
-                  className="min-w-full max-h-full object-contain rounded-lg shadow-2xl snap-center"
-                />
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Share / Invite Dialog */}
         <Dialog open={showShareInvite} onOpenChange={setShowShareInvite}>
