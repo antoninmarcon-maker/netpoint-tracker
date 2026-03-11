@@ -126,7 +126,6 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
             description,
             type,
             availability_period: finalAvailability,
-            is_verified: true,
             status: 'validated'
           })
           .eq('id', spotId);

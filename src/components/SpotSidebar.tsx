@@ -296,7 +296,7 @@ export default function SpotSidebar({
                   <div className="flex items-start gap-3 text-sm">
                     <Info size={16} className="text-muted-foreground mt-0.5 shrink-0" />
                     <p className="text-foreground leading-relaxed">
-                      {(!spot.is_verified && spot.status === 'waiting_for_validation') && (
+                      {spot.status === 'waiting_for_validation' && (
                         <span className="inline-flex items-center text-primary/90 font-semibold mr-2 bg-primary/10 px-1.5 py-0.5 rounded text-xs gap-1">
                           ✨ Résumé IA
                         </span>
