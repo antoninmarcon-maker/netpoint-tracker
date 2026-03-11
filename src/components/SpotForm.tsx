@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ImagePlus, X, MapPin } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
@@ -27,6 +28,27 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
   const [type, setType] = useState<string>(spotToEdit?.type || 'outdoor_hard');
   const [availability, setAvailability] = useState(spotToEdit?.availability_period || '');
   const [photos, setPhotos] = useState<File[]>([]);
+  
+  // Availability states
+  const parseInitAvailability = () => {
+    if (!spotToEdit?.availability_period) return { allYear: true, start: '', end: '' };
+    if (spotToEdit.availability_period === "Toute l'année") return { allYear: true, start: '', end: '' };
+    
+    // Attempt to parse 'De X à Y'
+    const parts = spotToEdit.availability_period.match(/De (.+) à (.+)/);
+    if (parts && parts.length === 3) {
+      return { allYear: false, start: parts[1], end: parts[2] };
+    }
+    
+    return { allYear: false, start: '', end: spotToEdit.availability_period }; // fallback
+  };
+  
+  const initAv = parseInitAvailability();
+  const [allYear, setAllYear] = useState(initAv.allYear);
+  const [startMonth, setStartMonth] = useState(initAv.start);
+  const [endMonth, setEndMonth] = useState(initAv.end);
+  
+  const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
   // Address search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,6 +102,13 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
     if (!name.trim()) return toast.error(t('spots.spotNameRequired'));
     if (!location && !spotToEdit) return toast.error(t('spots.chooseLocation'));
     
+    let finalAvailability = availability;
+    if (allYear) {
+      finalAvailability = "Toute l'année";
+    } else if (startMonth && endMonth) {
+      finalAvailability = `De ${startMonth} à ${endMonth}`;
+    }
+
     if (!checkAndIncrementRateLimit()) return;
 
     setLoading(true);
@@ -96,7 +125,7 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
             name,
             description,
             type,
-            availability_period: availability,
+            availability_period: finalAvailability,
             is_verified: true,
             status: 'validated'
           })
@@ -110,7 +139,7 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
             name,
             description,
             type,
-            availability_period: availability,
+            availability_period: finalAvailability,
             lat: location![0],
             lng: location![1],
             user_id: userId,
@@ -231,15 +260,34 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
           </Select>
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="availability">{t('spots.availability')}</Label>
-          <Input 
-            id="availability" 
-            placeholder={t('spots.availabilityPlaceholder')} 
-            value={availability}
-            onChange={(e) => setAvailability(e.target.value)}
-            className="bg-secondary/50"
-          />
+        <div className="space-y-3 p-3 bg-secondary/20 border border-border rounded-xl">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="availability-switch" className="flex-1 cursor-pointer">Disponible toute l'année</Label>
+            <Switch 
+              id="availability-switch" 
+              checked={allYear} 
+              onCheckedChange={setAllYear} 
+            />
+          </div>
+          
+          {!allYear && (
+            <div className="flex gap-2 items-center">
+              <span className="text-sm">De</span>
+              <Select value={startMonth} onValueChange={setStartMonth}>
+                <SelectTrigger className="bg-secondary/50 h-8 text-sm"><SelectValue placeholder="Mois" /></SelectTrigger>
+                <SelectContent>
+                  {months.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <span className="text-sm">à</span>
+              <Select value={endMonth} onValueChange={setEndMonth}>
+                <SelectTrigger className="bg-secondary/50 h-8 text-sm"><SelectValue placeholder="Mois" /></SelectTrigger>
+                <SelectContent>
+                  {months.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         <div className="space-y-1.5">

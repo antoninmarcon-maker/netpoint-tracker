@@ -275,7 +275,14 @@ export default function SpotSidebar({
               {photos.length > 0 ? (
                 <div className="flex overflow-x-auto snap-x hide-scrollbar gap-2 pb-2 -mx-4 px-4">
                   {photos.map((p: any, i: number) => (
-                    <img key={i} src={p.photo_url} alt="Spot" className="w-64 h-48 object-cover rounded-xl shrink-0 snap-center border border-border" />
+                    <div key={i} className="relative shrink-0 snap-center">
+                      <img src={p.photo_url} alt="Spot" className={`w-64 h-48 object-cover rounded-xl border border-border transition-all ${(!spot.is_verified && spot.status === 'waiting_for_validation') ? 'grayscale opacity-60' : ''}`} />
+                      {(!spot.is_verified && spot.status === 'waiting_for_validation') && (
+                        <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-md backdrop-blur-sm">
+                          À valider
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -288,7 +295,14 @@ export default function SpotSidebar({
                 {spot.description && (
                   <div className="flex items-start gap-3 text-sm">
                     <Info size={16} className="text-muted-foreground mt-0.5 shrink-0" />
-                    <p className="text-foreground leading-relaxed">{spot.description}</p>
+                    <p className="text-foreground leading-relaxed">
+                      {(!spot.is_verified && spot.status === 'waiting_for_validation') && (
+                        <span className="inline-flex items-center text-primary/90 font-semibold mr-2 bg-primary/10 px-1.5 py-0.5 rounded text-xs gap-1">
+                          ✨ Résumé IA
+                        </span>
+                      )}
+                      {spot.description}
+                    </p>
                   </div>
                 )}
                 
