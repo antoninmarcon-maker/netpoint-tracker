@@ -1,7 +1,12 @@
 /// <reference lib="webworker" />
 import { precacheAndRoute } from 'workbox-precaching';
+import { clientsClaim } from 'workbox-core';
 
 declare const self: ServiceWorkerGlobalScope;
+
+// Activate new SW immediately without waiting for tabs to close
+self.skipWaiting();
+clientsClaim();
 
 // Precache assets injected by vite-plugin-pwa
 precacheAndRoute(self.__WB_MANIFEST);
