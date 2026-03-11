@@ -1,4 +1,4 @@
-import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2, Edit3, ExternalLink, Sparkles } from 'lucide-react';
+import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2, Edit3, ExternalLink, Sparkles, Navigation } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
 import SpotForm from '@/components/SpotForm';
@@ -334,6 +334,13 @@ export default function SpotSidebar({
               )}
 
               <div className="space-y-4">
+                {spot.address && (
+                  <div className="flex items-start gap-3 text-sm">
+                    <MapPin size={16} className="text-muted-foreground mt-0.5 shrink-0" />
+                    <p className="text-foreground">{spot.address}</p>
+                  </div>
+                )}
+
                 {spot.description && (
                   <div className="flex items-start gap-3 text-sm">
                     <Info size={16} className="text-muted-foreground mt-0.5 shrink-0" />
@@ -359,16 +366,28 @@ export default function SpotSidebar({
                 )}
 
                 {spot.lat && spot.lng && (
-                  <a 
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.name)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-sm text-primary hover:underline"
-                  >
-                    <MapPin size={16} className="shrink-0" />
-                    <span className="font-medium">Ouvrir dans Google Maps</span>
-                    <ExternalLink size={12} className="shrink-0" />
-                  </a>
+                  <div className="flex flex-col gap-2">
+                    <a 
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 text-sm text-primary hover:underline"
+                    >
+                      <MapPin size={16} className="shrink-0" />
+                      <span className="font-medium">Voir sur Google Maps</span>
+                      <ExternalLink size={12} className="shrink-0" />
+                    </a>
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 text-sm text-primary hover:underline"
+                    >
+                      <Navigation size={16} className="shrink-0" />
+                      <span className="font-medium">Lancer le GPS</span>
+                      <ExternalLink size={12} className="shrink-0" />
+                    </a>
+                  </div>
                 )}
               </div>
 

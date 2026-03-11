@@ -134,6 +134,7 @@ async function runImportSpots(query: string = 'terrain de beach volley France') 
       .insert({
         name,
         description,
+        address,
         lat,
         lng,
         type: courtType,
