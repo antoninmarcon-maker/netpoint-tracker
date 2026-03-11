@@ -431,6 +431,40 @@ export default function Settings() {
             </button>
           </CardContent>
         </Card>
+
+        {/* Force Update */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <RefreshCw size={18} className="text-primary" />
+              {t('settings.forceUpdate')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-xs text-muted-foreground">{t('settings.forceUpdateDesc')}</p>
+            <button
+              onClick={async () => {
+                try {
+                  if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(registrations.map(r => r.unregister()));
+                  }
+                  if ('caches' in window) {
+                    const keys = await caches.keys();
+                    await Promise.all(keys.map(k => caches.delete(k)));
+                  }
+                  toast.success(t('settings.forceUpdateSuccess'));
+                  setTimeout(() => window.location.reload(), 500);
+                } catch {
+                  toast.error(t('settings.forceUpdateError'));
+                }
+              }}
+              className="w-full py-2.5 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm"
+            >
+              {t('settings.forceUpdateBtn')}
+            </button>
+          </CardContent>
+        </Card>
       </main>
       <footer className="py-4 text-center">
         <p className="text-xs text-muted-foreground">{t('credits.techNote')}</p>

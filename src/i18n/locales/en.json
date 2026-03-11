@@ -193,7 +193,12 @@
     "notificationsError": "Unable to enable notifications.",
     "notificationsActive": "Notifications are enabled ✓",
     "iosNotifWarning": "To enable notifications on iPhone, first add My Volley to your Home Screen (Share button ⎙ > Add to Home Screen).",
-    "notifNotSupported": "Push notifications are not supported by your browser."
+    "notifNotSupported": "Push notifications are not supported by your browser.",
+    "forceUpdate": "Force update",
+    "forceUpdateDesc": "Clears the cache and reloads the app with the latest version.",
+    "forceUpdateBtn": "Reset and reload",
+    "forceUpdateSuccess": "Cache cleared, reloading…",
+    "forceUpdateError": "Unable to force update."
   },
   "help": {
     "title": "Help center",
