@@ -56,11 +56,13 @@ export default function MapSearchControl({ isAddingMode, onLocationSelected }: M
     setSearchQuery('');
   };
 
+  if (isAddingMode) return null;
+
   return (
     <div className="absolute top-4 right-14 z-[1000] w-64 md:w-80 shadow-xl rounded-xl">
       <form onSubmit={handleSearch} className="flex bg-background/95 backdrop-blur-md border border-border rounded-xl rounded-b-xl overflow-hidden shadow-lg transition-all focus-within:ring-2 focus-within:ring-primary/20">
         <Input
-          placeholder={t('spots.searchMap') || "Rechercher une adresse..."}
+          placeholder={t('spots.searchMap', 'Rechercher une adresse...')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="border-0 bg-transparent focus-visible:ring-0 px-4 h-11 text-sm rounded-none"

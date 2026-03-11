@@ -39,8 +39,16 @@ function UserLocationMarker() {
     });
   }, [map]);
 
+  const userIcon = L.divIcon({
+    className: 'custom-div-icon',
+    html: `<div class="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-xl animate-pulse"></div>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    popupAnchor: [0, -8]
+  });
+
   return position === null ? null : (
-    <Marker position={position}>
+    <Marker position={position} icon={userIcon}>
       <Popup>{t('spots.youAreHere')}</Popup>
     </Marker>
   );
@@ -95,15 +103,20 @@ export default function SpotMap({
   };
 
   const filteredSpots = spots.filter(spot => {
-    // If it's a specific type but that type is not active, hide it
-    if (spot.type && !activeFilters.includes(spot.type)) return false;
-    
-    // If it's temporary but temporary filter is off, hide it
-    if (spot.is_temporary && !activeFilters.includes('temporary')) return false;
-    
     // If it's unverified (from Google) but unverified is off, hide it
     if (!spot.is_verified && spot.status === 'waiting_for_validation' && !activeFilters.includes('unverified')) return false;
 
+    // If it's temporary but temporary filter is off, hide it
+    if (spot.is_temporary && !activeFilters.includes('temporary')) return false;
+
+    // If it's a specific type but that type is not active, hide it
+    // Wait, the API returns some spots with type 'terrain de sport' or no type if imported. 
+    // Let's make sure we show them if 'unverified' is active, but otherwise filter by type.
+    const knownTypes = ['indoor', 'outdoor_hard', 'outdoor_grass', 'beach'];
+    if (spot.type && knownTypes.includes(spot.type) && !activeFilters.includes(spot.type)) {
+      return false;
+    }
+    
     return true;
   });
 
