@@ -152,8 +152,10 @@ async function runImportSpots(query: string = 'terrain de beach volley France') 
 
     const spotId = spotData.id;
     newSpotsCount.push(name);
+    console.info(`Successfully added spot: ${name}`);
 
     // Process Photos (max 3)
+    console.log(`Photos available for ${name}: ${place.photos?.length ?? 0}`);
     if (place.photos && place.photos.length > 0) {
       const photosToProcess = place.photos.slice(0, 3);
       for (const photo of photosToProcess) {
