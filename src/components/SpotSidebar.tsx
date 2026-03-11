@@ -367,6 +367,22 @@ export default function SpotSidebar({
                 )}
               </div>
 
+              {comments.length > 0 && (
+                <Button 
+                  onClick={generateAiSummary} 
+                  disabled={generatingSummary}
+                  variant="outline"
+                  className="w-full text-xs h-9 gap-2"
+                >
+                  {generatingSummary ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Sparkles size={14} />
+                  )}
+                  {generatingSummary ? 'Génération en cours...' : 'Générer un résumé IA des avis'}
+                </Button>
+              )}
+
               <div className="h-px bg-border my-6" />
 
               <div className="space-y-4">
