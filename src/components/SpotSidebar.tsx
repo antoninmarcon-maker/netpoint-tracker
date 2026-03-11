@@ -57,8 +57,19 @@ export default function SpotSidebar({
   const loadSpotDetails = async (id: string) => {
     setLoading(true);
     try {
-      const { data: sData, error: sErr } = await (supabase as any).from('spots').select('*').eq('id', id).single();
+      const { data: sData, error: sErr } = await (supabase as any)
+        .from('spots')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
       if (sErr) throw sErr;
+      if (!sData) {
+        setSpot(null);
+        setPhotos([]);
+        setComments([]);
+        toast.error("Ce terrain n'existe plus. Recharge la carte.");
+        return;
+      }
       setSpot(sData);
 
       const { data: pData, error: pErr } = await (supabase as any).from('spot_photos').select('*').eq('spot_id', id).order('created_at', { ascending: false });
