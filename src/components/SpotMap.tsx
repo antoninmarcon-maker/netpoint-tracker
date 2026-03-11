@@ -223,7 +223,7 @@ export default function SpotMap({
           >
             <Popup>
               <div className="text-center font-bold">{spot.name}</div>
-              {(!spot.is_verified && spot.status === 'waiting_for_validation') && (
+              {(spot.status === 'waiting_for_validation') && (
                 <div className="text-xs text-orange-500 font-semibold mt-1">À vérifier par la communauté</div>
               )}
             </Popup>
