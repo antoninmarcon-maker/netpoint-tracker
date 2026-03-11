@@ -174,7 +174,31 @@ export default function SpotSidebar({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const generateAiSummary = async () => {
+    if (!spot) return;
+    setGeneratingSummary(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('summarize-spot', {
+        body: { spot_id: spot.id }
+      });
+      if (error) throw error;
+      if (data?.error === 'no_comments') {
+        toast.info(data.message || "Pas assez de commentaires pour générer un résumé.");
+        return;
+      }
+      if (data?.summary) {
+        toast.success("Résumé IA généré !");
+        loadSpotDetails(spot.id);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de la génération du résumé IA.");
+    } finally {
+      setGeneratingSummary(false);
+    }
+  };
+
+
     if (e.target.files) {
       const files = Array.from(e.target.files);
       if (newPhotos.length + files.length > 5) {
