@@ -149,7 +149,7 @@ export default function SpotSidebar({
 
     try {      
       const { error } = await supabase.from('spots')
-        .update({ is_verified: true, status: 'validated' })
+        .update({ status: 'validated' })
         .eq('id', spot.id);
         
       if (error) throw error;
