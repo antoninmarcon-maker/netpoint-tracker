@@ -1,0 +1,2 @@
+ALTER TABLE public.spots ADD COLUMN IF NOT EXISTS google_place_id TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS spots_google_place_id_unique ON public.spots(google_place_id) WHERE google_place_id IS NOT NULL;

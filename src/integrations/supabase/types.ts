@@ -402,6 +402,7 @@ export type Database = {
           availability_period: string | null
           created_at: string
           description: string | null
+          google_place_id: string | null
           id: string
           lat: number | null
           lng: number | null
@@ -415,6 +416,7 @@ export type Database = {
           availability_period?: string | null
           created_at?: string
           description?: string | null
+          google_place_id?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
@@ -428,6 +430,7 @@ export type Database = {
           availability_period?: string | null
           created_at?: string
           description?: string | null
+          google_place_id?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
