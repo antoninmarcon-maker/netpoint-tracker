@@ -130,15 +130,3 @@ Deno.serve(async (req) => {
   }
 })
 
-Deno.cron("Import Spots Weekly", "0 2 * * 1", async () => {
-    console.log("Running scheduled weekly Google Places spots import...");
-    try {
-        const resBeach = await runImportSpots('terrain de beach volley France');
-        console.log("Scheduled beach volley import finished:", resBeach.summary);
-        
-        const resIndoor = await runImportSpots('gymnase volleyball France');
-        console.log("Scheduled indoor volley import finished:", resIndoor.summary);
-    } catch (err) {
-        console.error("Scheduled import failed:", err);
-    }
-});
