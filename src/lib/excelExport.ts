@@ -7,14 +7,35 @@ function formatDuration(seconds: number): string {
   return `${m}min ${s.toString().padStart(2, '0')}s`;
 }
 
+function getFlattenedActions(pts: Point[], targetTeam?: 'blue' | 'red') {
+  return pts.flatMap(p => {
+    const actions = (p.rallyActions && p.rallyActions.length > 0)
+      ? p.rallyActions
+      : [{
+          id: p.id,
+          team: p.team,
+          type: p.type,
+          action: p.action,
+          playerId: p.playerId,
+          customActionLabel: p.customActionLabel,
+          rating: p.rating,
+        }];
+    
+    if (targetTeam) {
+      return actions.filter(a => a.team === targetTeam);
+    }
+    return actions;
+  });
+}
+
 function mergeGhostPlayers(pts: Point[], players: Player[], storedPlayers: Player[] = []): Player[] {
   const knownIds = new Set(players.map(p => p.id));
   const ghosts: Player[] = [];
-  pts.forEach(p => {
-    if (p.playerId && !knownIds.has(p.playerId)) {
-      knownIds.add(p.playerId);
-      const stored = storedPlayers.find(sp => sp.id === p.playerId);
-      ghosts.push({ id: p.playerId, name: stored?.name ?? `#${p.playerId.slice(0, 4)}`, number: stored?.number });
+  getFlattenedActions(pts).forEach(a => {
+    if (a.playerId && !knownIds.has(a.playerId)) {
+      knownIds.add(a.playerId);
+      const stored = storedPlayers.find(sp => sp.id === a.playerId);
+      ghosts.push({ id: a.playerId, name: stored?.name ?? `#${a.playerId.slice(0, 4)}`, number: stored?.number });
     }
   });
   return [...players, ...ghosts];
@@ -22,23 +43,31 @@ function mergeGhostPlayers(pts: Point[], players: Player[], storedPlayers: Playe
 
 function playerSetStats(pts: Point[], players: Player[]) {
   const allPlayers = mergeGhostPlayers(pts, players);
-  const neutralLabels = Array.from(new Set(pts.filter(p => p.type === 'neutral').map(p => p.customActionLabel || p.action)));
+  const allActions = getFlattenedActions(pts);
+  const neutralLabels = Array.from(new Set(allActions.filter(p => p.type === 'neutral').map(p => p.customActionLabel || p.action)));
 
   return allPlayers.map(player => {
-    const pp = pts.filter(p => p.playerId === player.id);
-    const scored = pp.filter(p => p.team === 'blue' && p.type === 'scored');
-    const faultWins = pp.filter(p => p.team === 'blue' && p.type === 'fault');
-    const faults = pp.filter(p => p.team === 'red');
-    const neutrals = pp.filter(p => p.type === 'neutral');
-    const totalPositive = scored.length + faultWins.length;
-    const totalNegative = faults.length;
+    // Collect actions where the player is involved
+    const pActions = allActions.filter(a => a.playerId === player.id);
+    
+    // An action is "scored" if our blue player scores
+    const scored = pActions.filter(a => a.team === 'blue' && a.type === 'scored');
+    // For a blue player, "faultWins" are faults made by the red opponent (where blue gets the point implicitly?)
+    // Wait, in PlayerStats.tsx, if player is blue, they don't perform the red team's faults. 
+    // They are only tagged on their OWN actions. 
+    // So if blue player makes a fault, it is negative.
+    const playerNegatives = pActions.filter(a => (a.team === 'red') || (a.team === 'blue' && a.type === 'fault'));
+    // Neutrals
+    const neutrals = pActions.filter(a => a.type === 'neutral');
+
+    const totalPositive = scored.length; // usually fault wins are opponent actions
+    const totalNegative = playerNegatives.length;
     const total = totalPositive + totalNegative + neutrals.length;
 
     // Collect all rated actions for this player
-    const allActions = [...scored, ...faultWins, ...faults, ...neutrals];
-    const rPos = allActions.filter(p => p.rating === 'positive').length;
-    const rNeu = allActions.filter(p => p.rating === 'neutral').length;
-    const rNeg = allActions.filter(p => p.rating === 'negative').length;
+    const rPos = pActions.filter(p => p.rating === 'positive').length;
+    const rNeu = pActions.filter(p => p.rating === 'neutral').length;
+    const rNeg = pActions.filter(p => p.rating === 'negative').length;
 
     const baseStats: Record<string, string | number> = {
       'Joueur': player.name || '—',
@@ -48,8 +77,6 @@ function playerSetStats(pts: Point[], players: Player[]) {
       'Bidouilles': scored.filter(p => p.action === 'bidouille').length,
       '2ndes mains': scored.filter(p => p.action === 'seconde_main').length,
       'Pts gagnés (offensifs)': scored.length,
-      'Pts gagnés (fautes adv.)': faultWins.length,
-      'Total pts gagnés': totalPositive,
       'Fautes commises': totalNegative,
       'Faits de jeu (Total)': neutrals.length,
     };
@@ -61,9 +88,9 @@ function playerSetStats(pts: Point[], players: Player[]) {
     baseStats['Total actions'] = total;
     baseStats['Efficacité (%)'] = total > 0 ? Math.round(totalPositive / total * 100) : 0;
     if (rPos || rNeu || rNeg) {
-      baseStats['Note (+)'] = rPos;
-      baseStats['Note (!)'] = rNeu;
-      baseStats['Note (-)'] = rNeg;
+      baseStats['Note(+)'] = rPos;
+      baseStats['Note(!)'] = rNeu;
+      baseStats['Note(-)'] = rNeg;
     }
 
     return baseStats;
@@ -72,17 +99,19 @@ function playerSetStats(pts: Point[], players: Player[]) {
 
 function teamSetStats(pts: Point[], team: 'blue' | 'red') {
   const opponent = team === 'blue' ? 'red' : 'blue';
-  const scored = pts.filter(p => p.team === team && p.type === 'scored');
-  const opponentFaults = pts.filter(p => p.team === opponent && p.type === 'fault');
-  const neutrals = pts.filter(p => p.team === team && p.type === 'neutral');
+  const allActions = getFlattenedActions(pts);
+  
+  const scored = allActions.filter(p => p.team === team && p.type === 'scored');
+  const opponentFaults = allActions.filter(p => p.team === opponent && p.type === 'fault');
+  const neutrals = allActions.filter(p => p.team === team && p.type === 'neutral');
 
   const neutralLabels = Array.from(new Set(neutrals.map(p => p.customActionLabel || p.action)));
   const neutralDetails = neutralLabels.map(label => [label, neutrals.filter(p => (p.customActionLabel || p.action) === label).length] as [string, number]);
 
   // Ratings per action
-  const allActions = [...scored, ...opponentFaults, ...neutrals];
+  const actionsToRate = [...scored, ...opponentFaults, ...neutrals];
   const ratingsByAction: Record<string, { pos: number; neu: number; neg: number }> = {};
-  allActions.forEach(p => {
+  actionsToRate.forEach(p => {
     if (!p.rating) return;
     const key = p.customActionLabel || p.action;
     if (!ratingsByAction[key]) ratingsByAction[key] = { pos: 0, neu: 0, neg: 0 };
@@ -92,9 +121,9 @@ function teamSetStats(pts: Point[], team: 'blue' | 'red') {
   });
 
   const totalRatings = {
-    pos: allActions.filter(p => p.rating === 'positive').length,
-    neu: allActions.filter(p => p.rating === 'neutral').length,
-    neg: allActions.filter(p => p.rating === 'negative').length,
+    pos: actionsToRate.filter(p => p.rating === 'positive').length,
+    neu: actionsToRate.filter(p => p.rating === 'neutral').length,
+    neg: actionsToRate.filter(p => p.rating === 'negative').length,
   };
 
   return {

@@ -13,15 +13,18 @@ interface SpotFormProps {
   location: [number, number] | null;
   onSuccess: () => void;
   onCancel: () => void;
+  spotToEdit?: any;
 }
 
-export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProps) {
+import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
+
+export default function SpotForm({ location, onSuccess, onCancel, spotToEdit }: SpotFormProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [type, setType] = useState<string>('outdoor_hard');
-  const [availability, setAvailability] = useState('');
+  const [name, setName] = useState(spotToEdit?.name || '');
+  const [description, setDescription] = useState(spotToEdit?.description || '');
+  const [type, setType] = useState<string>(spotToEdit?.type || 'outdoor_hard');
+  const [availability, setAvailability] = useState(spotToEdit?.availability_period || '');
   const [photos, setPhotos] = useState<File[]>([]);
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,34 +45,49 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return toast.error(t('spots.spotNameRequired'));
-    if (!location) return toast.error(t('spots.chooseLocation'));
+    if (!location && !spotToEdit) return toast.error(t('spots.chooseLocation'));
+    
+    if (!checkAndIncrementRateLimit()) return;
 
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error(t('spots.loginRequired'));
-        setLoading(false);
-        return;
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id || null;
+
+      let spotId = spotToEdit?.id;
+
+      if (spotToEdit) {
+        const { error: spotError } = await supabase
+          .from('spots')
+          .update({
+            name,
+            description,
+            type,
+            availability_period: availability,
+            is_verified: true,
+            status: 'validated'
+          })
+          .eq('id', spotId);
+        
+        if (spotError) throw spotError;
+      } else {
+        const { data: spotData, error: spotError } = await supabase
+          .from('spots')
+          .insert([{
+            name,
+            description,
+            type,
+            availability_period: availability,
+            lat: location![0],
+            lng: location![1],
+            user_id: userId,
+          }])
+          .select('id')
+          .single();
+
+        if (spotError) throw spotError;
+        spotId = spotData.id;
       }
-
-      const { data: spotData, error: spotError } = await supabase
-        .from('spots')
-        .insert([{
-          name,
-          description,
-          type,
-          availability_period: availability,
-          lat: location[0],
-          lng: location[1],
-          user_id: user.id,
-        }])
-        .select('id')
-        .single();
-
-      if (spotError) throw spotError;
-
-      const spotId = spotData.id;
 
       for (const file of photos) {
         const fileExt = file.name.split('.').pop();
@@ -91,7 +109,7 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
         await supabase.from('spot_photos').insert([{
           spot_id: spotId,
           photo_url: publicUrl,
-          user_id: user.id
+          user_id: userId
         }]);
       }
 
@@ -108,16 +126,18 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
   return (
     <form onSubmit={handleSubmit} className="space-y-6 flex flex-col h-full">
       <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-        {!location ? (
-          <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-xl flex items-center gap-2">
-            <MapPin size={16} />
-            <p>{t('spots.positionMarker')}</p>
-          </div>
-        ) : (
-          <div className="bg-primary/10 text-primary text-xs p-2 rounded-lg flex items-center gap-2">
-            <MapPin size={14} />
-            <span className="font-mono">{location[0].toFixed(5)}, {location[1].toFixed(5)}</span>
-          </div>
+        {!spotToEdit && (
+          !location ? (
+            <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-xl flex items-center gap-2">
+              <MapPin size={16} />
+              <p>{t('spots.positionMarker')}</p>
+            </div>
+          ) : (
+            <div className="bg-primary/10 text-primary text-xs p-2 rounded-lg flex items-center gap-2">
+              <MapPin size={14} />
+              <span className="font-mono">{location[0].toFixed(5)}, {location[1].toFixed(5)}</span>
+            </div>
+          )
         )}
 
         <div className="space-y-1.5">
@@ -207,8 +227,8 @@ export default function SpotForm({ location, onSuccess, onCancel }: SpotFormProp
         <Button type="button" variant="secondary" onClick={onCancel} className="flex-1" disabled={loading}>
           {t('common.cancel')}
         </Button>
-        <Button type="submit" className="flex-1" disabled={loading || !location}>
-          {loading ? <Loader2 size={16} className="animate-spin" /> : t('spots.submitSpot')}
+        <Button type="submit" className="flex-1" disabled={loading || (!location && !spotToEdit)}>
+          {loading ? <Loader2 size={16} className="animate-spin" /> : spotToEdit ? "Enregistrer" : t('spots.submitSpot')}
         </Button>
       </div>
     </form>

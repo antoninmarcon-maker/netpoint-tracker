@@ -1,5 +1,6 @@
-import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2 } from 'lucide-react';
+import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2, Edit3 } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
+import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
 import SpotForm from '@/components/SpotForm';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ export default function SpotSidebar({
   const [newRating, setNewRating] = useState<number>(0);
   const [newPhotos, setNewPhotos] = useState<File[]>([]);
   const [postingComment, setPostingComment] = useState(false);
+  const [isEditingMode, setIsEditingMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -41,10 +43,12 @@ export default function SpotSidebar({
     
     if (selectedSpotId) {
       loadSpotDetails(selectedSpotId);
+      setIsEditingMode(false);
     } else {
       setSpot(null);
       setPhotos([]);
       setComments([]);
+      setIsEditingMode(false);
     }
   }, [selectedSpotId, isAddingMode]);
 
@@ -84,20 +88,18 @@ export default function SpotSidebar({
     if (!selectedSpotId) return;
     if (!newComment.trim() && newRating === 0 && newPhotos.length === 0) return;
 
+    if (!checkAndIncrementRateLimit()) return;
+
     setPostingComment(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error(t('spots.loginRequired'));
-        setPostingComment(false);
-        return;
-      }
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id || null;
 
       // Upload photos sequentially
       const uploadedUrls: string[] = [];
       for (const file of newPhotos) {
         const fileExt = file.name.split('.').pop();
-        const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+        const fileName = `${userId || 'anon'}-${crypto.randomUUID()}.${fileExt}`;
         const filePath = `${selectedSpotId}/${fileName}`;
         
         const { error: uploadError } = await supabase.storage
@@ -118,7 +120,7 @@ export default function SpotSidebar({
 
       const { error } = await (supabase as any).from('spot_comments').insert([{
         spot_id: selectedSpotId,
-        user_id: user.id,
+        user_id: userId,
         content: newComment.trim(),
         rating: newRating > 0 ? newRating : null,
         photos: uploadedUrls.length > 0 ? uploadedUrls : null
@@ -141,10 +143,9 @@ export default function SpotSidebar({
 
   const confirmSpot = async () => {
     if (!spot) return;
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { toast.error(t('spots.loginRequired')); return; }
-      
+    if (!checkAndIncrementRateLimit()) return;
+
+    try {      
       const { error } = await supabase.from('spots')
         .update({ is_verified: true, status: 'validated' })
         .eq('id', spot.id);
@@ -152,6 +153,7 @@ export default function SpotSidebar({
       if (error) throw error;
       toast.success("Terrain confirmé ! Merci.");
       loadSpotDetails(spot.id);
+      if (onSpotAdded) onSpotAdded(); // trigger map refresh
     } catch(err) {
       toast.error("Erreur, impossible de confirmer.");
     }
@@ -226,6 +228,17 @@ export default function SpotSidebar({
                 if (onSpotAdded) onSpotAdded();
               }}
             />
+          ) : isEditingMode && spot ? (
+            <SpotForm 
+              location={[spot.lat, spot.lng]}
+              spotToEdit={spot}
+              onCancel={() => setIsEditingMode(false)}
+              onSuccess={() => {
+                setIsEditingMode(false);
+                loadSpotDetails(spot.id);
+                if (onSpotAdded) onSpotAdded();
+              }}
+            />
           ) : loading ? (
             <div className="flex items-center justify-center p-8">
               <Loader2 className="animate-spin text-primary" />
@@ -244,17 +257,17 @@ export default function SpotSidebar({
                 )}
               </div>
 
-              {!spot.is_verified && spot.status === 'waiting_for_validation' && (
-                <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 flex flex-col gap-3">
-                  <div className="flex items-start gap-3 text-orange-600 dark:text-orange-400">
-                    <Info size={18} className="shrink-0 mt-0.5" />
-                    <p className="text-sm font-medium">Ce terrain a été importé automatiquement et n'a pas encore été vérifié par la communauté.</p>
-                  </div>
-                  <Button onClick={confirmSpot} variant="outline" className="w-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 border-orange-500/50">
-                    <CheckCircle2 size={16} className="mr-2" /> Confirmer l'existence de ce terrain
+              <div className="flex gap-2">
+                <Button onClick={() => setIsEditingMode(true)} variant="outline" className="flex-1 text-xs h-9">
+                  <Edit3 size={14} className="mr-2" /> Modifier
+                </Button>
+                
+                {!spot.is_verified && spot.status === 'waiting_for_validation' && (
+                  <Button onClick={confirmSpot} variant="secondary" className="flex-1 text-xs h-9 bg-primary/10 text-primary hover:bg-primary/20">
+                    <CheckCircle2 size={14} className="mr-2" /> Confirmer
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
 
               {photos.length > 0 ? (
                 <div className="flex overflow-x-auto snap-x hide-scrollbar gap-2 pb-2 -mx-4 px-4">
