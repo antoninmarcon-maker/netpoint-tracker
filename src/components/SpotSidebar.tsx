@@ -78,15 +78,20 @@ export default function SpotSidebar({
       if (pErr) throw pErr;
       setPhotos(pData || []);
 
-      const { data: cData, error: cErr } = await (supabase as any).from('spot_comments').select(`
-        *,
-        profiles:user_id (display_name)
-      `).eq('spot_id', id).order('created_at', { ascending: false });
+      const { data: cData, error: cErr } = await (supabase as any).from('spot_comments').select('*').eq('spot_id', id).order('created_at', { ascending: false });
       if (cErr) throw cErr;
+      
+      // Fetch display names for comment authors
+      const userIds = [...new Set((cData || []).map((c: any) => c.user_id).filter(Boolean))];
+      let profileMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await (supabase as any).from('profiles').select('user_id, display_name').in('user_id', userIds);
+        (profiles || []).forEach((p: any) => { profileMap[p.user_id] = p.display_name; });
+      }
       
       const mappedComments = (cData || []).map((c: any) => ({
         ...c,
-        authorName: (c.profiles as any)?.display_name || t('spots.details')
+        authorName: profileMap[c.user_id] || 'Anonyme'
       }));
       setComments(mappedComments);
 
