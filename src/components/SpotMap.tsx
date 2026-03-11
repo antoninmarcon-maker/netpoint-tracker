@@ -85,7 +85,7 @@ export default function SpotMap({
 
   useEffect(() => {
     supabase.from('spots_with_coords')
-      .select('id, name, type, lat, lng, is_verified, is_temporary, status')
+      .select('id, name, type, lat, lng, status')
       .in('status', ['validated', 'waiting_for_validation'])
       .then(({ data, error }) => {
         if (!error && data) {
