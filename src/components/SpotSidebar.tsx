@@ -1,4 +1,4 @@
-import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2, Edit3, ExternalLink } from 'lucide-react';
+import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2, Edit3, ExternalLink, Sparkles } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
 import SpotForm from '@/components/SpotForm';
