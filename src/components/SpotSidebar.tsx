@@ -360,7 +360,7 @@ export default function SpotSidebar({
 
                 {spot.lat && spot.lng && (
                   <a 
-                    href={`https://www.google.com/maps?q=${spot.lat},${spot.lng}`}
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.name)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 text-sm text-primary hover:underline"
