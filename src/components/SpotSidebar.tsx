@@ -1,4 +1,4 @@
-import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2, Edit3, ExternalLink } from 'lucide-react';
+import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2, Edit3, ExternalLink, Sparkles } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
 import SpotForm from '@/components/SpotForm';
@@ -38,6 +38,7 @@ export default function SpotSidebar({
   const [newPhotos, setNewPhotos] = useState<File[]>([]);
   const [postingComment, setPostingComment] = useState(false);
   const [isEditingMode, setIsEditingMode] = useState(false);
+  const [generatingSummary, setGeneratingSummary] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -170,6 +171,30 @@ export default function SpotSidebar({
       if (onSpotAdded) onSpotAdded(); // trigger map refresh
     } catch(err) {
       toast.error("Erreur, impossible de confirmer.");
+    }
+  };
+
+  const generateAiSummary = async () => {
+    if (!spot) return;
+    setGeneratingSummary(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('summarize-spot', {
+        body: { spot_id: spot.id }
+      });
+      if (error) throw error;
+      if (data?.error === 'no_comments') {
+        toast.info(data.message || "Pas assez de commentaires pour générer un résumé.");
+        return;
+      }
+      if (data?.summary) {
+        toast.success("Résumé IA généré !");
+        loadSpotDetails(spot.id);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de la génération du résumé IA.");
+    } finally {
+      setGeneratingSummary(false);
     }
   };
 
@@ -341,6 +366,22 @@ export default function SpotSidebar({
                   </a>
                 )}
               </div>
+
+              {comments.length > 0 && (
+                <Button 
+                  onClick={generateAiSummary} 
+                  disabled={generatingSummary}
+                  variant="outline"
+                  className="w-full text-xs h-9 gap-2"
+                >
+                  {generatingSummary ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Sparkles size={14} />
+                  )}
+                  {generatingSummary ? 'Génération en cours...' : 'Générer un résumé IA des avis'}
+                </Button>
+              )}
 
               <div className="h-px bg-border my-6" />
 
