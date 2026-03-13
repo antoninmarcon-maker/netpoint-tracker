@@ -4,8 +4,23 @@ import App from "./App.tsx";
 import "./index.css";
 import "./i18n";
 
-// Auto-update SW: check every 15 minutes for a new version
-registerSW({
+import { toast } from "sonner";
+
+// Register SW with prompt strategy
+const updateSW = registerSW({
+  onNeedRefresh() {
+    toast("Une mise à jour est disponible", {
+      description: "L'application doit être rafraîchie pour appliquer les derniers changements.",
+      action: {
+        label: "Mettre à jour",
+        onClick: () => updateSW(true),
+      },
+      duration: Infinity,
+    });
+  },
+  onOfflineReady() {
+    toast.success("Application prête pour usage hors-ligne");
+  },
   onRegisteredSW(swUrl, registration) {
     if (registration) {
       setInterval(() => {
@@ -13,7 +28,6 @@ registerSW({
       }, 15 * 60 * 1000);
     }
   },
-  onOfflineReady() {},
 });
 
 // Apply saved theme immediately to avoid flash
