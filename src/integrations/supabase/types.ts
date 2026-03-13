@@ -399,9 +399,11 @@ export type Database = {
       }
       spots: {
         Row: {
+          address: string | null
           availability_period: string | null
           created_at: string
           description: string | null
+          google_place_id: string | null
           id: string
           lat: number | null
           lng: number | null
@@ -412,9 +414,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address?: string | null
           availability_period?: string | null
           created_at?: string
           description?: string | null
+          google_place_id?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
@@ -425,9 +429,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address?: string | null
           availability_period?: string | null
           created_at?: string
           description?: string | null
+          google_place_id?: string | null
           id?: string
           lat?: number | null
           lng?: number | null

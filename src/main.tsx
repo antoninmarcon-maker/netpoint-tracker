@@ -6,6 +6,15 @@ import "./i18n";
 
 import { toast } from "sonner";
 
+// Force reload when a new service worker takes control
+let refreshing = false;
+navigator.serviceWorker?.addEventListener('controllerchange', () => {
+  if (!refreshing) {
+    refreshing = true;
+    window.location.reload();
+  }
+});
+
 // Register SW with prompt strategy
 const updateSW = registerSW({
   onNeedRefresh() {
@@ -23,9 +32,12 @@ const updateSW = registerSW({
   },
   onRegisteredSW(swUrl, registration) {
     if (registration) {
+      // Check immediately on page load
+      registration.update();
+      // Then check every 2 minutes
       setInterval(() => {
         registration.update();
-      }, 15 * 60 * 1000);
+      }, 2 * 60 * 1000);
     }
   },
 });

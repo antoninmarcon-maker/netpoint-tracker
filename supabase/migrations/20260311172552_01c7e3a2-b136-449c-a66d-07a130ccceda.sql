@@ -1,0 +1,1 @@
+ALTER TABLE public.spots ADD COLUMN IF NOT EXISTS address text;

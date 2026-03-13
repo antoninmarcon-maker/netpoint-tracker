@@ -193,7 +193,12 @@
     "notificationsError": "Impossible d'activer les notifications.",
     "notificationsActive": "Les notifications sont activées ✓",
     "iosNotifWarning": "Pour activer les notifications sur iPhone, ajoutez d'abord My Volley à votre écran d'accueil (Bouton Partager ⎙ > Sur l'écran d'accueil).",
-    "notifNotSupported": "Les notifications push ne sont pas supportées par votre navigateur."
+    "notifNotSupported": "Les notifications push ne sont pas supportées par votre navigateur.",
+    "forceUpdate": "Forcer la mise à jour",
+    "forceUpdateDesc": "Vide le cache et recharge l'application avec la dernière version.",
+    "forceUpdateBtn": "Réinitialiser et recharger",
+    "forceUpdateSuccess": "Cache vidé, rechargement…",
+    "forceUpdateError": "Impossible de forcer la mise à jour."
   },
   "help": {
     "title": "Centre d'aide",

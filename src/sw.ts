@@ -1,6 +1,8 @@
 /// <reference lib="webworker" />
-import { precacheAndRoute } from 'workbox-precaching';
+import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { clientsClaim } from 'workbox-core';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
+import { NetworkFirst } from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -10,6 +12,16 @@ clientsClaim();
 
 // Precache assets injected by vite-plugin-pwa
 precacheAndRoute(self.__WB_MANIFEST);
+
+// Use Network-First for navigation requests so a normal refresh always
+// fetches the latest HTML from the server (falls back to cache if offline).
+const navigationHandler = new NetworkFirst({
+  cacheName: 'navigations',
+  networkTimeoutSeconds: 3,
+});
+registerRoute(new NavigationRoute(navigationHandler, {
+  denylist: [/^\/~oauth/],
+}));
 
 // Handle push notifications
 self.addEventListener('push', (event) => {

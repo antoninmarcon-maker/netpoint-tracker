@@ -1,4 +1,4 @@
-import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2, Edit3 } from 'lucide-react';
+import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2, Edit3, ExternalLink, Sparkles, Navigation } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
 import SpotForm from '@/components/SpotForm';
@@ -38,6 +38,7 @@ export default function SpotSidebar({
   const [newPhotos, setNewPhotos] = useState<File[]>([]);
   const [postingComment, setPostingComment] = useState(false);
   const [isEditingMode, setIsEditingMode] = useState(false);
+  const [generatingSummary, setGeneratingSummary] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -57,23 +58,40 @@ export default function SpotSidebar({
   const loadSpotDetails = async (id: string) => {
     setLoading(true);
     try {
-      const { data: sData, error: sErr } = await (supabase as any).from('spots').select('*').eq('id', id).single();
+      const { data: sData, error: sErr } = await (supabase as any)
+        .from('spots')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
       if (sErr) throw sErr;
+      if (!sData) {
+        setSpot(null);
+        setPhotos([]);
+        setComments([]);
+        toast.error("Ce terrain n'existe plus. Recharge la carte.");
+        onClose();
+        return;
+      }
       setSpot(sData);
 
       const { data: pData, error: pErr } = await (supabase as any).from('spot_photos').select('*').eq('spot_id', id).order('created_at', { ascending: false });
       if (pErr) throw pErr;
       setPhotos(pData || []);
 
-      const { data: cData, error: cErr } = await (supabase as any).from('spot_comments').select(`
-        *,
-        profiles:user_id (display_name)
-      `).eq('spot_id', id).order('created_at', { ascending: false });
+      const { data: cData, error: cErr } = await (supabase as any).from('spot_comments').select('*').eq('spot_id', id).order('created_at', { ascending: false });
       if (cErr) throw cErr;
+      
+      // Fetch display names for comment authors
+      const userIds = [...new Set((cData || []).map((c: any) => c.user_id).filter(Boolean))];
+      let profileMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await (supabase as any).from('profiles').select('user_id, display_name').in('user_id', userIds);
+        (profiles || []).forEach((p: any) => { profileMap[p.user_id] = p.display_name; });
+      }
       
       const mappedComments = (cData || []).map((c: any) => ({
         ...c,
-        authorName: (c.profiles as any)?.display_name || t('spots.details')
+        authorName: profileMap[c.user_id] || 'Anonyme'
       }));
       setComments(mappedComments);
 
@@ -149,7 +167,7 @@ export default function SpotSidebar({
 
     try {      
       const { error } = await supabase.from('spots')
-        .update({ is_verified: true, status: 'validated' })
+        .update({ status: 'validated' })
         .eq('id', spot.id);
         
       if (error) throw error;
@@ -158,6 +176,30 @@ export default function SpotSidebar({
       if (onSpotAdded) onSpotAdded(); // trigger map refresh
     } catch(err) {
       toast.error("Erreur, impossible de confirmer.");
+    }
+  };
+
+  const generateAiSummary = async () => {
+    if (!spot) return;
+    setGeneratingSummary(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('summarize-spot', {
+        body: { spot_id: spot.id }
+      });
+      if (error) throw error;
+      if (data?.error === 'no_comments') {
+        toast.info(data.message || "Pas assez de commentaires pour générer un résumé.");
+        return;
+      }
+      if (data?.summary) {
+        toast.success("Résumé IA généré !");
+        loadSpotDetails(spot.id);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de la génération du résumé IA.");
+    } finally {
+      setGeneratingSummary(false);
     }
   };
 
@@ -265,7 +307,7 @@ export default function SpotSidebar({
                   <Edit3 size={14} className="mr-2" /> Modifier
                 </Button>
                 
-                {!spot.is_verified && spot.status === 'waiting_for_validation' && (
+                {spot.status === 'waiting_for_validation' && (
                   <Button onClick={confirmSpot} variant="secondary" className="flex-1 text-xs h-9 bg-primary/10 text-primary hover:bg-primary/20">
                     <CheckCircle2 size={14} className="mr-2" /> Confirmer
                   </Button>
@@ -276,8 +318,8 @@ export default function SpotSidebar({
                 <div className="flex overflow-x-auto snap-x hide-scrollbar gap-2 pb-2 -mx-4 px-4">
                   {photos.map((p: any, i: number) => (
                     <div key={i} className="relative shrink-0 snap-center">
-                      <img src={p.photo_url} alt="Spot" className={`w-64 h-48 object-cover rounded-xl border border-border transition-all ${(!spot.is_verified && spot.status === 'waiting_for_validation') ? 'grayscale opacity-60' : ''}`} />
-                      {(!spot.is_verified && spot.status === 'waiting_for_validation') && (
+                      <img src={p.photo_url} alt="Spot" className={`w-64 h-48 object-cover rounded-xl border border-border transition-all ${spot.status === 'waiting_for_validation' ? 'grayscale opacity-60' : ''}`} />
+                      {spot.status === 'waiting_for_validation' && (
                         <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-md backdrop-blur-sm">
                           À valider
                         </div>
@@ -292,11 +334,18 @@ export default function SpotSidebar({
               )}
 
               <div className="space-y-4">
+                {spot.address && (
+                  <div className="flex items-start gap-3 text-sm">
+                    <MapPin size={16} className="text-muted-foreground mt-0.5 shrink-0" />
+                    <p className="text-foreground">{spot.address}</p>
+                  </div>
+                )}
+
                 {spot.description && (
                   <div className="flex items-start gap-3 text-sm">
                     <Info size={16} className="text-muted-foreground mt-0.5 shrink-0" />
                     <p className="text-foreground leading-relaxed">
-                      {(!spot.is_verified && spot.status === 'waiting_for_validation') && (
+                      {spot.status === 'waiting_for_validation' && (
                         <span className="inline-flex items-center text-primary/90 font-semibold mr-2 bg-primary/10 px-1.5 py-0.5 rounded text-xs gap-1">
                           ✨ Résumé IA
                         </span>
@@ -315,7 +364,48 @@ export default function SpotSidebar({
                     </p>
                   </div>
                 )}
+
+                {spot.lat && spot.lng && (
+                  <div className="flex flex-col gap-2">
+                    <a 
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 text-sm text-primary hover:underline"
+                    >
+                      <MapPin size={16} className="shrink-0" />
+                      <span className="font-medium">Voir sur Google Maps</span>
+                      <ExternalLink size={12} className="shrink-0" />
+                    </a>
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 text-sm text-primary hover:underline"
+                    >
+                      <Navigation size={16} className="shrink-0" />
+                      <span className="font-medium">Lancer le GPS</span>
+                      <ExternalLink size={12} className="shrink-0" />
+                    </a>
+                  </div>
+                )}
               </div>
+
+              {comments.length > 0 && (
+                <Button 
+                  onClick={generateAiSummary} 
+                  disabled={generatingSummary}
+                  variant="outline"
+                  className="w-full text-xs h-9 gap-2"
+                >
+                  {generatingSummary ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Sparkles size={14} />
+                  )}
+                  {generatingSummary ? 'Génération en cours...' : 'Générer un résumé IA des avis'}
+                </Button>
+              )}
 
               <div className="h-px bg-border my-6" />
 

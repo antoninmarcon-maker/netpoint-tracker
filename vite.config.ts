@@ -22,6 +22,9 @@ export default defineConfig(({ mode }) => ({
       filename: "sw.ts",
       registerType: "prompt",
       includeAssets: ["favicon.png", "placeholder.svg"],
+      workbox: {
+        navigateFallbackDenylist: [/^\/~oauth/],
+      },
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,jpeg,jpg,woff,woff2}"],
       },

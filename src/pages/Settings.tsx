@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, MessageSquare, ShieldCheck, UserRound, Loader2, Globe, Sun, Moon, Monitor, ImagePlus, Trash2, Bell, BellOff } from 'lucide-react';
+import { ArrowLeft, Save, MessageSquare, ShieldCheck, UserRound, Loader2, Globe, Sun, Moon, Monitor, ImagePlus, Trash2, Bell, BellOff, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -428,6 +428,40 @@ export default function Settings() {
             <textarea value={feedbackMsg} onChange={e => setFeedbackMsg(e.target.value)} placeholder={t('settings.feedbackPlaceholder')} className="w-full min-h-[100px] rounded-lg border border-border bg-background p-3 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/30" maxLength={2000} />
             <button onClick={handleSendFeedback} disabled={sendingFeedback || !feedbackMsg.trim()} className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50">
               {sendingFeedback ? t('common.sending') : t('settings.sendFeedback')}
+            </button>
+          </CardContent>
+        </Card>
+
+        {/* Force Update */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <RefreshCw size={18} className="text-primary" />
+              {t('settings.forceUpdate')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-xs text-muted-foreground">{t('settings.forceUpdateDesc')}</p>
+            <button
+              onClick={async () => {
+                try {
+                  if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(registrations.map(r => r.unregister()));
+                  }
+                  if ('caches' in window) {
+                    const keys = await caches.keys();
+                    await Promise.all(keys.map(k => caches.delete(k)));
+                  }
+                  toast.success(t('settings.forceUpdateSuccess'));
+                  setTimeout(() => window.location.reload(), 500);
+                } catch {
+                  toast.error(t('settings.forceUpdateError'));
+                }
+              }}
+              className="w-full py-2.5 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm"
+            >
+              {t('settings.forceUpdateBtn')}
             </button>
           </CardContent>
         </Card>
