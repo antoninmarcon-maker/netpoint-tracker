@@ -66,7 +66,7 @@ const MatchSummarySchema = z.object({
   updatedAt: z.number(),
   finished: z.boolean(),
   players: z.array(PlayerSchema).optional(),
-  sport: z.enum(['volleyball', 'basketball', 'tennis', 'padel']).optional(),
+  sport: z.literal('volleyball').optional(),
   metadata: z.record(z.unknown()).optional(),
 });
 
