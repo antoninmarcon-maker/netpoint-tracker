@@ -1,4 +1,4 @@
-import { SportType, ActionType, PointType, OTHER_ACTION_KEYS } from '@/types/sports';
+import { SportType, ActionType, PointType, OTHER_ACTION_KEYS, getScoredActionsForSport, getFaultActionsForSport, getNeutralActionsForSport } from '@/types/sports';
 import { getCurrentUserId, patchCloudSettings } from './cloudSettings';
 import { userStorage } from './userStorage';
 
@@ -30,20 +30,7 @@ function getConfig(): ActionsConfig {
   try {
     const raw = userStorage.getItem(STORAGE_KEY);
     if (!raw) return getDefaultConfig();
-    
-    // Purge old test actions that the user wants strictly removed
     const parsed: ActionsConfig = JSON.parse(raw);
-    if (parsed.customActions) {
-      const prevLength = parsed.customActions.length;
-      parsed.customActions = parsed.customActions.filter(
-        a => !a.label.toLowerCase().includes('test direction') && !a.label.toLowerCase().includes('super attaque')
-      );
-      if (parsed.customActions.length !== prevLength) {
-        // Save the cleaned version immediately
-        setTimeout(() => saveConfig(parsed), 0);
-      }
-    }
-    
     return parsed;
   } catch { return getDefaultConfig(); }
 }
@@ -250,7 +237,6 @@ export function getVisibleActions(
 }
 
 export function getVisibleActionIdentifiers(sport: SportType) {
-  const { getScoredActionsForSport, getFaultActionsForSport, getNeutralActionsForSport } = require('@/types/sports');
   const scored = getVisibleActions(sport, 'scored', getScoredActionsForSport(sport));
   const faults = getVisibleActions(sport, 'fault', getFaultActionsForSport(sport));
   const neutral = getVisibleActions(sport, 'neutral', getNeutralActionsForSport(sport));

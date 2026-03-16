@@ -537,32 +537,33 @@ export function useMatchState(matchId: string, ready: boolean = true) {
   }, []);
 
   const finishMatch = useCallback(() => {
-    // Only add last set if it has points (don't create empty sets)
+    // Build final sets list: existing completed sets + current set if it has points
+    const finalSets = [...completedSets];
     if (points.length > 0) {
       const winner: Team = score.blue >= score.red ? 'blue' : 'red';
-      const setData: SetData = {
+      finalSets.push({
         id: crypto.randomUUID(),
         number: currentSetNumber,
         points: [...points],
         score: { ...score },
         winner,
         duration: chronoSeconds,
-      };
-      setCompletedSets(prev => [...prev, setData]);
-      setPoints([]);
+      });
     }
+    // Filter out any empty sets
+    const cleanedSets = finalSets.filter(s => s.points.length > 0);
+
+    setCompletedSets(cleanedSets);
+    setPoints([]);
     setChronoRunning(false);
     setCurrentRallyActions([]);
+
+    // Save directly to avoid relying on the auto-save effect racing
     const match = getMatch(matchId);
     if (match) {
-      // Also clean empty sets from completedSets
-      const cleanedSets = [...(match.completedSets ?? []), ...(points.length > 0 ? [{
-        id: crypto.randomUUID(), number: currentSetNumber, points: [...points],
-        score: { ...score }, winner: (score.blue >= score.red ? 'blue' : 'red') as Team, duration: chronoSeconds,
-      }] : [])].filter(s => s.points.length > 0);
       saveMatch({ ...match, completedSets: cleanedSets, points: [], finished: true, updatedAt: Date.now() });
     }
-  }, [points, score, currentSetNumber, chronoSeconds, matchId]);
+  }, [points, score, currentSetNumber, chronoSeconds, matchId, completedSets]);
 
   const switchSides = useCallback(() => {
     setSidesSwapped(prev => !prev);
