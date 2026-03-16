@@ -1,4 +1,4 @@
-import { SportType, ActionType, PointType, OTHER_ACTION_KEYS } from '@/types/sports';
+import { SportType, ActionType, PointType, OTHER_ACTION_KEYS, getScoredActionsForSport, getFaultActionsForSport, getNeutralActionsForSport } from '@/types/sports';
 import { getCurrentUserId, patchCloudSettings } from './cloudSettings';
 import { userStorage } from './userStorage';
 
