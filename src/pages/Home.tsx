@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { getAllMatches, createNewMatch, saveMatch, setActiveMatchId, deleteMatch, getMatch } from '@/lib/matchStorage';
-import { syncLocalMatchesToCloud, getCloudMatches, saveCloudMatch, deleteCloudMatch, getCloudMatchById } from '@/lib/cloudStorage';
+import { syncLocalMatchesToCloud, getCloudMatches, saveCloudMatch, deleteCloudMatch, getCloudMatchById, generateShareToken } from '@/lib/cloudStorage';
 import { updateTutorialStep, getNotificationPermission, subscribeToPush } from '@/lib/pushNotifications';
 import { MatchSummary, SetData, Team, SportType } from '@/types/sports';
 import { toast } from 'sonner';
@@ -380,12 +380,8 @@ export default function Home() {
   const resolveShareUrl = async (match: MatchSummary): Promise<string | null> => {
     if (!user) return null;
     try {
-      let token = (match as any).shareToken;
-      if (!token) {
-        token = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
-        const { error } = await supabase.from('matches').update({ share_token: token }).eq('id', match.id);
-        if (error) return null;
-      }
+      const token = await generateShareToken(match.id);
+      if (!token) return null;
       return `https://www.my-volley.com/shared/${token}`;
     } catch {
       return null;
@@ -420,9 +416,13 @@ export default function Home() {
   };
 
   const handleShareTelegram = async (match: MatchSummary) => {
-    const text = await getShareText(match);
+    const score = getMatchScoreText(match);
     const url = await resolveShareUrl(match);
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(url || '')}&text=${encodeURIComponent(getMatchScoreText(match))}`, '_blank');
+    if (url) {
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(score)}`, '_blank');
+    } else {
+      window.open(`https://t.me/share/url?text=${encodeURIComponent(score)}`, '_blank');
+    }
   };
 
   const handleShareX = async (match: MatchSummary) => {
@@ -434,13 +434,8 @@ export default function Home() {
     if (!user) { toast.error(t('heatmap.loginForLink')); return; }
     setGeneratingShareLink(true);
     try {
-      let token = (match as any).shareToken;
-      if (!token) {
-        token = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
-        const { error } = await supabase.from('matches').update({ share_token: token }).eq('id', match.id);
-        if (error) throw error;
-      }
-      const url = `https://www.my-volley.com/shared/${token}`;
+      const url = await resolveShareUrl(match);
+      if (!url) throw new Error('No token');
       setShareLinkUrl(url);
       setSharingMatch(null);
       setShareLinkDialogOpen(true);
