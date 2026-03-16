@@ -30,20 +30,7 @@ function getConfig(): ActionsConfig {
   try {
     const raw = userStorage.getItem(STORAGE_KEY);
     if (!raw) return getDefaultConfig();
-    
-    // Purge old test actions that the user wants strictly removed
     const parsed: ActionsConfig = JSON.parse(raw);
-    if (parsed.customActions) {
-      const prevLength = parsed.customActions.length;
-      parsed.customActions = parsed.customActions.filter(
-        a => !a.label.toLowerCase().includes('test direction') && !a.label.toLowerCase().includes('super attaque')
-      );
-      if (parsed.customActions.length !== prevLength) {
-        // Save the cleaned version immediately
-        setTimeout(() => saveConfig(parsed), 0);
-      }
-    }
-    
     return parsed;
   } catch { return getDefaultConfig(); }
 }
