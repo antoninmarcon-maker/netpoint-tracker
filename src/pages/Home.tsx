@@ -376,10 +376,33 @@ export default function Home() {
     return `${match.teamNames.blue} ${sc.blue} - ${sc.red} ${match.teamNames.red}`;
   };
 
+  // Resolve or generate the share link URL for a match (returns null if not logged in)
+  const resolveShareUrl = async (match: MatchSummary): Promise<string | null> => {
+    if (!user) return null;
+    try {
+      let token = (match as any).shareToken;
+      if (!token) {
+        token = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+        const { error } = await supabase.from('matches').update({ share_token: token }).eq('id', match.id);
+        if (error) return null;
+      }
+      return `https://www.my-volley.com/shared/${token}`;
+    } catch {
+      return null;
+    }
+  };
+
+  const getShareText = async (match: MatchSummary): Promise<string> => {
+    const score = getMatchScoreText(match);
+    const url = await resolveShareUrl(match);
+    return url ? `${score}\n${url}` : score;
+  };
+
   const handleShareNative = async (match: MatchSummary) => {
-    const text = getMatchScoreText(match);
+    const text = await getShareText(match);
+    const url = user ? text.split('\n').pop() : undefined;
     if (navigator.share) {
-      try { await navigator.share({ title: `Match: ${match.teamNames.blue} vs ${match.teamNames.red}`, text }); } catch {}
+      try { await navigator.share({ title: `Match: ${match.teamNames.blue} vs ${match.teamNames.red}`, text, url }); } catch {}
     } else {
       navigator.clipboard.writeText(text).then(() => toast.success(t('heatmap.linkCopied'))).catch(() => {});
     }
@@ -391,16 +414,20 @@ export default function Home() {
       .catch(() => toast.error(t('heatmap.linkCopyError')));
   };
 
-  const handleShareWhatsApp = (match: MatchSummary) => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(getMatchScoreText(match))}`, '_blank');
+  const handleShareWhatsApp = async (match: MatchSummary) => {
+    const text = await getShareText(match);
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  const handleShareTelegram = (match: MatchSummary) => {
-    window.open(`https://t.me/share/url?text=${encodeURIComponent(getMatchScoreText(match))}`, '_blank');
+  const handleShareTelegram = async (match: MatchSummary) => {
+    const text = await getShareText(match);
+    const url = await resolveShareUrl(match);
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(url || '')}&text=${encodeURIComponent(getMatchScoreText(match))}`, '_blank');
   };
 
-  const handleShareX = (match: MatchSummary) => {
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(getMatchScoreText(match))}`, '_blank');
+  const handleShareX = async (match: MatchSummary) => {
+    const text = await getShareText(match);
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleGenerateShareLink = async (match: MatchSummary) => {
