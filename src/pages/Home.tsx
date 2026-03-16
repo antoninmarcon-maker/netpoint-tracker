@@ -369,11 +369,28 @@ export default function Home() {
   };
 
   const getMatchScoreText = (match: MatchSummary) => {
-    const sc = match.completedSets.reduce((acc, s) => ({ blue: acc.blue + s.score.blue, red: acc.red + s.score.red }), { blue: 0, red: 0 });
+    const setsWon = { blue: 0, red: 0 };
+    const setDetails: string[] = [];
+    for (const s of match.completedSets) {
+      if (s.winner === 'blue') setsWon.blue++;
+      else if (s.winner === 'red') setsWon.red++;
+      setDetails.push(`${s.score.blue}-${s.score.red}`);
+    }
+    // Current set in progress
     const pts = match.points || [];
-    sc.blue += pts.filter(p => p.team === 'blue').length;
-    sc.red += pts.filter(p => p.team === 'red').length;
-    return `${match.teamNames.blue} ${sc.blue} - ${sc.red} ${match.teamNames.red}`;
+    const curBlue = pts.filter(p => p.team === 'blue').length;
+    const curRed = pts.filter(p => p.team === 'red').length;
+    if (!match.finished && (curBlue > 0 || curRed > 0)) {
+      setDetails.push(`${curBlue}-${curRed}*`);
+    }
+
+    let text = `🏐 ${match.teamNames.blue} vs ${match.teamNames.red}\n`;
+    text += `${t('common.sets', 'Sets')}: ${setsWon.blue} - ${setsWon.red}`;
+    if (setDetails.length > 0) {
+      text += ` (${setDetails.join(', ')})`;
+    }
+    if (match.finished) text += ` ✅`;
+    return text;
   };
 
   // Resolve or generate the share link URL for a match (returns null if not logged in)
@@ -396,9 +413,9 @@ export default function Home() {
 
   const handleShareNative = async (match: MatchSummary) => {
     const text = await getShareText(match);
-    const url = user ? text.split('\n').pop() : undefined;
+    const url = await resolveShareUrl(match);
     if (navigator.share) {
-      try { await navigator.share({ title: `Match: ${match.teamNames.blue} vs ${match.teamNames.red}`, text, url }); } catch {}
+      try { await navigator.share({ title: `${match.teamNames.blue} vs ${match.teamNames.red}`, text, ...(url ? { url } : {}) }); } catch {}
     } else {
       navigator.clipboard.writeText(text).then(() => toast.success(t('heatmap.linkCopied'))).catch(() => {});
     }
@@ -412,22 +429,17 @@ export default function Home() {
 
   const handleShareWhatsApp = async (match: MatchSummary) => {
     const text = await getShareText(match);
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleShareTelegram = async (match: MatchSummary) => {
-    const score = getMatchScoreText(match);
-    const url = await resolveShareUrl(match);
-    if (url) {
-      window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(score)}`, '_blank');
-    } else {
-      window.open(`https://t.me/share/url?text=${encodeURIComponent(score)}`, '_blank');
-    }
+    const text = await getShareText(match);
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleShareX = async (match: MatchSummary) => {
     const text = await getShareText(match);
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleGenerateShareLink = async (match: MatchSummary) => {
