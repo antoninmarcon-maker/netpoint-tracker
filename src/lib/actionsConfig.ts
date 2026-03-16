@@ -250,7 +250,7 @@ export function getVisibleActions(
 }
 
 export function getVisibleActionIdentifiers(sport: SportType) {
-  const { getScoredActionsForSport, getFaultActionsForSport, getNeutralActionsForSport } = require('@/types/sports');
+  const { getScoredActionsForSport, getFaultActionsForSport, getNeutralActionsForSport } = await import('@/types/sports') as any;
   const scored = getVisibleActions(sport, 'scored', getScoredActionsForSport(sport));
   const faults = getVisibleActions(sport, 'fault', getFaultActionsForSport(sport));
   const neutral = getVisibleActions(sport, 'neutral', getNeutralActionsForSport(sport));
