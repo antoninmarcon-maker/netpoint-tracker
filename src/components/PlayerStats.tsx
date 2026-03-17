@@ -74,14 +74,17 @@ export function PlayerStats({ points, players, teamName, matchId, showRatings = 
           if (a.type === 'neutral') {
             playerNeutrals.push(a);
           } else if (a.type === 'scored' && a.team === 'blue') {
+            // Blue player scored actively (attack, ace, block…) → positive
             playerScoredActions.push(a);
-          } else if (a.type === 'fault' && a.team === 'red') {
-            playerFaultWins.push(a);
-          } else if (a.team === 'red') {
-            // Actions processed as "faults" for the blue team player (lost points)
-            playerNegatives.push(a);
           } else if (a.type === 'fault' && a.team === 'blue') {
-            // Blue player faulted -> negative
+            // Blue team got a point from red's fault (no blue player committed it)
+            // If somehow assigned to a blue player, count as a win
+            playerFaultWins.push(a);
+          } else if (a.type === 'fault' && a.team === 'red') {
+            // Red got the point because a blue player faulted (out, net, etc.) → NEGATIVE
+            playerNegatives.push(a);
+          } else if (a.type === 'scored' && a.team === 'red') {
+            // Red scored actively against this blue player → negative
             playerNegatives.push(a);
           }
         });
