@@ -27,7 +27,8 @@ interface GymData {
 function getTag(xml: string, tag: string): string {
   const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i')
   const m = xml.match(re)
-  return m ? m[1].trim() : ''
+  if (!m) return ''
+  return m[1].trim().replace(/^<!\[CDATA\[/, '').replace(/\]\]>$/, '').trim()
 }
 
 function parseKmlDescription(html: string): Record<string, string> {
