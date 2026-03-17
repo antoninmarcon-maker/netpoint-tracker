@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { getAllMatches, createNewMatch, saveMatch, setActiveMatchId, deleteMatch, getMatch } from '@/lib/matchStorage';
-import { syncLocalMatchesToCloud, getCloudMatches, saveCloudMatch, deleteCloudMatch, getCloudMatchById } from '@/lib/cloudStorage';
+import { syncLocalMatchesToCloud, getCloudMatches, saveCloudMatch, deleteCloudMatch, getCloudMatchById, generateShareToken } from '@/lib/cloudStorage';
 import { updateTutorialStep, getNotificationPermission, subscribeToPush } from '@/lib/pushNotifications';
 import { MatchSummary, SetData, Team, SportType } from '@/types/sports';
 import { toast } from 'sonner';
@@ -369,17 +369,53 @@ export default function Home() {
   };
 
   const getMatchScoreText = (match: MatchSummary) => {
-    const sc = match.completedSets.reduce((acc, s) => ({ blue: acc.blue + s.score.blue, red: acc.red + s.score.red }), { blue: 0, red: 0 });
+    const setsWon = { blue: 0, red: 0 };
+    const setDetails: string[] = [];
+    for (const s of match.completedSets) {
+      if (s.winner === 'blue') setsWon.blue++;
+      else if (s.winner === 'red') setsWon.red++;
+      setDetails.push(`${s.score.blue}-${s.score.red}`);
+    }
+    // Current set in progress
     const pts = match.points || [];
-    sc.blue += pts.filter(p => p.team === 'blue').length;
-    sc.red += pts.filter(p => p.team === 'red').length;
-    return `${match.teamNames.blue} ${sc.blue} - ${sc.red} ${match.teamNames.red}`;
+    const curBlue = pts.filter(p => p.team === 'blue').length;
+    const curRed = pts.filter(p => p.team === 'red').length;
+    if (!match.finished && (curBlue > 0 || curRed > 0)) {
+      setDetails.push(`${curBlue}-${curRed}*`);
+    }
+
+    let text = `🏐 ${match.teamNames.blue} vs ${match.teamNames.red}\n`;
+    text += `${t('common.sets', 'Sets')}: ${setsWon.blue} - ${setsWon.red}`;
+    if (setDetails.length > 0) {
+      text += ` (${setDetails.join(', ')})`;
+    }
+    if (match.finished) text += ` ✅`;
+    return text;
+  };
+
+  // Resolve or generate the share link URL for a match (returns null if not logged in)
+  const resolveShareUrl = async (match: MatchSummary): Promise<string | null> => {
+    if (!user) return null;
+    try {
+      const token = await generateShareToken(match.id);
+      if (!token) return null;
+      return `https://www.my-volley.com/shared/${token}`;
+    } catch {
+      return null;
+    }
+  };
+
+  const getShareText = async (match: MatchSummary): Promise<string> => {
+    const score = getMatchScoreText(match);
+    const url = await resolveShareUrl(match);
+    return url ? `${score}\n${url}` : score;
   };
 
   const handleShareNative = async (match: MatchSummary) => {
-    const text = getMatchScoreText(match);
+    const text = await getShareText(match);
+    const url = await resolveShareUrl(match);
     if (navigator.share) {
-      try { await navigator.share({ title: `Match: ${match.teamNames.blue} vs ${match.teamNames.red}`, text }); } catch {}
+      try { await navigator.share({ title: `${match.teamNames.blue} vs ${match.teamNames.red}`, text, ...(url ? { url } : {}) }); } catch {}
     } else {
       navigator.clipboard.writeText(text).then(() => toast.success(t('heatmap.linkCopied'))).catch(() => {});
     }
@@ -391,29 +427,27 @@ export default function Home() {
       .catch(() => toast.error(t('heatmap.linkCopyError')));
   };
 
-  const handleShareWhatsApp = (match: MatchSummary) => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(getMatchScoreText(match))}`, '_blank');
+  const handleShareWhatsApp = async (match: MatchSummary) => {
+    const text = await getShareText(match);
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  const handleShareTelegram = (match: MatchSummary) => {
-    window.open(`https://t.me/share/url?text=${encodeURIComponent(getMatchScoreText(match))}`, '_blank');
+  const handleShareTelegram = async (match: MatchSummary) => {
+    const text = await getShareText(match);
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  const handleShareX = (match: MatchSummary) => {
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(getMatchScoreText(match))}`, '_blank');
+  const handleShareX = async (match: MatchSummary) => {
+    const text = await getShareText(match);
+    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleGenerateShareLink = async (match: MatchSummary) => {
     if (!user) { toast.error(t('heatmap.loginForLink')); return; }
     setGeneratingShareLink(true);
     try {
-      let token = (match as any).shareToken;
-      if (!token) {
-        token = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
-        const { error } = await supabase.from('matches').update({ share_token: token }).eq('id', match.id);
-        if (error) throw error;
-      }
-      const url = `https://www.my-volley.com/shared/${token}`;
+      const url = await resolveShareUrl(match);
+      if (!url) throw new Error('No token');
       setShareLinkUrl(url);
       setSharingMatch(null);
       setShareLinkDialogOpen(true);
