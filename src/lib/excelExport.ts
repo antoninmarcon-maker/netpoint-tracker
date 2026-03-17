@@ -47,43 +47,64 @@ function playerSetStats(pts: Point[], players: Player[]) {
   const neutralLabels = Array.from(new Set(allActions.filter(p => p.type === 'neutral').map(p => p.customActionLabel || p.action)));
 
   return allPlayers.map(player => {
-    // Collect actions where the player is involved
     const pActions = allActions.filter(a => a.playerId === player.id);
-    
-    // An action is "scored" if our blue player scores
+
+    // Positive: blue player scored actively (attack, ace, block…)
     const scored = pActions.filter(a => a.team === 'blue' && a.type === 'scored');
-    // For a blue player, "faultWins" are faults made by the red opponent (where blue gets the point implicitly?)
-    // Wait, in PlayerStats.tsx, if player is blue, they don't perform the red team's faults. 
-    // They are only tagged on their OWN actions. 
-    // So if blue player makes a fault, it is negative.
-    const playerNegatives = pActions.filter(a => (a.team === 'red') || (a.team === 'blue' && a.type === 'fault'));
-    // Neutrals
+    // Positive: blue got a point from red's fault, attributed to this player
+    const faultWins = pActions.filter(a => a.team === 'blue' && a.type === 'fault');
+
+    // Negative: blue player committed a fault → red gets the point
+    // In data model: team='red', type='fault', playerId=<blue_player>
+    const faultsCommitted = pActions.filter(a => a.team === 'red' && a.type === 'fault');
+    // Negative: red scored on this blue player (rare, only if attributed)
+    const redScored = pActions.filter(a => a.team === 'red' && a.type === 'scored');
+
+    const playerNegatives = [...faultsCommitted, ...redScored];
     const neutrals = pActions.filter(a => a.type === 'neutral');
 
-    const totalPositive = scored.length; // usually fault wins are opponent actions
+    const totalPositive = scored.length + faultWins.length;
     const totalNegative = playerNegatives.length;
     const total = totalPositive + totalNegative + neutrals.length;
 
-    // Collect all rated actions for this player
+    // Ratings
     const rPos = pActions.filter(p => p.rating === 'positive').length;
     const rNeu = pActions.filter(p => p.rating === 'neutral').length;
     const rNeg = pActions.filter(p => p.rating === 'negative').length;
 
     const baseStats: Record<string, string | number> = {
       'Joueur': player.name || '—',
-      'Attaques': scored.filter(p => p.action === 'attack').length,
-      'Aces': scored.filter(p => p.action === 'ace').length,
-      'Blocks': scored.filter(p => p.action === 'block').length,
-      'Bidouilles': scored.filter(p => p.action === 'bidouille').length,
-      '2ndes mains': scored.filter(p => p.action === 'seconde_main').length,
-      'Pts gagnés (offensifs)': scored.length,
-      'Fautes commises': totalNegative,
-      'Faits de jeu (Total)': neutrals.length,
     };
 
-    neutralLabels.forEach(label => {
-      baseStats[`  ↳ ${label}`] = neutrals.filter(p => (p.customActionLabel || p.action) === label).length;
+    // --- Scored breakdown ---
+    OFFENSIVE_ACTIONS.forEach(a => {
+      const count = scored.filter(p => p.action === a.key).length;
+      if (count > 0) baseStats[`✅ ${a.label}`] = count;
     });
+    if (faultWins.length > 0) baseStats['✅ Fautes adv'] = faultWins.length;
+    baseStats['Pts gagnés'] = totalPositive;
+
+    // --- Fault breakdown ---
+    FAULT_ACTIONS.forEach(a => {
+      const count = faultsCommitted.filter(p => p.action === a.key).length;
+      if (count > 0) baseStats[`❌ ${a.label}`] = count;
+    });
+    // Custom/offensive actions committed as faults (e.g., attack out)
+    OFFENSIVE_ACTIONS.forEach(a => {
+      const count = faultsCommitted.filter(p => p.action === a.key).length;
+      if (count > 0 && !baseStats[`❌ ${a.label}`]) baseStats[`❌ ${a.label}`] = count;
+    });
+    if (redScored.length > 0) baseStats['❌ Pts adverses'] = redScored.length;
+    baseStats['Fautes commises'] = totalNegative;
+
+    // --- Neutral breakdown ---
+    if (neutrals.length > 0) {
+      baseStats['Faits de jeu'] = neutrals.length;
+      neutralLabels.forEach(label => {
+        const count = neutrals.filter(p => (p.customActionLabel || p.action) === label).length;
+        if (count > 0) baseStats[`  ↳ ${label}`] = count;
+      });
+    }
 
     baseStats['Total actions'] = total;
     baseStats['Efficacité (%)'] = total > 0 ? Math.round(totalPositive / total * 100) : 0;
