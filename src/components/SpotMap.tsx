@@ -128,39 +128,42 @@ export default function SpotMap({
       });
   }, []);
 
-  const toggleType = (type: string) => {
-    setActiveTypes(prev =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
-    );
-  };
-
   const setSubFilter = <K extends keyof SubFilters>(key: K, value: SubFilters[K]) => {
     setSubFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const filteredSpots = spots.filter(spot => {
     const type = spot.type || 'outdoor_hard';
-    if (!activeTypes.includes(type)) return false;
 
-    // Global free access filter (applies to beach & green)
-    if (subFilters.acces_libre && (type === 'beach' || type === 'green_volley')) {
-      if (!spot.equip_acces_libre) return false;
-    }
+    // Main category gates
+    if (type === 'club' && !showClubs) return false;
+    if (type === 'indoor' && !showGymnase) return false;
+    if (EXTERIOR_TYPES.includes(type) && !showExterieur) return false;
 
-    // Beach sub-filters
-    if (type === 'beach') {
-      if (subFilters.beach_eclairage && !spot.equip_eclairage) return false;
-      if (subFilters.beach_pmr && !spot.equip_pmr) return false;
-      if (subFilters.beach_saison === 'annee' && spot.equip_saisonnier) return false;
-      if (subFilters.beach_saison === 'saisonnier' && !spot.equip_saisonnier) return false;
-    }
+    // Exterior sub-type gates
+    if (EXTERIOR_TYPES.includes(type)) {
+      if (type === 'beach' && !subFilters.ext_beach) return false;
+      if ((type === 'green_volley' || type === 'outdoor_grass') && !subFilters.ext_herbe) return false;
+      if (type === 'outdoor_hard' && !subFilters.ext_dur) return false;
 
-    // Green-volley sub-filters
-    if (type === 'green_volley') {
-      if (subFilters.green_saison === 'annee' && spot.equip_saisonnier) return false;
-      if (subFilters.green_saison === 'saisonnier' && !spot.equip_saisonnier) return false;
-      if (subFilters.green_sol === 'naturel' && spot.equip_sol !== 'Gazon naturel') return false;
-      if (subFilters.green_sol === 'synthetique' && spot.equip_sol !== 'Gazon synthétique') return false;
+      // Free access filter (exterior only)
+      if (subFilters.acces_libre && !spot.equip_acces_libre) return false;
+
+      // Beach-specific
+      if (type === 'beach') {
+        if (subFilters.beach_eclairage && !spot.equip_eclairage) return false;
+        if (subFilters.beach_pmr && !spot.equip_pmr) return false;
+        if (subFilters.beach_saison === 'annee' && spot.equip_saisonnier) return false;
+        if (subFilters.beach_saison === 'saisonnier' && !spot.equip_saisonnier) return false;
+      }
+
+      // Herbe-specific
+      if (type === 'green_volley' || type === 'outdoor_grass') {
+        if (subFilters.green_saison === 'annee' && spot.equip_saisonnier) return false;
+        if (subFilters.green_saison === 'saisonnier' && !spot.equip_saisonnier) return false;
+        if (subFilters.green_sol === 'naturel' && spot.equip_sol !== 'Gazon naturel') return false;
+        if (subFilters.green_sol === 'synthetique' && spot.equip_sol !== 'Gazon synthétique') return false;
+      }
     }
 
     return true;
