@@ -401,13 +401,32 @@ export type Database = {
         Row: {
           address: string | null
           availability_period: string | null
+          club_email: string | null
+          club_lien_fiche: string | null
+          club_site_web: string | null
+          club_telephone: string | null
           created_at: string
           description: string | null
+          equip_acces_libre: boolean | null
+          equip_eclairage: boolean | null
+          equip_hauteur: number | null
+          equip_largeur: number | null
+          equip_longueur: number | null
+          equip_nb_terrains: number | null
+          equip_pmr: boolean | null
+          equip_saisonnier: boolean | null
+          equip_sol: string | null
+          equip_tribunes: number | null
+          equip_vestiaires: number | null
+          external_id: string | null
+          ffvb_comite: string | null
+          ffvb_ligue: string | null
           google_place_id: string | null
           id: string
           lat: number | null
           lng: number | null
           name: string
+          source: string | null
           status: string
           type: string
           updated_at: string
@@ -416,13 +435,32 @@ export type Database = {
         Insert: {
           address?: string | null
           availability_period?: string | null
+          club_email?: string | null
+          club_lien_fiche?: string | null
+          club_site_web?: string | null
+          club_telephone?: string | null
           created_at?: string
           description?: string | null
+          equip_acces_libre?: boolean | null
+          equip_eclairage?: boolean | null
+          equip_hauteur?: number | null
+          equip_largeur?: number | null
+          equip_longueur?: number | null
+          equip_nb_terrains?: number | null
+          equip_pmr?: boolean | null
+          equip_saisonnier?: boolean | null
+          equip_sol?: string | null
+          equip_tribunes?: number | null
+          equip_vestiaires?: number | null
+          external_id?: string | null
+          ffvb_comite?: string | null
+          ffvb_ligue?: string | null
           google_place_id?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
           name: string
+          source?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -431,13 +469,32 @@ export type Database = {
         Update: {
           address?: string | null
           availability_period?: string | null
+          club_email?: string | null
+          club_lien_fiche?: string | null
+          club_site_web?: string | null
+          club_telephone?: string | null
           created_at?: string
           description?: string | null
+          equip_acces_libre?: boolean | null
+          equip_eclairage?: boolean | null
+          equip_hauteur?: number | null
+          equip_largeur?: number | null
+          equip_longueur?: number | null
+          equip_nb_terrains?: number | null
+          equip_pmr?: boolean | null
+          equip_saisonnier?: boolean | null
+          equip_sol?: string | null
+          equip_tribunes?: number | null
+          equip_vestiaires?: number | null
+          external_id?: string | null
+          ffvb_comite?: string | null
+          ffvb_ligue?: string | null
           google_place_id?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
           name?: string
+          source?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -654,37 +711,100 @@ export type Database = {
     Views: {
       spots_with_coords: {
         Row: {
+          address: string | null
           availability_period: string | null
+          club_email: string | null
+          club_lien_fiche: string | null
+          club_site_web: string | null
+          club_telephone: string | null
           created_at: string | null
           description: string | null
+          equip_acces_libre: boolean | null
+          equip_eclairage: boolean | null
+          equip_hauteur: number | null
+          equip_largeur: number | null
+          equip_longueur: number | null
+          equip_nb_terrains: number | null
+          equip_pmr: boolean | null
+          equip_saisonnier: boolean | null
+          equip_sol: string | null
+          equip_tribunes: number | null
+          equip_vestiaires: number | null
+          external_id: string | null
+          ffvb_comite: string | null
+          ffvb_ligue: string | null
+          google_place_id: string | null
           id: string | null
           lat: number | null
           lng: number | null
           name: string | null
+          source: string | null
           status: string | null
           type: string | null
           user_id: string | null
         }
         Insert: {
+          address?: string | null
           availability_period?: string | null
+          club_email?: string | null
+          club_lien_fiche?: string | null
+          club_site_web?: string | null
+          club_telephone?: string | null
           created_at?: string | null
           description?: string | null
+          equip_acces_libre?: boolean | null
+          equip_eclairage?: boolean | null
+          equip_hauteur?: number | null
+          equip_largeur?: number | null
+          equip_longueur?: number | null
+          equip_nb_terrains?: number | null
+          equip_pmr?: boolean | null
+          equip_saisonnier?: boolean | null
+          equip_sol?: string | null
+          equip_tribunes?: number | null
+          equip_vestiaires?: number | null
+          external_id?: string | null
+          ffvb_comite?: string | null
+          ffvb_ligue?: string | null
+          google_place_id?: string | null
           id?: string | null
           lat?: number | null
           lng?: number | null
           name?: string | null
+          source?: string | null
           status?: string | null
           type?: string | null
           user_id?: string | null
         }
         Update: {
+          address?: string | null
           availability_period?: string | null
+          club_email?: string | null
+          club_lien_fiche?: string | null
+          club_site_web?: string | null
+          club_telephone?: string | null
           created_at?: string | null
           description?: string | null
+          equip_acces_libre?: boolean | null
+          equip_eclairage?: boolean | null
+          equip_hauteur?: number | null
+          equip_largeur?: number | null
+          equip_longueur?: number | null
+          equip_nb_terrains?: number | null
+          equip_pmr?: boolean | null
+          equip_saisonnier?: boolean | null
+          equip_sol?: string | null
+          equip_tribunes?: number | null
+          equip_vestiaires?: number | null
+          external_id?: string | null
+          ffvb_comite?: string | null
+          ffvb_ligue?: string | null
+          google_place_id?: string | null
           id?: string | null
           lat?: number | null
           lng?: number | null
           name?: string | null
+          source?: string | null
           status?: string | null
           type?: string | null
           user_id?: string | null
@@ -693,7 +813,38 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      upsert_spot_with_location: {
+        Args: {
+          p_address: string
+          p_club_email?: string
+          p_club_lien_fiche?: string
+          p_club_site_web?: string
+          p_club_telephone?: string
+          p_description?: string
+          p_equip_acces_libre?: boolean
+          p_equip_eclairage?: boolean
+          p_equip_hauteur?: number
+          p_equip_largeur?: number
+          p_equip_longueur?: number
+          p_equip_nb_terrains?: number
+          p_equip_pmr?: boolean
+          p_equip_saisonnier?: boolean
+          p_equip_sol?: string
+          p_equip_tribunes?: number
+          p_equip_vestiaires?: number
+          p_external_id: string
+          p_ffvb_comite?: string
+          p_ffvb_ligue?: string
+          p_lat: number
+          p_lng: number
+          p_name: string
+          p_source: string
+          p_status: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
