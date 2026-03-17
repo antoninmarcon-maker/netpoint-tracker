@@ -7,8 +7,6 @@ const corsHeaders = {
 
 // Google My Maps KML export — clubs affiliés FFVB
 const KML_URL = 'https://www.google.com/maps/d/kml?mid=1FeR33v2UZ7nOlueFb9C2DhALfjsBpr0&forcekml=1'
-
-// Nominatim geocoding (OpenStreetMap) — limited to France
 const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org/search'
 
 interface ClubData {
@@ -81,15 +79,17 @@ function parseKml(kmlText: string): ClubData[] {
   return clubs
 }
 
-async function runImport() {
+async function runImport(startOffset: number, batchLimit: number, autoChain: boolean) {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   if (!supabaseUrl || !supabaseKey) throw new Error('Missing Supabase config')
   const supabase = createClient(supabaseUrl, supabaseKey)
 
-  // Cleanup previous import
-  console.log('Cleaning up previous ffvb_club spots...')
-  await supabase.from('spots').delete().eq('source', 'ffvb_club')
+  // Only cleanup on first batch
+  if (startOffset === 0) {
+    console.log('Cleaning up previous ffvb_club spots...')
+    await supabase.from('spots').delete().eq('source', 'ffvb_club')
+  }
 
   console.log('Fetching clubs KML from Google My Maps...')
   const kmlRes = await fetch(KML_URL, {
@@ -99,14 +99,18 @@ async function runImport() {
   const kmlText = await kmlRes.text()
 
   console.log('Parsing KML...')
-  const clubs = parseKml(kmlText)
-  console.log(`Found ${clubs.length} clubs in KML`)
+  const allClubs = parseKml(kmlText)
+  const total = allClubs.length
+  console.log(`Found ${total} clubs in KML, processing batch offset=${startOffset} limit=${batchLimit}`)
+
+  const clubs = allClubs.slice(startOffset, startOffset + batchLimit)
 
   let imported = 0
   let geocodeFailed = 0
   let errors = 0
 
-  for (const club of clubs) {
+  for (let i = 0; i < clubs.length; i++) {
+    const club = clubs[i]
     let externalId: string
     if (club.lienFiche) {
       const m = club.lienFiche.match(/id_club=([^&]+)/)
@@ -143,19 +147,43 @@ async function runImport() {
       imported++
     }
 
-    if (imported % 50 === 0) console.log(`Progress: ${imported}/${clubs.length}`)
+    if ((startOffset + i) % 50 === 0) console.log(`Progress: ${startOffset + i}/${total}`)
     // Respect Nominatim rate limit: 1 req/sec
     await new Promise(resolve => setTimeout(resolve, 1100))
   }
 
-  return {
+  const nextOffset = startOffset + clubs.length
+  const done = nextOffset >= total
+
+  const result = {
     success: true,
-    total: clubs.length,
+    total,
+    batch_start: startOffset,
+    batch_end: nextOffset,
     imported,
     geocodeFailed,
     errors,
-    message: `Clubs import done. ${imported} upserted, ${geocodeFailed} sans coords, ${errors} erreurs.`,
+    done,
+    next_offset: done ? null : nextOffset,
+    message: `Clubs batch done. ${imported} upserted (offset ${startOffset}→${nextOffset}/${total}). ${done ? 'COMPLETE' : `Next: offset=${nextOffset}`}`,
   }
+
+  // Auto-chain: fire next batch in background if not done
+  if (!done && autoChain) {
+    const selfUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/import-ffvb-clubs`
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    console.log(`Auto-chaining next batch: offset=${nextOffset}`)
+    fetch(selfUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({ offset: nextOffset, limit: batchLimit, auto_chain: true }),
+    }).catch(e => console.error('Auto-chain fetch error:', e))
+  }
+
+  return result
 }
 
 Deno.serve(async (req) => {
@@ -163,7 +191,17 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
   try {
-    const result = await runImport()
+    let startOffset = 0
+    let batchLimit = 200
+    let autoChain = true
+    try {
+      const body = await req.json()
+      if (typeof body.offset === 'number') startOffset = body.offset
+      if (typeof body.limit === 'number') batchLimit = body.limit
+      if (typeof body.auto_chain === 'boolean') autoChain = body.auto_chain
+    } catch { /* no body = defaults */ }
+
+    const result = await runImport(startOffset, batchLimit, autoChain)
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
