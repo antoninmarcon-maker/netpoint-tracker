@@ -161,23 +161,7 @@ export default function SpotSidebar({
     }
   };
 
-  const confirmSpot = async () => {
-    if (!spot) return;
-    if (!checkAndIncrementRateLimit()) return;
-
-    try {      
-      const { error } = await supabase.from('spots')
-        .update({ status: 'validated' })
-        .eq('id', spot.id);
-        
-      if (error) throw error;
-      toast.success("Terrain confirmé ! Merci.");
-      loadSpotDetails(spot.id);
-      if (onSpotAdded) onSpotAdded(); // trigger map refresh
-    } catch(err) {
-      toast.error("Erreur, impossible de confirmer.");
-    }
-  };
+  // confirmSpot removed — no more verification system
 
   const generateAiSummary = async () => {
     if (!spot) return;
