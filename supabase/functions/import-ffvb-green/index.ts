@@ -8,7 +8,7 @@ const corsHeaders = {
 const DATA_ES_BASE = 'https://equipements.sports.gouv.fr/api/explore/v2.1/catalog/datasets/data-es/records'
 
 // Exact query used by FFVB embed for green-volley
-const GREEN_QUERY = `#search(aps_name,"volley") AND (equip_nature = "Découvert" OR equip_nature = "Découvrable" OR equip_nature = "Extérieur couvert" OR equip_nature = "Site naturel" OR equip_nature = "Site naturel aménagé") AND (equip_sol = "Gazon naturel" OR equip_sol = "Synthétique (hors gazon)") AND (equip_type_name = "Terrain de volley-ball" OR equip_type_name = "Terrain de beach-volley")`
+const GREEN_QUERY = `aps_name LIKE "volley" AND (equip_nature = "Découvert" OR equip_nature = "Découvrable" OR equip_nature = "Extérieur couvert" OR equip_nature = "Site naturel" OR equip_nature = "Site naturel aménagé") AND (equip_sol = "Gazon naturel" OR equip_sol = "Synthétique (hors gazon)") AND (equip_type_name = "Terrain de volley-ball" OR equip_type_name = "Terrain de beach-volley")`
 
 const FIELDS = [
   'equip_numero', 'inst_nom', 'inst_adresse', 'inst_cp', 'new_name',
