@@ -298,12 +298,7 @@ export default function SpotSidebar({
                 <div className="flex overflow-x-auto snap-x hide-scrollbar gap-2 pb-2 -mx-4 px-4">
                   {photos.map((p: any, i: number) => (
                     <div key={i} className="relative shrink-0 snap-center">
-                      <img src={p.photo_url} alt="Spot" className={`w-64 h-48 object-cover rounded-xl border border-border transition-all ${spot.status === 'waiting_for_validation' ? 'grayscale opacity-60' : ''}`} />
-                      {spot.status === 'waiting_for_validation' && (
-                        <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-md backdrop-blur-sm">
-                          À valider
-                        </div>
-                      )}
+                      <img src={p.photo_url} alt="Spot" className="w-64 h-48 object-cover rounded-xl border border-border" />
                     </div>
                   ))}
                 </div>
