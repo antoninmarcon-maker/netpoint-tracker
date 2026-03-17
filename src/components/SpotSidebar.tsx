@@ -292,12 +292,6 @@ export default function SpotSidebar({
                 <Button onClick={() => setIsEditingMode(true)} variant="outline" className="flex-1 text-xs h-9">
                   <Edit3 size={14} className="mr-2" /> Modifier
                 </Button>
-                
-                {spot.status === 'waiting_for_validation' && (
-                  <Button onClick={confirmSpot} variant="secondary" className="flex-1 text-xs h-9 bg-primary/10 text-primary hover:bg-primary/20">
-                    <CheckCircle2 size={14} className="mr-2" /> Confirmer
-                  </Button>
-                )}
               </div>
 
               {photos.length > 0 ? (
