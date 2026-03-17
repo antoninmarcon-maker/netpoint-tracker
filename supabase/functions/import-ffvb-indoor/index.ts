@@ -109,7 +109,7 @@ function parseKml(kmlText: string): GymData[] {
   return gyms
 }
 
-async function runImport(startOffset: number, batchLimit: number) {
+async function runImport(startOffset: number, batchLimit: number, autoChain: boolean) {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   if (!supabaseUrl || !supabaseKey) throw new Error('Missing Supabase config')
