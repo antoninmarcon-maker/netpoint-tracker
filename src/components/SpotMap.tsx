@@ -111,11 +111,12 @@ export default function SpotMap({
 }: SpotMapProps) {
   const { t } = useTranslation();
   const [spots, setSpots] = useState<any[]>([]);
-  const [activeTypes, setActiveTypes] = useState<string[]>([
-    'club', 'indoor', 'beach', 'green_volley', 'outdoor_hard', 'outdoor_grass',
-  ]);
+  // 3 main categories
+  const [showExterieur, setShowExterieur] = useState(true);
+  const [showGymnase, setShowGymnase] = useState(true);
+  const [showClubs, setShowClubs] = useState(true);
   const [subFilters, setSubFilters] = useState<SubFilters>(DEFAULT_SUB_FILTERS);
-  const [showSubFilters, setShowSubFilters] = useState<'beach' | 'green_volley' | null>(null);
+  const [showSubFilters, setShowSubFilters] = useState(false);
 
   useEffect(() => {
     supabase
