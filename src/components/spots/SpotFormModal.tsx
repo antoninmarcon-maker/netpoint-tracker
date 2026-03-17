@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,26 +25,39 @@ interface SpotFormModalProps {
 
 export default function SpotFormModal({ open, onClose, onSuccess, location, onLocationChange, spotToEdit, isSuggestion }: SpotFormModalProps) {
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState(spotToEdit?.name || '');
-  const [description, setDescription] = useState(spotToEdit?.description || '');
-  const [type, setType] = useState(spotToEdit?.type || 'outdoor_hard');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [type, setType] = useState('outdoor_hard');
   const [photos, setPhotos] = useState<File[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
+  const [allYear, setAllYear] = useState(true);
+  const [startMonth, setStartMonth] = useState('');
+  const [endMonth, setEndMonth] = useState('');
 
-  const parseAvailability = () => {
-    if (!spotToEdit?.availability_period) return { allYear: true, start: '', end: '' };
-    if (spotToEdit.availability_period === "Toute l'année") return { allYear: true, start: '', end: '' };
-    const parts = spotToEdit.availability_period.match(/De (.+) à (.+)/);
-    if (parts?.length === 3) return { allYear: false, start: parts[1], end: parts[2] };
-    return { allYear: false, start: '', end: '' };
-  };
+  // Reset form fields whenever spotToEdit or open changes
+  useEffect(() => {
+    if (!open) return;
+    setName(spotToEdit?.name || '');
+    setDescription(spotToEdit?.description || '');
+    setType(spotToEdit?.type || 'outdoor_hard');
+    setPhotos([]);
+    setSearchQuery('');
+    setSearchResults([]);
 
-  const init = parseAvailability();
-  const [allYear, setAllYear] = useState(init.allYear);
-  const [startMonth, setStartMonth] = useState(init.start);
-  const [endMonth, setEndMonth] = useState(init.end);
+    const period = spotToEdit?.availability_period;
+    if (!period || period === "Toute l'année") {
+      setAllYear(true); setStartMonth(''); setEndMonth('');
+    } else {
+      const parts = period.match(/De (.+) à (.+)/);
+      if (parts?.length === 3) {
+        setAllYear(false); setStartMonth(parts[1]); setEndMonth(parts[2]);
+      } else {
+        setAllYear(false); setStartMonth(''); setEndMonth('');
+      }
+    }
+  }, [spotToEdit, open]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
