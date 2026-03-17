@@ -155,7 +155,7 @@ async function runImport(startOffset: number, batchLimit: number, autoChain: boo
   const nextOffset = startOffset + clubs.length
   const done = nextOffset >= total
 
-  return {
+  const result = {
     success: true,
     total,
     batch_start: startOffset,
@@ -167,6 +167,23 @@ async function runImport(startOffset: number, batchLimit: number, autoChain: boo
     next_offset: done ? null : nextOffset,
     message: `Clubs batch done. ${imported} upserted (offset ${startOffset}→${nextOffset}/${total}). ${done ? 'COMPLETE' : `Next: offset=${nextOffset}`}`,
   }
+
+  // Auto-chain: fire next batch in background if not done
+  if (!done && autoChain) {
+    const selfUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/import-ffvb-clubs`
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    console.log(`Auto-chaining next batch: offset=${nextOffset}`)
+    fetch(selfUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({ offset: nextOffset, limit: batchLimit, auto_chain: true }),
+    }).catch(e => console.error('Auto-chain fetch error:', e))
+  }
+
+  return result
 }
 
 Deno.serve(async (req) => {
