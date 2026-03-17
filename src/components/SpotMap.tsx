@@ -22,20 +22,29 @@ interface SpotMapProps {
 
 const defaultCenter: [number, number] = [46.603354, 1.888334];
 
-const SPOT_TYPES = ['club', 'indoor', 'beach', 'green_volley', 'outdoor_hard', 'outdoor_grass'] as const;
-type SpotType = typeof SPOT_TYPES[number];
+// Group mapping: which DB types belong to which UI category
+const EXTERIOR_TYPES = ['beach', 'green_volley', 'outdoor_hard', 'outdoor_grass'];
 
 interface SubFilters {
   acces_libre: boolean;
+  // Exterior sub-type toggles
+  ext_beach: boolean;
+  ext_herbe: boolean;
+  ext_dur: boolean;
+  // Beach-specific
   beach_eclairage: boolean;
   beach_pmr: boolean;
   beach_saison: 'all' | 'annee' | 'saisonnier';
+  // Herbe-specific
   green_sol: 'all' | 'naturel' | 'synthetique';
   green_saison: 'all' | 'annee' | 'saisonnier';
 }
 
 const DEFAULT_SUB_FILTERS: SubFilters = {
-  acces_libre: true, // Default: only show freely accessible spots
+  acces_libre: true,
+  ext_beach: true,
+  ext_herbe: true,
+  ext_dur: true,
   beach_eclairage: false,
   beach_pmr: false,
   beach_saison: 'all',
@@ -102,11 +111,12 @@ export default function SpotMap({
 }: SpotMapProps) {
   const { t } = useTranslation();
   const [spots, setSpots] = useState<any[]>([]);
-  const [activeTypes, setActiveTypes] = useState<string[]>([
-    'club', 'indoor', 'beach', 'green_volley', 'outdoor_hard', 'outdoor_grass',
-  ]);
+  // 3 main categories
+  const [showExterieur, setShowExterieur] = useState(true);
+  const [showGymnase, setShowGymnase] = useState(true);
+  const [showClubs, setShowClubs] = useState(true);
   const [subFilters, setSubFilters] = useState<SubFilters>(DEFAULT_SUB_FILTERS);
-  const [showSubFilters, setShowSubFilters] = useState<'beach' | 'green_volley' | null>(null);
+  const [showSubFilters, setShowSubFilters] = useState(false);
 
   useEffect(() => {
     supabase
@@ -118,39 +128,42 @@ export default function SpotMap({
       });
   }, []);
 
-  const toggleType = (type: string) => {
-    setActiveTypes(prev =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
-    );
-  };
-
   const setSubFilter = <K extends keyof SubFilters>(key: K, value: SubFilters[K]) => {
     setSubFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const filteredSpots = spots.filter(spot => {
     const type = spot.type || 'outdoor_hard';
-    if (!activeTypes.includes(type)) return false;
 
-    // Global free access filter (applies to beach & green)
-    if (subFilters.acces_libre && (type === 'beach' || type === 'green_volley')) {
-      if (!spot.equip_acces_libre) return false;
-    }
+    // Main category gates
+    if (type === 'club' && !showClubs) return false;
+    if (type === 'indoor' && !showGymnase) return false;
+    if (EXTERIOR_TYPES.includes(type) && !showExterieur) return false;
 
-    // Beach sub-filters
-    if (type === 'beach') {
-      if (subFilters.beach_eclairage && !spot.equip_eclairage) return false;
-      if (subFilters.beach_pmr && !spot.equip_pmr) return false;
-      if (subFilters.beach_saison === 'annee' && spot.equip_saisonnier) return false;
-      if (subFilters.beach_saison === 'saisonnier' && !spot.equip_saisonnier) return false;
-    }
+    // Exterior sub-type gates
+    if (EXTERIOR_TYPES.includes(type)) {
+      if (type === 'beach' && !subFilters.ext_beach) return false;
+      if ((type === 'green_volley' || type === 'outdoor_grass') && !subFilters.ext_herbe) return false;
+      if (type === 'outdoor_hard' && !subFilters.ext_dur) return false;
 
-    // Green-volley sub-filters
-    if (type === 'green_volley') {
-      if (subFilters.green_saison === 'annee' && spot.equip_saisonnier) return false;
-      if (subFilters.green_saison === 'saisonnier' && !spot.equip_saisonnier) return false;
-      if (subFilters.green_sol === 'naturel' && spot.equip_sol !== 'Gazon naturel') return false;
-      if (subFilters.green_sol === 'synthetique' && spot.equip_sol !== 'Gazon synthétique') return false;
+      // Free access filter (exterior only)
+      if (subFilters.acces_libre && !spot.equip_acces_libre) return false;
+
+      // Beach-specific
+      if (type === 'beach') {
+        if (subFilters.beach_eclairage && !spot.equip_eclairage) return false;
+        if (subFilters.beach_pmr && !spot.equip_pmr) return false;
+        if (subFilters.beach_saison === 'annee' && spot.equip_saisonnier) return false;
+        if (subFilters.beach_saison === 'saisonnier' && !spot.equip_saisonnier) return false;
+      }
+
+      // Herbe-specific
+      if (type === 'green_volley' || type === 'outdoor_grass') {
+        if (subFilters.green_saison === 'annee' && spot.equip_saisonnier) return false;
+        if (subFilters.green_saison === 'saisonnier' && !spot.equip_saisonnier) return false;
+        if (subFilters.green_sol === 'naturel' && spot.equip_sol !== 'Gazon naturel') return false;
+        if (subFilters.green_sol === 'synthetique' && spot.equip_sol !== 'Gazon synthétique') return false;
+      }
     }
 
     return true;
@@ -180,15 +193,6 @@ export default function SpotMap({
     iconSize: [40, 40], iconAnchor: [20, 40], popupAnchor: [0, -40],
   });
 
-  const mainFilters = [
-    { id: 'beach',         label: '🏖️ Beach', hasSub: true },
-    { id: 'green_volley',  label: '🌿 Green', hasSub: true },
-    { id: 'outdoor_hard',  label: '☀️ Extérieur' },
-    { id: 'outdoor_grass', label: '🌱 Herbe' },
-    { id: 'indoor',        label: '🏟️ En salle' },
-    { id: 'club',          label: '🏛️ Clubs' },
-  ];
-
   return (
     <div className="w-full h-full relative">
       <MapContainer
@@ -202,59 +206,77 @@ export default function SpotMap({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Global + type filter pills */}
+        {/* Filter bar */}
         <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col gap-2">
-          {/* Free access toggle */}
+          {/* Row 1: Main categories + count */}
           <div className="flex items-center gap-2">
-            <FilterPill active={subFilters.acces_libre} onClick={() => setSubFilter('acces_libre', !subFilters.acces_libre)}>
-              🔓 Libre accès uniquement
+            <div className="flex items-center gap-1.5">
+              <FilterPill active={showExterieur} onClick={() => setShowExterieur(p => !p)}>
+                ☀️ Extérieur
+              </FilterPill>
+              {showExterieur && (
+                <button
+                  onClick={() => setShowSubFilters(p => !p)}
+                  className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center border transition-all ${
+                    showSubFilters
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background/90 border-border text-muted-foreground'
+                  }`}
+                >
+                  ⚙
+                </button>
+              )}
+            </div>
+            <FilterPill active={showGymnase} onClick={() => setShowGymnase(p => !p)}>
+              🏟️ Gymnase
             </FilterPill>
-            <span className="text-[10px] text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full border border-border">
+            <FilterPill active={showClubs} onClick={() => setShowClubs(p => !p)}>
+              🏛️ Clubs
+            </FilterPill>
+            <span className="text-[10px] text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full border border-border whitespace-nowrap">
               {filteredSpots.length} terrains
             </span>
           </div>
 
-          {/* Type pills */}
-          <div className="overflow-x-auto pb-1 hide-scrollbar">
-            <div className="flex items-center gap-2">
-              {mainFilters.map(f => (
-                <div key={f.id} className="flex items-center gap-0.5">
-                  <FilterPill active={activeTypes.includes(f.id)} onClick={() => toggleType(f.id)}>
-                    {f.label}
-                  </FilterPill>
-                  {f.hasSub && activeTypes.includes(f.id) && (
-                    <button
-                      onClick={() => setShowSubFilters(prev => prev === f.id ? null : f.id as any)}
-                      className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center border transition-all ${
-                        showSubFilters === f.id
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'bg-background/90 border-border text-muted-foreground'
-                      }`}
-                    >
-                      ⚙
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Row 2: Libre accès (only when extérieur active) */}
+          {showExterieur && (
+            <FilterPill active={subFilters.acces_libre} onClick={() => setSubFilter('acces_libre', !subFilters.acces_libre)}>
+              🔓 Libre accès uniquement
+            </FilterPill>
+          )}
         </div>
 
-        {/* Beach sub-filters */}
-        {showSubFilters === 'beach' && (
-          <div className="absolute top-24 left-4 z-[400] bg-background/95 backdrop-blur-sm border border-border rounded-xl p-3 shadow-lg min-w-[220px]">
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Beach-Volley</p>
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2 text-xs cursor-pointer">
-                <input type="checkbox" checked={subFilters.beach_eclairage} onChange={e => setSubFilter('beach_eclairage', e.target.checked)} className="rounded" />
-                Éclairage
-              </label>
-              <label className="flex items-center gap-2 text-xs cursor-pointer">
-                <input type="checkbox" checked={subFilters.beach_pmr} onChange={e => setSubFilter('beach_pmr', e.target.checked)} className="rounded" />
-                Accès PMR
-              </label>
-              <div className="border-t border-border pt-2 mt-1">
-                <p className="text-[10px] text-muted-foreground mb-1.5">Disponibilité</p>
+        {/* Exterior sub-filters panel */}
+        {showSubFilters && showExterieur && (
+          <div className="absolute top-24 left-4 z-[400] bg-background/95 backdrop-blur-sm border border-border rounded-xl p-3 shadow-lg min-w-[240px] max-h-[60vh] overflow-y-auto">
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Filtres extérieur</p>
+
+            {/* Sub-type toggles */}
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              <FilterPill active={subFilters.ext_beach} onClick={() => setSubFilter('ext_beach', !subFilters.ext_beach)}>
+                🏖️ Beach
+              </FilterPill>
+              <FilterPill active={subFilters.ext_herbe} onClick={() => setSubFilter('ext_herbe', !subFilters.ext_herbe)}>
+                🌿 Herbe
+              </FilterPill>
+              <FilterPill active={subFilters.ext_dur} onClick={() => setSubFilter('ext_dur', !subFilters.ext_dur)}>
+                🏗️ Dur
+              </FilterPill>
+            </div>
+
+            {/* Beach details */}
+            {subFilters.ext_beach && (
+              <div className="border-t border-border pt-2 mb-2">
+                <p className="text-[10px] text-muted-foreground mb-1.5 font-semibold">🏖️ Beach</p>
+                <label className="flex items-center gap-2 text-xs cursor-pointer mb-1">
+                  <input type="checkbox" checked={subFilters.beach_eclairage} onChange={e => setSubFilter('beach_eclairage', e.target.checked)} className="rounded" />
+                  Éclairage
+                </label>
+                <label className="flex items-center gap-2 text-xs cursor-pointer mb-1">
+                  <input type="checkbox" checked={subFilters.beach_pmr} onChange={e => setSubFilter('beach_pmr', e.target.checked)} className="rounded" />
+                  Accès PMR
+                </label>
+                <p className="text-[10px] text-muted-foreground mb-1 mt-1.5">Disponibilité</p>
                 {(['all', 'annee', 'saisonnier'] as const).map(v => (
                   <label key={v} className="flex items-center gap-2 text-xs cursor-pointer mb-1">
                     <input type="radio" name="beach_saison" value={v} checked={subFilters.beach_saison === v} onChange={() => setSubFilter('beach_saison', v)} />
@@ -262,26 +284,20 @@ export default function SpotMap({
                   </label>
                 ))}
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* Green-volley sub-filters */}
-        {showSubFilters === 'green_volley' && (
-          <div className="absolute top-24 left-4 z-[400] bg-background/95 backdrop-blur-sm border border-border rounded-xl p-3 shadow-lg min-w-[220px]">
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Green-Volley</p>
-            <div className="flex flex-col gap-2">
-              <div className="border-t border-border pt-2 mt-1">
-                <p className="text-[10px] text-muted-foreground mb-1.5">Surface</p>
+            {/* Herbe details */}
+            {subFilters.ext_herbe && (
+              <div className="border-t border-border pt-2 mb-2">
+                <p className="text-[10px] text-muted-foreground mb-1.5 font-semibold">🌿 Herbe</p>
+                <p className="text-[10px] text-muted-foreground mb-1">Surface</p>
                 {(['all', 'naturel', 'synthetique'] as const).map(v => (
                   <label key={v} className="flex items-center gap-2 text-xs cursor-pointer mb-1">
                     <input type="radio" name="green_sol" value={v} checked={subFilters.green_sol === v} onChange={() => setSubFilter('green_sol', v)} />
-                    {v === 'all' ? 'Toutes' : v === 'naturel' ? '🌿 Gazon naturel' : '⚡ Synthétique'}
+                    {v === 'all' ? 'Toutes' : v === 'naturel' ? '🌿 Naturel' : '⚡ Synthétique'}
                   </label>
                 ))}
-              </div>
-              <div className="border-t border-border pt-2 mt-1">
-                <p className="text-[10px] text-muted-foreground mb-1.5">Disponibilité</p>
+                <p className="text-[10px] text-muted-foreground mb-1 mt-1.5">Disponibilité</p>
                 {(['all', 'annee', 'saisonnier'] as const).map(v => (
                   <label key={v} className="flex items-center gap-2 text-xs cursor-pointer mb-1">
                     <input type="radio" name="green_saison" value={v} checked={subFilters.green_saison === v} onChange={() => setSubFilter('green_saison', v)} />
@@ -289,7 +305,7 @@ export default function SpotMap({
                   </label>
                 ))}
               </div>
-            </div>
+            )}
           </div>
         )}
 
