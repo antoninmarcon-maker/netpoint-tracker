@@ -222,13 +222,15 @@ Deno.serve(async (req) => {
   try {
     let startOffset = 0
     let batchLimit = 200
+    let autoChain = true
     try {
       const body = await req.json()
       if (typeof body.offset === 'number') startOffset = body.offset
       if (typeof body.limit === 'number') batchLimit = body.limit
+      if (typeof body.auto_chain === 'boolean') autoChain = body.auto_chain
     } catch { /* no body = defaults */ }
 
-    const result = await runImport(startOffset, batchLimit)
+    const result = await runImport(startOffset, batchLimit, autoChain)
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
