@@ -22,20 +22,29 @@ interface SpotMapProps {
 
 const defaultCenter: [number, number] = [46.603354, 1.888334];
 
-const SPOT_TYPES = ['club', 'indoor', 'beach', 'green_volley', 'outdoor_hard', 'outdoor_grass'] as const;
-type SpotType = typeof SPOT_TYPES[number];
+// Group mapping: which DB types belong to which UI category
+const EXTERIOR_TYPES = ['beach', 'green_volley', 'outdoor_hard', 'outdoor_grass'];
 
 interface SubFilters {
   acces_libre: boolean;
+  // Exterior sub-type toggles
+  ext_beach: boolean;
+  ext_herbe: boolean;
+  ext_dur: boolean;
+  // Beach-specific
   beach_eclairage: boolean;
   beach_pmr: boolean;
   beach_saison: 'all' | 'annee' | 'saisonnier';
+  // Herbe-specific
   green_sol: 'all' | 'naturel' | 'synthetique';
   green_saison: 'all' | 'annee' | 'saisonnier';
 }
 
 const DEFAULT_SUB_FILTERS: SubFilters = {
-  acces_libre: true, // Default: only show freely accessible spots
+  acces_libre: true,
+  ext_beach: true,
+  ext_herbe: true,
+  ext_dur: true,
   beach_eclairage: false,
   beach_pmr: false,
   beach_saison: 'all',
