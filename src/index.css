@@ -143,3 +143,19 @@
     box-shadow: 0 0 20px hsl(var(--team-red-glow)), 0 0 40px hsl(var(--team-red-glow));
   }
 }
+
+/* Leaflet cluster overrides */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background: transparent !important;
+}
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background: transparent !important;
+}
+.leaflet-marker-icon.custom-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
