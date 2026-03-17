@@ -161,23 +161,7 @@ export default function SpotSidebar({
     }
   };
 
-  const confirmSpot = async () => {
-    if (!spot) return;
-    if (!checkAndIncrementRateLimit()) return;
-
-    try {      
-      const { error } = await supabase.from('spots')
-        .update({ status: 'validated' })
-        .eq('id', spot.id);
-        
-      if (error) throw error;
-      toast.success("Terrain confirmé ! Merci.");
-      loadSpotDetails(spot.id);
-      if (onSpotAdded) onSpotAdded(); // trigger map refresh
-    } catch(err) {
-      toast.error("Erreur, impossible de confirmer.");
-    }
-  };
+  // confirmSpot removed — no more verification system
 
   const generateAiSummary = async () => {
     if (!spot) return;
@@ -308,24 +292,13 @@ export default function SpotSidebar({
                 <Button onClick={() => setIsEditingMode(true)} variant="outline" className="flex-1 text-xs h-9">
                   <Edit3 size={14} className="mr-2" /> Modifier
                 </Button>
-                
-                {spot.status === 'waiting_for_validation' && (
-                  <Button onClick={confirmSpot} variant="secondary" className="flex-1 text-xs h-9 bg-primary/10 text-primary hover:bg-primary/20">
-                    <CheckCircle2 size={14} className="mr-2" /> Confirmer
-                  </Button>
-                )}
               </div>
 
               {photos.length > 0 ? (
                 <div className="flex overflow-x-auto snap-x hide-scrollbar gap-2 pb-2 -mx-4 px-4">
                   {photos.map((p: any, i: number) => (
                     <div key={i} className="relative shrink-0 snap-center">
-                      <img src={p.photo_url} alt="Spot" className={`w-64 h-48 object-cover rounded-xl border border-border transition-all ${spot.status === 'waiting_for_validation' ? 'grayscale opacity-60' : ''}`} />
-                      {spot.status === 'waiting_for_validation' && (
-                        <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-md backdrop-blur-sm">
-                          À valider
-                        </div>
-                      )}
+                      <img src={p.photo_url} alt="Spot" className="w-64 h-48 object-cover rounded-xl border border-border" />
                     </div>
                   ))}
                 </div>
