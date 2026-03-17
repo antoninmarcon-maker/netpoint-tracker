@@ -1,4 +1,4 @@
-import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2, Edit3, ExternalLink, Sparkles, Navigation } from 'lucide-react';
+import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, CheckCircle2, Edit3, ExternalLink, Sparkles, Navigation, Zap, Phone, Globe, Leaf } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
 import SpotForm from '@/components/SpotForm';
@@ -220,11 +220,13 @@ export default function SpotSidebar({
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'beach': return t('spots.typeLabelBeach');
+      case 'club':         return '🏛️ Club affilié FFVB';
+      case 'beach':        return t('spots.typeLabelBeach');
+      case 'green_volley': return '🌿 Green-Volley';
       case 'outdoor_hard': return t('spots.typeLabelOutdoorHard');
-      case 'outdoor_grass': return t('spots.typeLabelOutdoorGrass');
-      case 'indoor': return t('spots.typeLabelIndoor');
-      default: return t('spots.typeLabelDefault');
+      case 'outdoor_grass':return t('spots.typeLabelOutdoorGrass');
+      case 'indoor':       return t('spots.typeLabelIndoor');
+      default:             return t('spots.typeLabelDefault');
     }
   };
 
@@ -338,6 +340,121 @@ export default function SpotSidebar({
                   <div className="flex items-start gap-3 text-sm">
                     <MapPin size={16} className="text-muted-foreground mt-0.5 shrink-0" />
                     <p className="text-foreground">{spot.address}</p>
+                  </div>
+                )}
+
+                {/* FFVB equipment badges */}
+                {spot.source && spot.source !== 'user' && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {spot.equip_acces_libre && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/15 text-green-700 dark:text-green-400 text-[11px] font-semibold border border-green-500/20">
+                        🔓 Libre accès
+                      </span>
+                    )}
+                    {spot.equip_eclairage && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 text-[11px] font-semibold border border-yellow-500/20">
+                        <Zap size={10} /> Éclairé
+                      </span>
+                    )}
+                    {spot.equip_pmr && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-400 text-[11px] font-semibold border border-blue-500/20">
+                        ♿ PMR
+                      </span>
+                    )}
+                    {spot.equip_saisonnier === true && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-700 dark:text-orange-400 text-[11px] font-semibold border border-orange-500/20">
+                        📅 Saisonnier
+                      </span>
+                    )}
+                    {spot.equip_saisonnier === false && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-700 dark:text-teal-400 text-[11px] font-semibold border border-teal-500/20">
+                        📅 À l'année
+                      </span>
+                    )}
+                    {spot.equip_sol && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-foreground text-[11px] font-semibold border border-border">
+                        <Leaf size={10} /> {spot.equip_sol}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* FFVB terrain dimensions */}
+                {(spot.equip_longueur || spot.equip_largeur || spot.equip_hauteur || spot.equip_nb_terrains) && (
+                  <div className="bg-secondary/30 rounded-xl border border-border p-3 grid grid-cols-2 gap-2">
+                    {spot.equip_nb_terrains != null && (
+                      <div className="text-xs">
+                        <p className="text-muted-foreground">Terrains</p>
+                        <p className="font-semibold">{spot.equip_nb_terrains}</p>
+                      </div>
+                    )}
+                    {spot.equip_longueur && (
+                      <div className="text-xs">
+                        <p className="text-muted-foreground">Longueur</p>
+                        <p className="font-semibold">{spot.equip_longueur} m</p>
+                      </div>
+                    )}
+                    {spot.equip_largeur && (
+                      <div className="text-xs">
+                        <p className="text-muted-foreground">Largeur</p>
+                        <p className="font-semibold">{spot.equip_largeur} m</p>
+                      </div>
+                    )}
+                    {spot.equip_hauteur && (
+                      <div className="text-xs">
+                        <p className="text-muted-foreground">Hauteur plafond</p>
+                        <p className="font-semibold">{spot.equip_hauteur} m</p>
+                      </div>
+                    )}
+                    {spot.equip_vestiaires != null && (
+                      <div className="text-xs">
+                        <p className="text-muted-foreground">Vestiaires</p>
+                        <p className="font-semibold">{spot.equip_vestiaires}</p>
+                      </div>
+                    )}
+                    {spot.equip_tribunes != null && (
+                      <div className="text-xs">
+                        <p className="text-muted-foreground">Places tribunes</p>
+                        <p className="font-semibold">{spot.equip_tribunes}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Club contact info */}
+                {spot.source === 'ffvb_club' && (
+                  <div className="space-y-2">
+                    {spot.club_lien_fiche && (
+                      <a href={spot.club_lien_fiche} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-3 text-sm text-primary hover:underline">
+                        <Info size={16} className="shrink-0" />
+                        <span className="font-medium">Fiche club FFVB</span>
+                        <ExternalLink size={12} className="shrink-0" />
+                      </a>
+                    )}
+                    {spot.club_site_web && (
+                      <a href={spot.club_site_web} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-3 text-sm text-primary hover:underline">
+                        <Globe size={16} className="shrink-0" />
+                        <span className="font-medium">Site du club</span>
+                        <ExternalLink size={12} className="shrink-0" />
+                      </a>
+                    )}
+                    {spot.club_telephone && (
+                      <a href={`tel:${spot.club_telephone}`}
+                        className="flex items-center gap-3 text-sm text-primary hover:underline">
+                        <Phone size={16} className="shrink-0" />
+                        <span className="font-medium">{spot.club_telephone}</span>
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* FFVB region/department */}
+                {(spot.ffvb_ligue || spot.ffvb_comite) && (
+                  <div className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <MapPin size={16} className="mt-0.5 shrink-0" />
+                    <p>{[spot.ffvb_comite, spot.ffvb_ligue].filter(Boolean).join(' — ')}</p>
                   </div>
                 )}
 

@@ -1,0 +1,186 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.47.0"
+import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts"
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+// Google My Maps KML export — clubs affiliés FFVB
+const KML_URL = 'https://www.google.com/maps/d/kml?mid=1FeR33v2UZ7nOlueFb9C2DhALfjsBpr0&forcekml=1'
+
+// Nominatim geocoding (OpenStreetMap) — limited to France
+const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org/search'
+
+interface ClubData {
+  name: string
+  address: string
+  cp: string
+  ville: string
+  ligue: string
+  comite: string
+  lienFiche: string | null
+}
+
+function parseKmlDescription(html: string): Record<string, string> {
+  // Description is HTML: "Field: Value<br>Field2: Value2<br>"
+  const pairs: Record<string, string> = {}
+  const parts = html.split(/<br\s*\/?>/gi)
+  for (const part of parts) {
+    const colonIdx = part.indexOf(':')
+    if (colonIdx === -1) continue
+    const key = part.slice(0, colonIdx).trim().replace(/<[^>]+>/g, '')
+    const value = part.slice(colonIdx + 1).trim().replace(/<[^>]+>/g, '')
+    if (key && value) pairs[key] = value
+  }
+  return pairs
+}
+
+async function geocodeAddress(address: string, cp: string, ville: string): Promise<{ lat: number; lng: number } | null> {
+  const query = [address, cp, ville, 'France'].filter(Boolean).join(', ')
+  const params = new URLSearchParams({
+    q: query,
+    format: 'json',
+    limit: '1',
+    countrycodes: 'fr',
+  })
+
+  try {
+    const res = await fetch(`${NOMINATIM_BASE}?${params}`, {
+      headers: { 'User-Agent': 'MyVolley-App/1.0 (contact@myvolley.app)' },
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    if (!data.length) return null
+    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
+  } catch {
+    return null
+  }
+}
+
+async function parseKml(kmlText: string): Promise<ClubData[]> {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(kmlText, 'text/xml')
+  if (!doc) throw new Error('Failed to parse KML')
+
+  const placemarks = doc.querySelectorAll('Placemark')
+  const clubs: ClubData[] = []
+
+  for (const pm of placemarks) {
+    const name = pm.querySelector('name')?.textContent?.trim() || ''
+    const descRaw = pm.querySelector('description')?.textContent || ''
+    const fields = parseKmlDescription(descRaw)
+
+    const cp = (fields['cp'] || fields['CP'] || '').trim()
+    const ville = (fields['ville'] || '').trim()
+    const ligue = (fields['Ligue'] || '').trim().replace(/^Ligue\s+/i, '')
+    const comite = (fields['Comité'] || fields['Comite'] || '').trim()
+    const lienFiche = fields['Lien Fiche'] || null
+
+    // Build address from KML <address> tag or fields
+    const addressTag = pm.querySelector('address')?.textContent?.trim() || ''
+    const address = addressTag || [cp, ville].filter(Boolean).join(' ')
+
+    if (!name || (!cp && !ville)) continue
+
+    clubs.push({ name, address, cp, ville, ligue, comite, lienFiche })
+  }
+
+  return clubs
+}
+
+async function runImport() {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (!supabaseUrl || !supabaseKey) throw new Error('Missing Supabase config')
+
+  const supabase = createClient(supabaseUrl, supabaseKey)
+
+  console.log('Fetching clubs KML from Google My Maps...')
+  const kmlRes = await fetch(KML_URL, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MyVolley/1.0)' },
+  })
+  if (!kmlRes.ok) throw new Error(`KML fetch failed: ${kmlRes.status}`)
+  const kmlText = await kmlRes.text()
+
+  console.log('Parsing KML...')
+  const clubs = await parseKml(kmlText)
+  console.log(`Found ${clubs.length} clubs in KML`)
+
+  let imported = 0
+  let geocodeFailed = 0
+  let errors = 0
+
+  for (const club of clubs) {
+    // Derive external_id from lienFiche URL (id_club param) or name+cp
+    let externalId: string
+    if (club.lienFiche) {
+      const match = club.lienFiche.match(/id_club=([^&]+)/)
+      externalId = match ? `club_${match[1]}` : `club_${club.name}_${club.cp}`.replace(/\s+/g, '_').toLowerCase()
+    } else {
+      externalId = `club_${club.name}_${club.cp}`.replace(/\s+/g, '_').toLowerCase()
+    }
+
+    // Geocode address
+    const coords = await geocodeAddress(club.address, club.cp, club.ville)
+    if (!coords) {
+      console.warn(`No coords for: ${club.name} (${club.cp} ${club.ville})`)
+      geocodeFailed++
+      // Still upsert without coords if we have at least a name
+    }
+
+    const { error } = await supabase.rpc('upsert_spot_with_location', {
+      p_external_id: externalId,
+      p_name: club.name,
+      p_address: club.address,
+      p_type: 'club',
+      p_source: 'ffvb_club',
+      p_status: 'validated',
+      p_user_id: '00000000-0000-0000-0000-000000000000',
+      p_lat: coords?.lat ?? 46.603354,  // fallback to France center if no coords
+      p_lng: coords?.lng ?? 1.888334,
+      p_ffvb_ligue: club.ligue || null,
+      p_ffvb_comite: club.comite || null,
+      p_club_lien_fiche: club.lienFiche || null,
+    })
+
+    if (error) {
+      console.error(`Error upserting club ${club.name}:`, error.message)
+      errors++
+    } else {
+      imported++
+    }
+
+    // Respect Nominatim rate limit: 1 req/sec
+    await new Promise(resolve => setTimeout(resolve, 1100))
+  }
+
+  return {
+    success: true,
+    total: clubs.length,
+    imported,
+    geocodeFailed,
+    errors,
+    message: `Clubs import done. ${imported} upserted, ${geocodeFailed} sans coords, ${errors} erreurs.`,
+  }
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
+  }
+
+  try {
+    const result = await runImport()
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    })
+  } catch (error) {
+    console.error('Function error:', error)
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500,
+    })
+  }
+})

@@ -11,11 +11,7 @@ import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl,
-  iconUrl,
-  shadowUrl,
-});
+L.Icon.Default.mergeOptions({ iconRetinaUrl, iconUrl, shadowUrl });
 
 interface SpotMapProps {
   selectedSpotId: string | null;
@@ -27,26 +23,46 @@ interface SpotMapProps {
 
 const defaultCenter: [number, number] = [46.603354, 1.888334];
 
+// All spot types (user-submitted + FFVB-imported)
+const SPOT_TYPES = ['club', 'indoor', 'beach', 'green_volley', 'outdoor_hard', 'outdoor_grass'] as const;
+type SpotType = typeof SPOT_TYPES[number];
+
+// Sub-filters for FFVB types
+interface SubFilters {
+  beach_acces_libre: boolean;
+  beach_eclairage: boolean;
+  beach_pmr: boolean;
+  beach_saison: 'all' | 'annee' | 'saisonnier';
+  green_sol: 'all' | 'naturel' | 'synthetique';
+  green_saison: 'all' | 'annee' | 'saisonnier';
+  green_acces_libre: boolean;
+}
+
+const DEFAULT_SUB_FILTERS: SubFilters = {
+  beach_acces_libre: false,
+  beach_eclairage: false,
+  beach_pmr: false,
+  beach_saison: 'all',
+  green_sol: 'all',
+  green_saison: 'all',
+  green_acces_libre: false,
+};
+
 function UserLocationMarker() {
   const { t } = useTranslation();
   const [position, setPosition] = useState<L.LatLng | null>(null);
   const map = useMap();
-
   useEffect(() => {
-    map.locate().on("locationfound", function (e) {
+    map.locate().on("locationfound", (e) => {
       setPosition(e.latlng);
       map.flyTo(e.latlng, map.getZoom());
     });
   }, [map]);
-
   const userIcon = L.divIcon({
     className: 'custom-div-icon',
     html: `<div class="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-xl animate-pulse"></div>`,
-    iconSize: [16, 16],
-    iconAnchor: [8, 8],
-    popupAnchor: [0, -8]
+    iconSize: [16, 16], iconAnchor: [8, 8], popupAnchor: [0, -8],
   });
-
   return position === null ? null : (
     <Marker position={position} icon={userIcon}>
       <Popup>{t('spots.youAreHere')}</Popup>
@@ -54,14 +70,8 @@ function UserLocationMarker() {
   );
 }
 
-function AddMarkerController({ 
-  isActive, 
-  location, 
-  onChange 
-}: { 
-  isActive?: boolean; 
-  location?: [number, number]; 
-  onChange?: (loc: [number, number]) => void 
+function AddMarkerController({ isActive, location, onChange }: {
+  isActive?: boolean; location?: [number, number]; onChange?: (loc: [number, number]) => void;
 }) {
   const map = useMap();
   useEffect(() => {
@@ -73,81 +83,125 @@ function AddMarkerController({
   return null;
 }
 
-export default function SpotMap({ 
-  selectedSpotId, 
+function FilterPill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-none px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide border transition-all shadow-sm whitespace-nowrap ${
+        active
+          ? 'bg-primary text-primary-foreground border-primary'
+          : 'bg-background/90 text-foreground border-border backdrop-blur-sm opacity-70 hover:opacity-100'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+export default function SpotMap({
+  selectedSpotId,
   onSelectSpot,
   isAddingMode,
   newSpotLocation,
-  onNewSpotLocationChange
+  onNewSpotLocationChange,
 }: SpotMapProps) {
   const { t } = useTranslation();
   const [spots, setSpots] = useState<any[]>([]);
+  const [activeTypes, setActiveTypes] = useState<string[]>([
+    'club', 'indoor', 'beach', 'green_volley', 'outdoor_hard', 'outdoor_grass', 'unverified',
+  ]);
+  const [subFilters, setSubFilters] = useState<SubFilters>(DEFAULT_SUB_FILTERS);
+  const [showSubFilters, setShowSubFilters] = useState<'beach' | 'green_volley' | null>(null);
 
   useEffect(() => {
-    supabase.from('spots_with_coords')
-      .select('id, name, type, lat, lng, status')
+    supabase
+      .from('spots_with_coords')
+      .select('id, name, type, source, lat, lng, status, equip_sol, equip_eclairage, equip_acces_libre, equip_pmr, equip_saisonnier')
       .in('status', ['validated', 'waiting_for_validation'])
       .then(({ data, error }) => {
-        if (!error && data) {
-          setSpots(data);
-        }
+        if (!error && data) setSpots(data);
       });
   }, []);
 
-  const [activeFilters, setActiveFilters] = useState<string[]>(['indoor', 'outdoor_hard', 'outdoor_grass', 'beach', 'temporary', 'unverified']);
-
-  const toggleFilter = (filterName: string) => {
-    setActiveFilters(prev => 
-      prev.includes(filterName) ? prev.filter(f => f !== filterName) : [...prev, filterName]
+  const toggleType = (type: string) => {
+    setActiveTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
     );
   };
 
-  const filteredSpots = spots.filter(spot => {
-    // If it's waiting for validation but filter is off, hide it
-    if (spot.status === 'waiting_for_validation' && !activeFilters.includes('unverified')) return false;
+  const setSubFilter = <K extends keyof SubFilters>(key: K, value: SubFilters[K]) => {
+    setSubFilters(prev => ({ ...prev, [key]: value }));
+  };
 
-    // Filter by known type
-    const knownTypes = ['indoor', 'outdoor_hard', 'outdoor_grass', 'beach'];
-    if (spot.type && knownTypes.includes(spot.type) && !activeFilters.includes(spot.type)) {
-      return false;
+  const filteredSpots = spots.filter(spot => {
+    if (spot.status === 'waiting_for_validation' && !activeTypes.includes('unverified')) return false;
+
+    const type = spot.type || 'outdoor_hard';
+    if (!activeTypes.includes(type)) return false;
+
+    // Beach sub-filters
+    if (type === 'beach') {
+      if (subFilters.beach_acces_libre && !spot.equip_acces_libre) return false;
+      if (subFilters.beach_eclairage && !spot.equip_eclairage) return false;
+      if (subFilters.beach_pmr && !spot.equip_pmr) return false;
+      if (subFilters.beach_saison === 'annee' && spot.equip_saisonnier) return false;
+      if (subFilters.beach_saison === 'saisonnier' && !spot.equip_saisonnier) return false;
     }
-    
+
+    // Green-volley sub-filters
+    if (type === 'green_volley') {
+      if (subFilters.green_acces_libre && !spot.equip_acces_libre) return false;
+      if (subFilters.green_saison === 'annee' && spot.equip_saisonnier) return false;
+      if (subFilters.green_saison === 'saisonnier' && !spot.equip_saisonnier) return false;
+      if (subFilters.green_sol === 'naturel' && spot.equip_sol !== 'Gazon naturel') return false;
+      if (subFilters.green_sol === 'synthetique' && spot.equip_sol !== 'Gazon synthétique') return false;
+    }
+
     return true;
   });
 
   const getMarkerIcon = (spot: any) => {
-    let bgColor = 'bg-blue-500';
-    let icon = '🏟️';
-    
-    if (spot.type === 'beach') { bgColor = 'bg-yellow-500'; icon = '🏖️'; }
-    if (spot.type === 'outdoor_hard' || spot.type === 'outdoor_grass') { bgColor = 'bg-green-500'; icon = '☀️'; }
-    
-    const opacity = (spot.status === 'waiting_for_validation') ? 'opacity-60 border-dashed border-2' : 'border-2 border-white shadow-md';
-    
+    const type = spot.type || 'outdoor_hard';
+    const configs: Record<string, { bg: string; icon: string }> = {
+      club:          { bg: 'bg-blue-700',   icon: '🏛️' },
+      indoor:        { bg: 'bg-blue-500',   icon: '🏟️' },
+      beach:         { bg: 'bg-yellow-500', icon: '🏖️' },
+      green_volley:  { bg: 'bg-green-600',  icon: '🌿' },
+      outdoor_hard:  { bg: 'bg-green-500',  icon: '☀️' },
+      outdoor_grass: { bg: 'bg-green-400',  icon: '🌱' },
+    };
+    const { bg, icon } = configs[type] || { bg: 'bg-gray-500', icon: '📍' };
+    const opacity = spot.status === 'waiting_for_validation'
+      ? 'opacity-60 border-dashed border-2'
+      : 'border-2 border-white shadow-md';
     return L.divIcon({
       className: 'custom-div-icon',
-      html: `<div class="w-8 h-8 rounded-full ${bgColor} flex items-center justify-center text-sm ${opacity}">${icon}</div>`,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-      popupAnchor: [0, -16]
+      html: `<div class="w-8 h-8 rounded-full ${bg} flex items-center justify-center text-sm ${opacity}">${icon}</div>`,
+      iconSize: [32, 32], iconAnchor: [16, 16], popupAnchor: [0, -16],
     });
   };
 
-  const getAddMarkerIcon = () => {
-    return L.divIcon({
-      className: 'custom-div-icon',
-      html: `<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-lg border-[3px] border-white shadow-xl animate-bounce">📍</div>`,
-      iconSize: [40, 40],
-      iconAnchor: [20, 40],
-      popupAnchor: [0, -40]
-    });
-  };
+  const getAddMarkerIcon = () => L.divIcon({
+    className: 'custom-div-icon',
+    html: `<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-lg border-[3px] border-white shadow-xl animate-bounce">📍</div>`,
+    iconSize: [40, 40], iconAnchor: [20, 40], popupAnchor: [0, -40],
+  });
+
+  const mainFilters = [
+    { id: 'club',          label: '🏛️ Clubs' },
+    { id: 'indoor',        label: '🏟️ En salle' },
+    { id: 'beach',         label: '🏖️ Beach', hasSub: true },
+    { id: 'green_volley',  label: '🌿 Green', hasSub: true },
+    { id: 'outdoor_hard',  label: '☀️ Extérieur' },
+    { id: 'outdoor_grass', label: '🌱 Herbe' },
+    { id: 'unverified',    label: '❓ À vérifier' },
+  ];
 
   return (
     <div className="w-full h-full relative">
-      <MapContainer 
-        center={defaultCenter} 
-        zoom={6} 
+      <MapContainer
+        center={defaultCenter}
+        zoom={6}
         className="w-full h-full z-0"
         zoomControl={false}
       >
@@ -155,53 +209,107 @@ export default function SpotMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        
-        <MapSearchControl 
-          isAddingMode={isAddingMode} 
-          onLocationSelected={onNewSpotLocationChange} 
-        />
 
-        {/* Filter Pills overlay */}
-        <div className="absolute top-16 left-4 right-4 z-[400] overflow-x-auto pb-2 hide-scrollbar">
+        <MapSearchControl isAddingMode={isAddingMode} onLocationSelected={onNewSpotLocationChange} />
+
+        {/* Main filter pills */}
+        <div className="absolute top-16 left-4 right-4 z-[400] overflow-x-auto pb-1 hide-scrollbar">
           <div className="flex items-center gap-2">
-            {[
-              { id: 'indoor', label: '🏟️ En salle' },
-              { id: 'beach', label: '🏖️ Beach' },
-              { id: 'outdoor_hard', label: '☀️ Extérieur (Dur)' },
-              { id: 'outdoor_grass', label: '🌱 Extérieur (Herbe)' },
-              { id: 'temporary', label: '⏳ Éphémère' },
-              { id: 'unverified', label: '❓ À vérifier' },
-            ].map(f => (
-              <button
-                key={f.id}
-                onClick={() => toggleFilter(f.id)}
-                className={`flex-none px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide border transition-all shadow-sm ${
-                  activeFilters.includes(f.id) 
-                    ? 'bg-primary text-primary-foreground border-primary' 
-                    : 'bg-background/90 text-foreground border-border backdrop-blur-sm opacity-70 hover:opacity-100'
-                }`}
-              >
-                {f.label}
-              </button>
+            {mainFilters.map(f => (
+              <div key={f.id} className="flex items-center gap-0.5">
+                <FilterPill active={activeTypes.includes(f.id)} onClick={() => toggleType(f.id)}>
+                  {f.label}
+                </FilterPill>
+                {f.hasSub && activeTypes.includes(f.id) && (
+                  <button
+                    onClick={() => setShowSubFilters(prev => prev === f.id ? null : f.id as any)}
+                    className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center border transition-all ${
+                      showSubFilters === f.id
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-background/90 border-border text-muted-foreground'
+                    }`}
+                  >
+                    ⚙
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         </div>
+
+        {/* Beach sub-filters */}
+        {showSubFilters === 'beach' && (
+          <div className="absolute top-28 left-4 z-[400] bg-background/95 backdrop-blur-sm border border-border rounded-xl p-3 shadow-lg min-w-[220px]">
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Beach-Volley</p>
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                <input type="checkbox" checked={subFilters.beach_acces_libre} onChange={e => setSubFilter('beach_acces_libre', e.target.checked)} className="rounded" />
+                Libre accès
+              </label>
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                <input type="checkbox" checked={subFilters.beach_eclairage} onChange={e => setSubFilter('beach_eclairage', e.target.checked)} className="rounded" />
+                Éclairage
+              </label>
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                <input type="checkbox" checked={subFilters.beach_pmr} onChange={e => setSubFilter('beach_pmr', e.target.checked)} className="rounded" />
+                Accès PMR
+              </label>
+              <div className="border-t border-border pt-2 mt-1">
+                <p className="text-[10px] text-muted-foreground mb-1.5">Disponibilité</p>
+                {(['all', 'annee', 'saisonnier'] as const).map(v => (
+                  <label key={v} className="flex items-center gap-2 text-xs cursor-pointer mb-1">
+                    <input type="radio" name="beach_saison" value={v} checked={subFilters.beach_saison === v} onChange={() => setSubFilter('beach_saison', v)} />
+                    {v === 'all' ? 'Tous' : v === 'annee' ? 'À l\'année' : 'Saisonnier'}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Green-volley sub-filters */}
+        {showSubFilters === 'green_volley' && (
+          <div className="absolute top-28 left-4 z-[400] bg-background/95 backdrop-blur-sm border border-border rounded-xl p-3 shadow-lg min-w-[220px]">
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Green-Volley</p>
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                <input type="checkbox" checked={subFilters.green_acces_libre} onChange={e => setSubFilter('green_acces_libre', e.target.checked)} className="rounded" />
+                Libre accès
+              </label>
+              <div className="border-t border-border pt-2 mt-1">
+                <p className="text-[10px] text-muted-foreground mb-1.5">Surface</p>
+                {(['all', 'naturel', 'synthetique'] as const).map(v => (
+                  <label key={v} className="flex items-center gap-2 text-xs cursor-pointer mb-1">
+                    <input type="radio" name="green_sol" value={v} checked={subFilters.green_sol === v} onChange={() => setSubFilter('green_sol', v)} />
+                    {v === 'all' ? 'Toutes' : v === 'naturel' ? '🌿 Gazon naturel' : '⚡ Synthétique'}
+                  </label>
+                ))}
+              </div>
+              <div className="border-t border-border pt-2 mt-1">
+                <p className="text-[10px] text-muted-foreground mb-1.5">Disponibilité</p>
+                {(['all', 'annee', 'saisonnier'] as const).map(v => (
+                  <label key={v} className="flex items-center gap-2 text-xs cursor-pointer mb-1">
+                    <input type="radio" name="green_saison" value={v} checked={subFilters.green_saison === v} onChange={() => setSubFilter('green_saison', v)} />
+                    {v === 'all' ? 'Tous' : v === 'annee' ? 'À l\'année' : 'Saisonnier'}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <UserLocationMarker />
         <AddMarkerController isActive={isAddingMode} location={newSpotLocation} onChange={onNewSpotLocationChange} />
 
         {isAddingMode && newSpotLocation && (
-          <Marker 
-            position={newSpotLocation} 
+          <Marker
+            position={newSpotLocation}
             draggable={true}
             icon={getAddMarkerIcon()}
             eventHandlers={{
               dragend: (e) => {
-                const marker = e.target;
-                const position = marker.getLatLng();
-                if (onNewSpotLocationChange) {
-                  onNewSpotLocationChange([position.lat, position.lng]);
-                }
+                const pos = e.target.getLatLng();
+                if (onNewSpotLocationChange) onNewSpotLocationChange([pos.lat, pos.lng]);
               },
             }}
           >
@@ -213,23 +321,20 @@ export default function SpotMap({
         )}
 
         {filteredSpots.map((spot) => (
-          <Marker 
-            key={spot.id} 
+          <Marker
+            key={spot.id}
             position={[spot.lat, spot.lng]}
             icon={getMarkerIcon(spot)}
-            eventHandlers={{
-              click: () => onSelectSpot(spot.id)
-            }}
+            eventHandlers={{ click: () => onSelectSpot(spot.id) }}
           >
             <Popup>
               <div className="text-center font-bold">{spot.name}</div>
-              {(spot.status === 'waiting_for_validation') && (
+              {spot.status === 'waiting_for_validation' && (
                 <div className="text-xs text-orange-500 font-semibold mt-1">À vérifier par la communauté</div>
               )}
             </Popup>
           </Marker>
         ))}
-        
       </MapContainer>
     </div>
   );
