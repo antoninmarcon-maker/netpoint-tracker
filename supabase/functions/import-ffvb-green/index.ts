@@ -98,20 +98,20 @@ async function runImport() {
 
   const supabase = createClient(supabaseUrl, supabaseKey)
 
+  // Phase 1: fetch all records and group by (name, lat, lng) to avoid duplicates
   const LIMIT = 100
   let offset = 0
   let totalCount = 0
-  let imported = 0
   let skipped = 0
-  let errors = 0
 
-  console.log('Starting import-ffvb-green...')
+  console.log('Starting import-ffvb-green — fetching all records...')
+
+  const grouped = new Map<string, { spot: ReturnType<typeof mapToSpot>; count: number }>()
 
   do {
     const page = await fetchPage(offset, LIMIT)
     totalCount = page.total_count
     const records = page.results
-
     if (records.length === 0) break
 
     for (const r of records) {
@@ -119,44 +119,59 @@ async function runImport() {
         skipped++
         continue
       }
-
       const spot = mapToSpot(r)
-      const { _lat, _lng, ...spotData } = spot
-
-      const { error } = await supabase.rpc('upsert_spot_with_location', {
-        p_external_id: spotData.external_id,
-        p_name: spotData.name,
-        p_address: spotData.address,
-        p_type: spotData.type,
-        p_source: spotData.source,
-        p_status: spotData.status,
-        p_user_id: spotData.user_id,
-        p_lat: _lat,
-        p_lng: _lng,
-        p_ffvb_ligue: spotData.ffvb_ligue,
-        p_ffvb_comite: spotData.ffvb_comite,
-        p_equip_sol: spotData.equip_sol,
-        p_equip_eclairage: spotData.equip_eclairage,
-        p_equip_acces_libre: spotData.equip_acces_libre,
-        p_equip_pmr: spotData.equip_pmr,
-        p_equip_saisonnier: spotData.equip_saisonnier,
-        p_equip_nb_terrains: spotData.equip_nb_terrains,
-        p_equip_longueur: spotData.equip_longueur,
-        p_equip_largeur: spotData.equip_largeur,
-        p_club_site_web: spotData.club_site_web,
-      })
-
-      if (error) {
-        console.error(`Error upserting ${r.equip_numero}:`, error.message)
-        errors++
+      const key = `${spot._lat}|${spot._lng}|${spot.name}`
+      const existing = grouped.get(key)
+      if (existing) {
+        existing.count++
       } else {
-        imported++
+        grouped.set(key, { spot, count: 1 })
       }
     }
 
-    console.log(`Processed ${offset + records.length}/${totalCount}`)
+    console.log(`Fetched ${offset + records.length}/${totalCount}`)
     offset += LIMIT
   } while (offset < totalCount)
+
+  console.log(`Grouped into ${grouped.size} unique locations (from ${totalCount} records, ${skipped} without coords)`)
+
+  // Phase 2: upsert grouped spots
+  let imported = 0
+  let errors = 0
+
+  for (const [, { spot, count }] of grouped) {
+    const { _lat, _lng, ...spotData } = spot
+
+    const { error } = await supabase.rpc('upsert_spot_with_location', {
+      p_external_id: spotData.external_id,
+      p_name: spotData.name,
+      p_address: spotData.address,
+      p_type: spotData.type,
+      p_source: spotData.source,
+      p_status: spotData.status,
+      p_user_id: spotData.user_id,
+      p_lat: _lat,
+      p_lng: _lng,
+      p_ffvb_ligue: spotData.ffvb_ligue,
+      p_ffvb_comite: spotData.ffvb_comite,
+      p_equip_sol: spotData.equip_sol,
+      p_equip_eclairage: spotData.equip_eclairage,
+      p_equip_acces_libre: spotData.equip_acces_libre,
+      p_equip_pmr: spotData.equip_pmr,
+      p_equip_saisonnier: spotData.equip_saisonnier,
+      p_equip_nb_terrains: count,
+      p_equip_longueur: spotData.equip_longueur,
+      p_equip_largeur: spotData.equip_largeur,
+      p_club_site_web: spotData.club_site_web,
+    })
+
+    if (error) {
+      console.error(`Error upserting ${spotData.external_id}:`, error.message)
+      errors++
+    } else {
+      imported++
+    }
+  }
 
   return {
     success: true,
