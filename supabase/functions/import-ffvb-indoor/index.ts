@@ -1,5 +1,4 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.47.0"
-import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,8 +7,6 @@ const corsHeaders = {
 
 // Google My Maps KML export — gymnases indoor FFVB
 const KML_URL = 'https://www.google.com/maps/d/kml?mid=1W7BcLtL5uKmBHCRzEIoiiJQ-lX5XpAo&forcekml=1'
-
-// Nominatim geocoding
 const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org/search'
 
 interface GymData {
@@ -25,6 +22,12 @@ interface GymData {
   sol: string | null
   tribunes: number | null
   vestiaires: number | null
+}
+
+function getTag(xml: string, tag: string): string {
+  const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i')
+  const m = xml.match(re)
+  return m ? m[1].trim() : ''
 }
 
 function parseKmlDescription(html: string): Record<string, string> {
@@ -68,20 +71,17 @@ async function geocodeAddress(address: string, cp: string): Promise<{ lat: numbe
   }
 }
 
-async function parseKml(kmlText: string): Promise<GymData[]> {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(kmlText, 'text/xml')
-  if (!doc) throw new Error('Failed to parse KML')
-
-  const placemarks = doc.querySelectorAll('Placemark')
+function parseKml(kmlText: string): GymData[] {
   const gyms: GymData[] = []
-
-  for (const pm of placemarks) {
-    const name = pm.querySelector('name')?.textContent?.trim() || ''
-    const descRaw = pm.querySelector('description')?.textContent || ''
+  const placemarkRegex = /<Placemark[\s\S]*?<\/Placemark>/gi
+  let match: RegExpExecArray | null
+  while ((match = placemarkRegex.exec(kmlText)) !== null) {
+    const pm = match[0]
+    const name = getTag(pm, 'name')
+    const descRaw = getTag(pm, 'description')
     const fields = parseKmlDescription(descRaw)
+    const addressRaw = getTag(pm, 'address')
 
-    const addressRaw = pm.querySelector('address')?.textContent?.trim() || ''
     const cp = (fields['CP'] || '').trim()
     const ligue = (fields['Ligue'] || '').trim()
     const dep = (fields['Département Nom'] || '').trim()
@@ -105,7 +105,6 @@ async function parseKml(kmlText: string): Promise<GymData[]> {
       vestiaires: toInt(fields['Nombre de vestiaires sportifs']),
     })
   }
-
   return gyms
 }
 
@@ -113,8 +112,11 @@ async function runImport() {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   if (!supabaseUrl || !supabaseKey) throw new Error('Missing Supabase config')
-
   const supabase = createClient(supabaseUrl, supabaseKey)
+
+  // Cleanup previous import
+  console.log('Cleaning up previous ffvb_indoor spots...')
+  await supabase.from('spots').delete().eq('source', 'ffvb_indoor')
 
   console.log('Fetching indoor KML from Google My Maps...')
   const kmlRes = await fetch(KML_URL, {
@@ -124,7 +126,7 @@ async function runImport() {
   const kmlText = await kmlRes.text()
 
   console.log('Parsing KML...')
-  const gyms = await parseKml(kmlText)
+  const gyms = parseKml(kmlText)
   console.log(`Found ${gyms.length} gymnases in KML`)
 
   let imported = 0
@@ -133,8 +135,6 @@ async function runImport() {
 
   for (let i = 0; i < gyms.length; i++) {
     const gym = gyms[i]
-
-    // External ID: deterministic from name + cp
     const externalId = `indoor_${gym.name}_${gym.cp}`.replace(/[^a-z0-9_]/gi, '_').toLowerCase().slice(0, 100)
 
     const coords = await geocodeAddress(gym.address, gym.cp)
@@ -171,7 +171,6 @@ async function runImport() {
     }
 
     if (i % 50 === 0) console.log(`Progress: ${i}/${gyms.length}`)
-
     // Nominatim rate limit: 1 req/sec
     await new Promise(resolve => setTimeout(resolve, 1100))
   }
@@ -190,7 +189,6 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
-
   try {
     const result = await runImport()
     return new Response(JSON.stringify(result), {

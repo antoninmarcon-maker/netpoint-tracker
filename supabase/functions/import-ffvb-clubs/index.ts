@@ -1,5 +1,4 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.47.0"
-import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,8 +21,13 @@ interface ClubData {
   lienFiche: string | null
 }
 
+function getTag(xml: string, tag: string): string {
+  const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i')
+  const m = xml.match(re)
+  return m ? m[1].trim() : ''
+}
+
 function parseKmlDescription(html: string): Record<string, string> {
-  // Description is HTML: "Field: Value<br>Field2: Value2<br>"
   const pairs: Record<string, string> = {}
   const parts = html.split(/<br\s*\/?>/gi)
   for (const part of parts) {
@@ -38,13 +42,7 @@ function parseKmlDescription(html: string): Record<string, string> {
 
 async function geocodeAddress(address: string, cp: string, ville: string): Promise<{ lat: number; lng: number } | null> {
   const query = [address, cp, ville, 'France'].filter(Boolean).join(', ')
-  const params = new URLSearchParams({
-    q: query,
-    format: 'json',
-    limit: '1',
-    countrycodes: 'fr',
-  })
-
+  const params = new URLSearchParams({ q: query, format: 'json', limit: '1', countrycodes: 'fr' })
   try {
     const res = await fetch(`${NOMINATIM_BASE}?${params}`, {
       headers: { 'User-Agent': 'MyVolley-App/1.0 (contact@myvolley.app)' },
@@ -58,34 +56,27 @@ async function geocodeAddress(address: string, cp: string, ville: string): Promi
   }
 }
 
-async function parseKml(kmlText: string): Promise<ClubData[]> {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(kmlText, 'text/xml')
-  if (!doc) throw new Error('Failed to parse KML')
-
-  const placemarks = doc.querySelectorAll('Placemark')
+function parseKml(kmlText: string): ClubData[] {
   const clubs: ClubData[] = []
-
-  for (const pm of placemarks) {
-    const name = pm.querySelector('name')?.textContent?.trim() || ''
-    const descRaw = pm.querySelector('description')?.textContent || ''
+  const placemarkRegex = /<Placemark[\s\S]*?<\/Placemark>/gi
+  let match: RegExpExecArray | null
+  while ((match = placemarkRegex.exec(kmlText)) !== null) {
+    const pm = match[0]
+    const name = getTag(pm, 'name')
+    const descRaw = getTag(pm, 'description')
     const fields = parseKmlDescription(descRaw)
+    const addressTag = getTag(pm, 'address')
 
     const cp = (fields['cp'] || fields['CP'] || '').trim()
     const ville = (fields['ville'] || '').trim()
     const ligue = (fields['Ligue'] || '').trim().replace(/^Ligue\s+/i, '')
     const comite = (fields['Comité'] || fields['Comite'] || '').trim()
     const lienFiche = fields['Lien Fiche'] || null
-
-    // Build address from KML <address> tag or fields
-    const addressTag = pm.querySelector('address')?.textContent?.trim() || ''
     const address = addressTag || [cp, ville].filter(Boolean).join(' ')
 
     if (!name || (!cp && !ville)) continue
-
     clubs.push({ name, address, cp, ville, ligue, comite, lienFiche })
   }
-
   return clubs
 }
 
@@ -93,8 +84,11 @@ async function runImport() {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   if (!supabaseUrl || !supabaseKey) throw new Error('Missing Supabase config')
-
   const supabase = createClient(supabaseUrl, supabaseKey)
+
+  // Cleanup previous import
+  console.log('Cleaning up previous ffvb_club spots...')
+  await supabase.from('spots').delete().eq('source', 'ffvb_club')
 
   console.log('Fetching clubs KML from Google My Maps...')
   const kmlRes = await fetch(KML_URL, {
@@ -104,7 +98,7 @@ async function runImport() {
   const kmlText = await kmlRes.text()
 
   console.log('Parsing KML...')
-  const clubs = await parseKml(kmlText)
+  const clubs = parseKml(kmlText)
   console.log(`Found ${clubs.length} clubs in KML`)
 
   let imported = 0
@@ -112,21 +106,18 @@ async function runImport() {
   let errors = 0
 
   for (const club of clubs) {
-    // Derive external_id from lienFiche URL (id_club param) or name+cp
     let externalId: string
     if (club.lienFiche) {
-      const match = club.lienFiche.match(/id_club=([^&]+)/)
-      externalId = match ? `club_${match[1]}` : `club_${club.name}_${club.cp}`.replace(/\s+/g, '_').toLowerCase()
+      const m = club.lienFiche.match(/id_club=([^&]+)/)
+      externalId = m ? `club_${m[1]}` : `club_${club.name}_${club.cp}`.replace(/\s+/g, '_').toLowerCase()
     } else {
       externalId = `club_${club.name}_${club.cp}`.replace(/\s+/g, '_').toLowerCase()
     }
 
-    // Geocode address
     const coords = await geocodeAddress(club.address, club.cp, club.ville)
     if (!coords) {
       console.warn(`No coords for: ${club.name} (${club.cp} ${club.ville})`)
       geocodeFailed++
-      // Still upsert without coords if we have at least a name
     }
 
     const { error } = await supabase.rpc('upsert_spot_with_location', {
@@ -137,7 +128,7 @@ async function runImport() {
       p_source: 'ffvb_club',
       p_status: 'validated',
       p_user_id: '00000000-0000-0000-0000-000000000000',
-      p_lat: coords?.lat ?? 46.603354,  // fallback to France center if no coords
+      p_lat: coords?.lat ?? 46.603354,
       p_lng: coords?.lng ?? 1.888334,
       p_ffvb_ligue: club.ligue || null,
       p_ffvb_comite: club.comite || null,
@@ -151,6 +142,7 @@ async function runImport() {
       imported++
     }
 
+    if (imported % 50 === 0) console.log(`Progress: ${imported}/${clubs.length}`)
     // Respect Nominatim rate limit: 1 req/sec
     await new Promise(resolve => setTimeout(resolve, 1100))
   }
@@ -169,7 +161,6 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
-
   try {
     const result = await runImport()
     return new Response(JSON.stringify(result), {
