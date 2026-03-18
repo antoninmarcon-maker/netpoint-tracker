@@ -116,25 +116,6 @@ export default function Settings() {
     }
   };
 
-  const handleSendFeedback = async () => {
-    if (!feedbackMsg.trim() || !user) return;
-    setSendingFeedback(true);
-    try {
-      const { error } = await supabase.from('feedback').insert({
-        user_id: user.id,
-        email: user.email || '',
-        message: feedbackMsg.trim(),
-      });
-      if (error) throw error;
-      toast.success(t('settings.feedbackSent'));
-      setFeedbackMsg('');
-    } catch (err: any) {
-      if (import.meta.env.DEV) console.error('[Settings] Feedback error:', err);
-      toast.error(err.message || t('settings.feedbackError'));
-    } finally {
-      setSendingFeedback(false);
-    }
-  };
 
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang);
