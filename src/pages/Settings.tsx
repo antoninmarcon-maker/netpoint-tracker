@@ -32,8 +32,6 @@ export default function Settings() {
   // Feedback
   const [customLogo, setCustomLogo] = useState<string | null>(() => userStorage.getItem('customLogo'));
   const logoInputId = 'logo-file-input';
-  const [feedbackMsg, setFeedbackMsg] = useState('');
-  const [sendingFeedback, setSendingFeedback] = useState(false);
 
   // Notifications
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | 'unsupported'>('unsupported');
@@ -118,25 +116,6 @@ export default function Settings() {
     }
   };
 
-  const handleSendFeedback = async () => {
-    if (!feedbackMsg.trim() || !user) return;
-    setSendingFeedback(true);
-    try {
-      const { error } = await supabase.from('feedback').insert({
-        user_id: user.id,
-        email: user.email || '',
-        message: feedbackMsg.trim(),
-      });
-      if (error) throw error;
-      toast.success(t('settings.feedbackSent'));
-      setFeedbackMsg('');
-    } catch (err: any) {
-      if (import.meta.env.DEV) console.error('[Settings] Feedback error:', err);
-      toast.error(err.message || t('settings.feedbackError'));
-    } finally {
-      setSendingFeedback(false);
-    }
-  };
 
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang);
@@ -424,11 +403,10 @@ export default function Settings() {
               {t('settings.support')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <textarea value={feedbackMsg} onChange={e => setFeedbackMsg(e.target.value)} placeholder={t('settings.feedbackPlaceholder')} className="w-full min-h-[100px] rounded-lg border border-border bg-background p-3 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/30" maxLength={2000} />
-            <button onClick={handleSendFeedback} disabled={sendingFeedback || !feedbackMsg.trim()} className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50">
-              {sendingFeedback ? t('common.sending') : t('settings.sendFeedback')}
-            </button>
+          <CardContent>
+            <a href="mailto:contact@myvolley.app" className="w-full inline-flex items-center justify-center py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm">
+              contact@myvolley.app
+            </a>
           </CardContent>
         </Card>
 
