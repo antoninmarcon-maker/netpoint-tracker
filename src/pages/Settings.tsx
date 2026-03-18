@@ -32,8 +32,6 @@ export default function Settings() {
   // Feedback
   const [customLogo, setCustomLogo] = useState<string | null>(() => userStorage.getItem('customLogo'));
   const logoInputId = 'logo-file-input';
-  const [feedbackMsg, setFeedbackMsg] = useState('');
-  const [sendingFeedback, setSendingFeedback] = useState(false);
 
   // Notifications
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | 'unsupported'>('unsupported');
