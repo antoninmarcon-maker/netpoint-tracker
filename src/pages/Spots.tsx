@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, List, Map as MapIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import SpotMap, { filterSpots } from '@/components/SpotMap';
+import SpotMap from '@/components/SpotMap';
+import { filterSpots } from '@/lib/filterSpots';
 import SpotListView from '@/components/spots/SpotListView';
 import SpotDetailModal from '@/components/spots/SpotDetailModal';
 import SpotFormModal from '@/components/spots/SpotFormModal';

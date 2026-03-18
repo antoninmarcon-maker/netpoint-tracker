@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterSpots } from '@/components/SpotMap';
+import { filterSpots } from '@/lib/filterSpots';
 import { DEFAULT_FILTERS, type SpotFiltersState } from '@/components/spots/SpotFilters';
 
 const baseSpot = {
