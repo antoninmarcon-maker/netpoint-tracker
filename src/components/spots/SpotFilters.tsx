@@ -39,7 +39,7 @@ export interface SpotFiltersState {
 
 export const DEFAULT_FILTERS: SpotFiltersState = {
   showExterieur: true,
-  showGymnase: true,
+  showGymnase: false,
   showClubs: true,
   subFilters: DEFAULT_SUB_FILTERS,
   radiusKm: null,
