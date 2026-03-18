@@ -30,7 +30,6 @@ export const DEFAULT_SUB_FILTERS: SubFilters = {
 
 export interface SpotFiltersState {
   showExterieur: boolean;
-  showGymnase: boolean;
   showClubs: boolean;
   subFilters: SubFilters;
   radiusKm: number | null;
@@ -39,8 +38,7 @@ export interface SpotFiltersState {
 
 export const DEFAULT_FILTERS: SpotFiltersState = {
   showExterieur: true,
-  showGymnase: false,
-  showClubs: true,
+  showClubs: false,
   subFilters: DEFAULT_SUB_FILTERS,
   radiusKm: null,
   showPending: false,
@@ -101,9 +99,6 @@ export default function SpotFilters({ filters, onChange, count, userPosition, is
             <SlidersHorizontal size={10} />
           </button>
         )}
-        <FilterPill active={filters.showGymnase} onClick={() => set('showGymnase', !filters.showGymnase)}>
-          🏟️ Gymnase
-        </FilterPill>
         <FilterPill active={filters.showClubs} onClick={() => set('showClubs', !filters.showClubs)}>
           🏛️ Clubs
         </FilterPill>
@@ -147,7 +142,7 @@ export default function SpotFilters({ filters, onChange, count, userPosition, is
 
       {/* Sub-filter panel */}
       {showSubPanel && filters.showExterieur && (
-        <div className="bg-background/95 backdrop-blur-sm border border-border rounded-xl p-3 shadow-lg max-w-[260px] max-h-[50vh] overflow-y-auto pointer-events-auto">
+        <div className="bg-background/95 backdrop-blur-sm border border-border rounded-xl p-3 shadow-lg w-[calc(100vw-1.5rem)] sm:max-w-[260px] max-h-[50vh] overflow-y-auto pointer-events-auto">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Filtres extérieur</p>
             <button onClick={() => setShowSubPanel(false)} className="text-muted-foreground hover:text-foreground">

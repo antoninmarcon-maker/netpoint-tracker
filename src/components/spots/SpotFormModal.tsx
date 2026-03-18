@@ -100,6 +100,7 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
         const { data: newSpot, error } = await supabase.from('spots').insert([{
           name, description, type, availability_period: finalAvailability,
           lat: location![0], lng: location![1], user_id: userId,
+          status: 'waiting_for_validation',
         }]).select('id').single();
         if (error) throw error;
         spotId = newSpot?.id;
@@ -169,7 +170,7 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
 
           <div className="space-y-1.5">
             <Label>Nom du terrain <span className="text-destructive">*</span></Label>
-            <Input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Terrain de la plage" required className="bg-secondary/50" />
+            <Input autoFocus={false} value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Terrain de la plage" required className="bg-secondary/50" />
           </div>
 
           <div className="space-y-1.5">
@@ -180,7 +181,6 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
                 <SelectItem value="beach">🏖️ Beach (Sable)</SelectItem>
                 <SelectItem value="outdoor_hard">☀️ Extérieur (Dur)</SelectItem>
                 <SelectItem value="outdoor_grass">🌱 Extérieur (Herbe)</SelectItem>
-                <SelectItem value="indoor">🏟️ Gymnase</SelectItem>
               </SelectContent>
             </Select>
           </div>

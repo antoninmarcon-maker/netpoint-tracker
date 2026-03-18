@@ -44,7 +44,7 @@ function UserLocationMarker({ onPosition }: { onPosition?: (pos: [number, number
   useEffect(() => {
     map.locate().on("locationfound", (e) => {
       setPosition(e.latlng);
-      map.flyTo(e.latlng, map.getZoom());
+      map.flyTo(e.latlng, 10); // zoom 10 ≈ 50km radius
       onPosition?.([e.latlng.lat, e.latlng.lng]);
     });
   }, [map]);
@@ -86,7 +86,7 @@ export function filterSpots(spots: any[], filters: SpotFiltersState, userPositio
 
     // Main category gates
     if (type === 'club' && !filters.showClubs) return false;
-    if (type === 'indoor' && !filters.showGymnase) return false;
+    if (type === 'indoor') return false;
     if (EXTERIOR_TYPES.includes(type) && !filters.showExterieur) return false;
 
     // Exterior sub-type gates
