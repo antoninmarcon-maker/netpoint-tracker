@@ -6,6 +6,9 @@ import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  define: {
+    __BUILD_TIMESTAMP__: JSON.stringify(new Date().toISOString()),
+  },
   server: {
     host: "::",
     port: 8080,
@@ -20,7 +23,7 @@ export default defineConfig(({ mode }) => ({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
-      registerType: "prompt",
+      registerType: "autoUpdate",
       includeAssets: ["favicon.png", "placeholder.svg"],
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/],

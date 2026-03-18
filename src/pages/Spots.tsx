@@ -8,6 +8,7 @@ import SpotDetailModal from '@/components/spots/SpotDetailModal';
 import SpotFormModal from '@/components/spots/SpotFormModal';
 import { DEFAULT_FILTERS, type SpotFiltersState } from '@/components/spots/SpotFilters';
 import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 
 const MODERATOR_EMAIL = 'antonin.marcon@gmail.com';
@@ -22,9 +23,9 @@ export default function Spots() {
   const [filters, setFilters] = useState<SpotFiltersState>(DEFAULT_FILTERS);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
   const [isModerator, setIsModerator] = useState(false);
-  const [editSpot, setEditSpot] = useState<any>(null);
+  const [editSpot, setEditSpot] = useState<Tables<'spots_with_coords'> | null>(null);
   const [isSuggestion, setIsSuggestion] = useState(false);
-  const [spotsForList, setSpotsForList] = useState<any[]>([]);
+  const [spotsForList, setSpotsForList] = useState<Tables<'spots_with_coords'>[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Check moderator status
@@ -34,8 +35,9 @@ export default function Spots() {
     });
   }, []);
 
-  // Load spots for list view
+  // Load spots for list view (only when list is visible)
   useEffect(() => {
+    if (!showList) return;
     const query = supabase.from('spots_with_coords')
       .select('id, name, type, source, lat, lng, status, equip_sol, equip_eclairage, equip_acces_libre, equip_pmr, equip_saisonnier');
     if (!filters.showPending) query.eq('status', 'validated');
@@ -45,7 +47,7 @@ export default function Spots() {
         setSpotsForList(filtered);
       }
     });
-  }, [filters, userPosition, refreshKey]);
+  }, [filters, userPosition, refreshKey, showList]);
 
   const handleModerate = async (spotId: string, action: 'approve' | 'reject') => {
     const status = action === 'approve' ? 'validated' : 'rejected';

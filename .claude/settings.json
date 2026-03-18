@@ -16,7 +16,8 @@
       "Bash(curl -sL \"https://www.ffvb.org/pratiquer/ou-pratiquer/article-616\")",
       "Bash(curl -sL --max-time 15 \"https://www.ffvb.org/index.php?lvlid=137&dsgtypid=37&artid=1165&pos=1\" -H \"User-Agent: Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36\")",
       "Bash(find /Users/antoninmarcon/Documents/Projects/My-volley/src -name *roposal* -o -name *Suggest* -o -name *Modif*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

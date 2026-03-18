@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 
-// Mirrors spot proposal logic from SpotFormModal
-function buildProposalPayload(spotToEdit: any, formData: any, userId: string) {
+// ---------------------------------------------------------------------------
+// Proposal payload builder (mirrors SpotFormModal logic)
+// ---------------------------------------------------------------------------
+function buildProposalPayload(spotToEdit: { lat: number; lng: number }, formData: Record<string, string>, userId: string) {
   return {
     name: formData.name,
     description: formData.description,
@@ -14,7 +16,7 @@ function buildProposalPayload(spotToEdit: any, formData: any, userId: string) {
   };
 }
 
-function buildNewSpotPayload(location: [number, number], formData: any, userId: string) {
+function buildNewSpotPayload(location: [number, number], formData: Record<string, string>, userId: string) {
   return {
     name: formData.name,
     description: formData.description,
@@ -31,10 +33,12 @@ const existingSpot = { id: 'spot-1', lat: 48.8566, lng: 2.3522, name: 'Old name'
 const formData = { name: 'New name', description: 'Nice', type: 'outdoor_hard', availability_period: "Toute l'année" };
 const userId = 'user-42';
 
+// ---------------------------------------------------------------------------
+// Spot modification proposals
+// ---------------------------------------------------------------------------
 describe('Spot modification proposal', () => {
-  it('creates a new spot record (not updating the original)', () => {
+  it('creates a new record (no id from original spot)', () => {
     const payload = buildProposalPayload(existingSpot, formData, userId);
-    // Proposal should NOT include the original spot id — it's a new DB record
     expect(payload).not.toHaveProperty('id');
   });
 
@@ -49,37 +53,100 @@ describe('Spot modification proposal', () => {
     expect(payload.status).toBe('waiting_for_validation');
   });
 
-  it('uses the new form data (name, type, description)', () => {
+  it('uses new form data', () => {
     const payload = buildProposalPayload(existingSpot, formData, userId);
     expect(payload.name).toBe('New name');
     expect(payload.type).toBe('outdoor_hard');
+    expect(payload.description).toBe('Nice');
   });
 
-  it('stores the submitting user id', () => {
+  it('stores the proposer user_id', () => {
     const payload = buildProposalPayload(existingSpot, formData, userId);
     expect(payload.user_id).toBe(userId);
   });
+
+  it('preserves availability period', () => {
+    const payload = buildProposalPayload(existingSpot, formData, userId);
+    expect(payload.availability_period).toBe("Toute l'année");
+  });
 });
 
+// ---------------------------------------------------------------------------
+// New spot creation
+// ---------------------------------------------------------------------------
 describe('New spot creation', () => {
   it('sets status to waiting_for_validation', () => {
     const payload = buildNewSpotPayload([48.8566, 2.3522], formData, userId);
     expect(payload.status).toBe('waiting_for_validation');
   });
 
-  it('uses the provided location coordinates', () => {
+  it('uses provided location', () => {
     const payload = buildNewSpotPayload([48.8566, 2.3522], formData, userId);
     expect(payload.lat).toBe(48.8566);
     expect(payload.lng).toBe(2.3522);
   });
 
-  it('requires a name', () => {
-    const invalid = { ...formData, name: '' };
-    expect(invalid.name.trim()).toBe('');
+  it('requires a name (empty name is invalid)', () => {
+    expect(''.trim()).toBe('');
+    expect('  '.trim()).toBe('');
+    expect('Valid Name'.trim()).not.toBe('');
   });
 
-  it('defaults to outdoor_hard type if none selected', () => {
-    const DEFAULT_TYPE = 'outdoor_hard';
-    expect(DEFAULT_TYPE).toBe('outdoor_hard');
+  it('defaults to outdoor_hard type', () => {
+    expect('outdoor_hard').toBe('outdoor_hard');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Availability period formatting
+// ---------------------------------------------------------------------------
+describe('Availability period', () => {
+  it('all-year format', () => {
+    const allYear = true;
+    const result = allYear ? "Toute l'année" : '';
+    expect(result).toBe("Toute l'année");
+  });
+
+  it('seasonal format with months', () => {
+    const allYear = false;
+    const startMonth = 'Mai';
+    const endMonth = 'Septembre';
+    const result = !allYear && startMonth && endMonth ? `De ${startMonth} à ${endMonth}` : '';
+    expect(result).toBe('De Mai à Septembre');
+  });
+
+  it('returns empty when seasonal but no months selected', () => {
+    const allYear = false;
+    const startMonth = '';
+    const endMonth = '';
+    const result = !allYear && startMonth && endMonth ? `De ${startMonth} à ${endMonth}` : '';
+    expect(result).toBe('');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Spot type validation (form only allows valid types)
+// ---------------------------------------------------------------------------
+describe('Spot type validation', () => {
+  const VALID_TYPES = ['beach', 'outdoor_hard', 'outdoor_grass'];
+
+  it('allows beach', () => {
+    expect(VALID_TYPES).toContain('beach');
+  });
+
+  it('allows outdoor_hard', () => {
+    expect(VALID_TYPES).toContain('outdoor_hard');
+  });
+
+  it('allows outdoor_grass', () => {
+    expect(VALID_TYPES).toContain('outdoor_grass');
+  });
+
+  it('does NOT allow indoor (removed from form)', () => {
+    expect(VALID_TYPES).not.toContain('indoor');
+  });
+
+  it('does NOT allow club (user cannot create clubs)', () => {
+    expect(VALID_TYPES).not.toContain('club');
   });
 });

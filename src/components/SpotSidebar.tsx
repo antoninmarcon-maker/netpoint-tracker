@@ -209,7 +209,7 @@ export default function SpotSidebar({
       case 'green_volley': return '🌿 Green-Volley';
       case 'outdoor_hard': return t('spots.typeLabelOutdoorHard');
       case 'outdoor_grass':return t('spots.typeLabelOutdoorGrass');
-      case 'indoor':       return t('spots.typeLabelIndoor');
+
       default:             return t('spots.typeLabelDefault');
     }
   };

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Loader2, ImagePlus, X, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
-
-const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+import { MONTHS_FULL } from '@/lib/spotTypes';
+import { uploadSpotPhoto } from '@/lib/uploadSpotPhoto';
 
 interface SpotFormModalProps {
   open: boolean;
@@ -35,6 +35,12 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
   const [allYear, setAllYear] = useState(true);
   const [startMonth, setStartMonth] = useState('');
   const [endMonth, setEndMonth] = useState('');
+
+  // Create stable object URLs and revoke on change/unmount
+  const photoUrls = useMemo(() => photos.map(f => URL.createObjectURL(f)), [photos]);
+  useEffect(() => {
+    return () => { photoUrls.forEach(url => URL.revokeObjectURL(url)); };
+  }, [photoUrls]);
 
   // Reset form fields whenever spotToEdit or open changes
   useEffect(() => {
@@ -86,9 +92,7 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
 
       let spotId = spotToEdit?.id;
 
-      if (spotToEdit && !isSuggestion) {
-        await supabase.from('spots').update({ name, description, type, availability_period: finalAvailability, status: 'validated' }).eq('id', spotId);
-      } else if (isSuggestion && spotToEdit) {
+      if (isSuggestion && spotToEdit) {
         // Create a suggestion entry (new spot marked as pending)
         const { data: newSpot } = await supabase.from('spots').insert([{
           name, description, type, availability_period: finalAvailability,
@@ -106,14 +110,9 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
         spotId = newSpot?.id;
       }
 
-      for (const file of photos) {
-        const ext = file.name.split('.').pop();
-        const path = `${spotId}/${crypto.randomUUID()}.${ext}`;
-        const { error } = await supabase.storage.from('spot-photos').upload(path, file);
-        if (!error) {
-          const { data: { publicUrl } } = supabase.storage.from('spot-photos').getPublicUrl(path);
-          await supabase.from('spot_photos').insert([{ spot_id: spotId, photo_url: publicUrl, user_id: userId }]);
-        }
+      const urls = await Promise.all(photos.map(f => uploadSpotPhoto(spotId, f, userId)));
+      for (const url of urls.filter(Boolean)) {
+        await supabase.from('spot_photos').insert([{ spot_id: spotId, photo_url: url, user_id: userId }]);
       }
 
       toast.success(isSuggestion ? "Modification suggérée !" : "Terrain ajouté !");
@@ -125,7 +124,7 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
 
   return (
     <Dialog open={open} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>{spotToEdit ? (isSuggestion ? '💡 Suggérer une modification' : '✏️ Modifier le terrain') : '📍 Nouveau terrain'}</DialogTitle>
           <DialogDescription>
@@ -195,12 +194,12 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
                 <span className="text-sm">De</span>
                 <Select value={startMonth} onValueChange={setStartMonth}>
                   <SelectTrigger className="bg-secondary/50 h-8 text-sm"><SelectValue placeholder="Mois" /></SelectTrigger>
-                  <SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                  <SelectContent>{MONTHS_FULL.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                 </Select>
                 <span className="text-sm">à</span>
                 <Select value={endMonth} onValueChange={setEndMonth}>
                   <SelectTrigger className="bg-secondary/50 h-8 text-sm"><SelectValue placeholder="Mois" /></SelectTrigger>
-                  <SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                  <SelectContent>{MONTHS_FULL.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             )}
@@ -216,7 +215,7 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
             <div className="grid grid-cols-4 gap-2">
               {photos.map((photo, i) => (
                 <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-border bg-secondary/30">
-                  <img src={URL.createObjectURL(photo)} alt="" className="w-full h-full object-cover" />
+                  <img src={photoUrls[i]} alt="" className="w-full h-full object-cover" />
                   <button type="button" onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 p-0.5 bg-black/60 text-white rounded-full">
                     <X size={10} />
                   </button>

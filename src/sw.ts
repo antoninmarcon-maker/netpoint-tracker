@@ -10,6 +10,20 @@ declare const self: ServiceWorkerGlobalScope;
 self.skipWaiting();
 clientsClaim();
 
+// Clean old caches on activation to prevent stale content
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames
+          .filter((name) => name !== 'workbox-precache-v2' && name !== 'navigations')
+          .filter((name) => !name.startsWith('workbox-precache'))
+          .map((name) => caches.delete(name))
+      )
+    )
+  );
+});
+
 // Precache assets injected by vite-plugin-pwa
 precacheAndRoute(self.__WB_MANIFEST);
 

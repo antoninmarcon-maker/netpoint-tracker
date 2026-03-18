@@ -4,16 +4,16 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 220 20% 97%;
     --foreground: 222 47% 11%;
 
-    --card: 0 0% 98%;
+    --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
 
-    --popover: 0 0% 98%;
+    --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 217 91% 60%;
+    --primary: 215 100% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 92%;
@@ -22,25 +22,25 @@
     --muted: 220 14% 95%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 220 14% 92%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 40 96% 53%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 87%;
+    --border: 220 13% 90%;
     --input: 220 13% 87%;
-    --ring: 217 91% 60%;
+    --ring: 215 100% 50%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
 
-    --team-blue: 217 91% 60%;
+    --team-blue: 215 100% 50%;
     --team-blue-foreground: 0 0% 100%;
-    --team-blue-glow: 217 91% 60% / 0.2;
+    --team-blue-glow: 215 100% 50% / 0.25;
 
     --team-red: 0 84% 60%;
     --team-red-foreground: 0 0% 100%;
-    --team-red-glow: 0 84% 60% / 0.2;
+    --team-red-glow: 0 84% 60% / 0.25;
 
     --action-scored: 152 69% 45%;
     --action-scored-foreground: 0 0% 100%;
@@ -56,50 +56,50 @@
 
     --sidebar-background: 0 0% 96%;
     --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary: 215 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 14% 92%;
     --sidebar-accent-foreground: 222 47% 11%;
     --sidebar-border: 220 13% 87%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 215 100% 50%;
   }
 
   .dark {
-    --background: 220 20% 10%;
-    --foreground: 210 20% 92%;
+    --background: 225 25% 8%;
+    --foreground: 210 20% 93%;
 
-    --card: 220 18% 14%;
-    --card-foreground: 210 20% 92%;
+    --card: 225 22% 11%;
+    --card-foreground: 210 20% 93%;
 
-    --popover: 220 18% 14%;
-    --popover-foreground: 210 20% 92%;
+    --popover: 225 22% 11%;
+    --popover-foreground: 210 20% 93%;
 
-    --primary: 217 91% 60%;
+    --primary: 210 100% 56%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 16% 22%;
-    --secondary-foreground: 210 20% 92%;
+    --secondary: 225 18% 18%;
+    --secondary-foreground: 210 20% 93%;
 
-    --muted: 220 14% 18%;
+    --muted: 225 16% 15%;
     --muted-foreground: 215 15% 55%;
 
-    --accent: 220 16% 22%;
-    --accent-foreground: 210 20% 92%;
+    --accent: 40 96% 53%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 14% 20%;
-    --input: 220 14% 20%;
-    --ring: 217 91% 60%;
+    --border: 225 16% 16%;
+    --input: 225 16% 16%;
+    --ring: 210 100% 56%;
 
-    --team-blue: 217 91% 60%;
+    --team-blue: 210 100% 56%;
     --team-blue-foreground: 0 0% 100%;
-    --team-blue-glow: 217 91% 60% / 0.3;
+    --team-blue-glow: 210 100% 56% / 0.35;
 
     --team-red: 0 84% 60%;
     --team-red-foreground: 0 0% 100%;
-    --team-red-glow: 0 84% 60% / 0.3;
+    --team-red-glow: 0 84% 60% / 0.35;
 
     --action-scored: 152 69% 45%;
     --action-scored-foreground: 0 0% 100%;
@@ -113,14 +113,14 @@
     --court-line: 0 0% 100%;
     --court-bg: 142 40% 28%;
 
-    --sidebar-background: 220 18% 12%;
-    --sidebar-foreground: 210 20% 92%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-background: 225 22% 10%;
+    --sidebar-foreground: 210 20% 93%;
+    --sidebar-primary: 210 100% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 16% 22%;
-    --sidebar-accent-foreground: 210 20% 92%;
-    --sidebar-border: 220 14% 20%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: 225 18% 18%;
+    --sidebar-accent-foreground: 210 20% 93%;
+    --sidebar-border: 225 16% 16%;
+    --sidebar-ring: 210 100% 56%;
   }
 }
 
@@ -131,7 +131,12 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sora', 'DM Sans', system-ui, sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -141,6 +146,59 @@
   }
   .team-red-glow {
     box-shadow: 0 0 20px hsl(var(--team-red-glow)), 0 0 40px hsl(var(--team-red-glow));
+  }
+
+  /* Glass effect for cards and overlays */
+  .glass {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(12px) saturate(1.5);
+    -webkit-backdrop-filter: blur(12px) saturate(1.5);
+  }
+
+  .dark .glass {
+    background: hsl(var(--card) / 0.6);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* Subtle gradient mesh background */
+  .bg-mesh {
+    background-image:
+      radial-gradient(at 20% 80%, hsl(var(--primary) / 0.06) 0%, transparent 50%),
+      radial-gradient(at 80% 20%, hsl(var(--accent) / 0.06) 0%, transparent 50%);
+  }
+
+  .dark .bg-mesh {
+    background-image:
+      radial-gradient(at 20% 80%, hsl(var(--primary) / 0.08) 0%, transparent 50%),
+      radial-gradient(at 80% 20%, hsl(var(--accent) / 0.04) 0%, transparent 50%);
+  }
+
+  /* Noise texture overlay */
+  .bg-noise::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .dark .bg-noise::before {
+    opacity: 0.04;
+  }
+
+  /* Card hover lift */
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -4px hsl(var(--primary) / 0.1), 0 2px 8px -2px hsl(0 0% 0% / 0.06);
+  }
+
+  .dark .card-hover:hover {
+    box-shadow: 0 8px 24px -4px hsl(var(--primary) / 0.15), 0 2px 8px -2px hsl(0 0% 0% / 0.3);
   }
 }
 

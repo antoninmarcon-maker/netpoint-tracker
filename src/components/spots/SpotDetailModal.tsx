@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, Edit3, ExternalLink, Sparkles, Navigation, Zap, Phone, Globe, Leaf, Heart, Building2, Users, ArrowUpDown } from 'lucide-react';
+import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, Edit3, ExternalLink, Sparkles, Navigation, Zap, Phone, Globe, Leaf, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,9 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
-
-const MONTHS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-const FULL_MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+import { MONTHS_SHORT, MONTHS_FULL, getTypeLabel, calcAverageRating } from '@/lib/spotTypes';
+import { uploadSpotPhoto } from '@/lib/uploadSpotPhoto';
 
 interface SpotDetailModalProps {
   spotId: string | null;
@@ -95,16 +94,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
       const userId = userData?.user?.id;
       if (!userId) { toast.error("Connectez-vous pour commenter."); return; }
 
-      const uploadedUrls: string[] = [];
-      for (const file of newPhotos) {
-        const ext = file.name.split('.').pop();
-        const path = `${spotId}/${crypto.randomUUID()}.${ext}`;
-        const { error } = await supabase.storage.from('spot-photos').upload(path, file);
-        if (!error) {
-          const { data: { publicUrl } } = supabase.storage.from('spot-photos').getPublicUrl(path);
-          uploadedUrls.push(publicUrl);
-        }
-      }
+      const uploadedUrls = (await Promise.all(newPhotos.map(f => uploadSpotPhoto(spotId!, f, userId)))).filter(Boolean) as string[];
 
       await (supabase as any).from('spot_comments').insert([{
         spot_id: spotId, user_id: userId, content: newComment.trim(),
@@ -129,29 +119,19 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
     finally { setGeneratingSummary(false); }
   };
 
-  const getTypeLabel = (type: string) => {
-    const map: Record<string, string> = {
-      club: '🏛️ Club FFVB', beach: '🏖️ Beach Volley', green_volley: '🌿 Green-Volley',
-      outdoor_hard: '☀️ Extérieur Dur', outdoor_grass: '🌱 Herbe', indoor: '🏟️ Gymnase',
-    };
-    return map[type] || '📍 Terrain';
-  };
-
   const parseSeasonality = (period: string | null, saisonnier: boolean | null) => {
     if (saisonnier === false || period === "Toute l'année") return { type: 'yearly' as const };
     if (!period) return saisonnier ? { type: 'seasonal' as const, start: null, end: null } : null;
     const match = period.match(/De (.+) à (.+)/);
     if (match) {
-      const startIdx = FULL_MONTHS.indexOf(match[1]);
-      const endIdx = FULL_MONTHS.indexOf(match[2]);
+      const startIdx = MONTHS_FULL.indexOf(match[1]);
+      const endIdx = MONTHS_FULL.indexOf(match[2]);
       return { type: 'seasonal' as const, start: startIdx >= 0 ? startIdx : null, end: endIdx >= 0 ? endIdx : null };
     }
     return { type: 'seasonal' as const, start: null, end: null };
   };
 
-  const averageRating = comments.length > 0
-    ? (comments.reduce((acc, c) => acc + (c.rating || 0), 0) / (comments.filter(c => c.rating).length || 1))
-    : 0;
+  const averageRating = calcAverageRating(comments);
 
   if (!spotId) return null;
 
@@ -245,7 +225,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                       <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Saisonnier</span>
                     </div>
                     <div className="flex gap-0.5">
-                      {MONTHS.map((m, i) => {
+                      {MONTHS_SHORT.map((m, i) => {
                         const isActive = season.start != null && season.end != null
                           ? (season.start <= season.end
                             ? i >= season.start && i <= season.end
@@ -263,35 +243,6 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                 );
               })()}
 
-              {/* Indoor dimensions - no longueur/largeur */}
-              {spot.type === 'indoor' && (spot.equip_hauteur || spot.equip_nb_terrains || spot.equip_vestiaires != null || spot.equip_tribunes != null) && (
-                <div className="grid grid-cols-2 gap-3">
-                  {spot.equip_nb_terrains != null && (
-                    <div className="flex items-center gap-2 bg-secondary/30 rounded-lg p-2.5 border border-border">
-                      <Building2 size={16} className="text-primary shrink-0" />
-                      <div><p className="text-[10px] text-muted-foreground">Terrains</p><p className="text-sm font-bold">{spot.equip_nb_terrains}</p></div>
-                    </div>
-                  )}
-                  {spot.equip_hauteur && (
-                    <div className="flex items-center gap-2 bg-secondary/30 rounded-lg p-2.5 border border-border">
-                      <ArrowUpDown size={16} className="text-primary shrink-0" />
-                      <div><p className="text-[10px] text-muted-foreground">Hauteur</p><p className="text-sm font-bold">{spot.equip_hauteur} m</p></div>
-                    </div>
-                  )}
-                  {spot.equip_vestiaires != null && (
-                    <div className="flex items-center gap-2 bg-secondary/30 rounded-lg p-2.5 border border-border">
-                      <Users size={16} className="text-primary shrink-0" />
-                      <div><p className="text-[10px] text-muted-foreground">Vestiaires</p><p className="text-sm font-bold">{spot.equip_vestiaires}</p></div>
-                    </div>
-                  )}
-                  {spot.equip_tribunes != null && (
-                    <div className="flex items-center gap-2 bg-secondary/30 rounded-lg p-2.5 border border-border">
-                      <Users size={16} className="text-primary shrink-0" />
-                      <div><p className="text-[10px] text-muted-foreground">Tribunes</p><p className="text-sm font-bold">{spot.equip_tribunes} places</p></div>
-                    </div>
-                  )}
-                </div>
-              )}
 
               {/* Club contact */}
               {spot.source === 'ffvb_club' && (
@@ -326,7 +277,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
               {/* Navigation links */}
               {spot.lat && spot.lng && (
                 <div className="flex gap-2">
-                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.name)}`} target="_blank" rel="noopener noreferrer"
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lng}`} target="_blank" rel="noopener noreferrer"
                     className="flex-1 flex items-center justify-center gap-2 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg py-2.5 transition-colors">
                     <MapPin size={14} /> Google Maps
                   </a>

@@ -37,7 +37,7 @@ function matchScore(match: MatchSummary) {
 function Instructions({ onClose }: { onClose?: () => void }) {
   const { t } = useTranslation();
   return (
-    <div className="bg-card rounded-xl p-5 border border-border space-y-3 relative">
+    <div className="bg-card rounded-xl p-5 border border-border/60 space-y-3 relative shadow-sm">
       {onClose && (
         <button onClick={onClose} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground">
           <X size={16} />
@@ -516,8 +516,8 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col">
-      <header className="sticky top-0 z-40 bg-background px-4 py-6 pt-[max(1.5rem,env(safe-area-inset-top))] border-b border-border flex flex-col items-center gap-3 relative">
+    <div className="min-h-dvh bg-background bg-mesh flex flex-col">
+      <header className="sticky top-0 z-40 glass px-4 py-6 pt-[max(1.5rem,env(safe-area-inset-top))] border-b border-border/50 flex flex-col items-center gap-3 relative">
         <div className="absolute left-4" style={{ top: 'max(1rem, env(safe-area-inset-top))' }}>
           <Link
             to="/help"
@@ -554,8 +554,8 @@ export default function Home() {
           )
         )}
         <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight text-center">{t('home.title')}</h1>
-          <p className="text-sm text-muted-foreground text-center mt-1">{t('home.subtitle')}</p>
+          <h1 className="text-2xl font-extrabold text-foreground tracking-tight text-center font-display">{t('home.title')}</h1>
+          <p className="text-sm text-muted-foreground text-center mt-1 font-body">{t('home.subtitle')}</p>
         </div>
       </header>
 
@@ -607,7 +607,7 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      <main className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full space-y-6">
+      <main className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full space-y-6 animate-fade-in">
         <PwaInstallBanner />
 
         {visibleWhatsNew.length > 0 && (
@@ -627,7 +627,7 @@ export default function Home() {
             >
               {visibleWhatsNew.map((card) => (
                 <div key={card.id} className="min-w-[75%] max-w-[280px] snap-center shrink-0">
-                  <div className="bg-card rounded-xl border border-border overflow-hidden h-full flex flex-col relative w-full">
+                  <div className="bg-card rounded-xl border border-border/60 overflow-hidden h-full flex flex-col relative w-full card-hover shadow-sm">
                     <button
                       onClick={() => handleDismissWhatsNew(card.id)}
                       className="absolute top-1.5 right-1.5 z-10 p-1 bg-black/40 hover:bg-black/60 text-white rounded-full transition-colors"
@@ -849,12 +849,12 @@ export default function Home() {
         <div className="flex gap-3">
           <button
             onClick={() => setShowNew(true)}
-            className="group flex-1 relative flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-white overflow-hidden transition-all duration-300 active:scale-[0.97] hover:shadow-lg hover:shadow-action-scored/25"
+            className="group flex-1 relative flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-bold text-white overflow-hidden transition-all duration-300 active:scale-[0.97] hover:shadow-xl hover:shadow-action-scored/30 shadow-md shadow-action-scored/20"
             style={{ background: 'linear-gradient(135deg, hsl(var(--action-scored)), hsl(var(--action-scored-end, 142 71% 35%)))' }}
           >
             <span className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-300" />
             <Plus size={20} className="relative z-10 transition-transform duration-300 group-hover:rotate-90" />
-            <span className="relative z-10">{t('home.newMatch')}</span>
+            <span className="relative z-10 font-display tracking-wide">{t('home.newMatch')}</span>
           </button>
         </div>
 
@@ -959,7 +959,7 @@ export default function Home() {
                   const sc = matchScore(match);
                   const totalPoints = match.completedSets.reduce((sum, s) => sum + s.points.length, 0) + match.points.length;
                   return (
-                    <div key={match.id} className="bg-card rounded-xl p-4 border border-border">
+                    <div key={match.id} className="bg-card rounded-xl p-4 border border-border/60 card-hover shadow-sm animate-fade-in-up">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 text-sm font-bold">
@@ -974,7 +974,7 @@ export default function Home() {
                           <p className="text-[11px] text-muted-foreground mt-0.5">{formatDate(match.updatedAt)}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-black text-foreground tabular-nums">{sc.blue} - {sc.red}</p>
+                          <p className="text-lg font-extrabold text-foreground tabular-nums font-display">{sc.blue} - {sc.red}</p>
                           <p className="text-[11px] text-muted-foreground">
                             {match.finished
                               ? (sc.blue > sc.red ? `🏆 ${match.teamNames.blue}` : sc.red > sc.blue ? `🏆 ${match.teamNames.red}` : t('home.equality'))
@@ -1170,7 +1170,7 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      <footer className="sticky bottom-0 z-30 bg-background border-t border-border px-4 py-3 flex items-center justify-around gap-2">
+      <footer className="sticky bottom-0 z-30 glass border-t border-border/50 px-4 py-3 flex items-center justify-around gap-2">
         <button
           onClick={() => navigate('/spots')}
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"

@@ -1,5 +1,5 @@
 // @ts-nocheck — react-leaflet types mismatch with current version
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +13,8 @@ import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 
 import SpotFilters, { DEFAULT_FILTERS, type SpotFiltersState } from '@/components/spots/SpotFilters';
 import { filterSpots } from '@/lib/filterSpots';
+import { SPOT_TYPE_CONFIG } from '@/lib/spotTypes';
+import type { Tables } from '@/integrations/supabase/types';
 
 L.Icon.Default.mergeOptions({ iconRetinaUrl, iconUrl, shadowUrl });
 
@@ -72,7 +74,7 @@ export default function SpotMap({
   filters, onFiltersChange, isModerator, onUserPositionChange,
 }: SpotMapProps) {
   const { t } = useTranslation();
-  const [spots, setSpots] = useState<any[]>([]);
+  const [spots, setSpots] = useState<Tables<'spots_with_coords'>[]>([]);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
   const loadSpots = useCallback(() => {
@@ -96,20 +98,13 @@ export default function SpotMap({
     onUserPositionChange?.(pos);
   };
 
-  const filteredSpots = filterSpots(spots, filters, userPosition);
+  const filteredSpots = useMemo(() => filterSpots(spots, filters, userPosition), [spots, filters, userPosition]);
 
   const getMarkerIcon = (spot: any) => {
     const type = spot.type || 'outdoor_hard';
     const isPending = spot.status === 'waiting_for_validation';
-    const configs: Record<string, { bg: string; icon: string }> = {
-      club: { bg: 'bg-blue-700', icon: '🏛️' },
-      indoor: { bg: 'bg-blue-500', icon: '🏟️' },
-      beach: { bg: 'bg-yellow-500', icon: '🏖️' },
-      green_volley: { bg: 'bg-green-600', icon: '🌿' },
-      outdoor_hard: { bg: 'bg-green-500', icon: '☀️' },
-      outdoor_grass: { bg: 'bg-green-400', icon: '🌱' },
-    };
-    const { bg, icon } = configs[type] || { bg: 'bg-gray-500', icon: '📍' };
+    const config = SPOT_TYPE_CONFIG[type];
+    const { bg, emoji: icon } = config || { bg: 'bg-gray-500', emoji: '📍' };
     const border = isPending ? 'border-yellow-400' : 'border-white';
     return L.divIcon({
       className: 'custom-div-icon',
@@ -170,8 +165,8 @@ export default function SpotMap({
         )}
 
         <MarkerClusterGroup chunkedLoading iconCreateFunction={createClusterCustomIcon} maxClusterRadius={60}>
-          {filteredSpots.map((spot) => (
-            <Marker key={spot.id} position={[spot.lat, spot.lng]} icon={getMarkerIcon(spot)}
+          {filteredSpots.filter(spot => spot.lat != null && spot.lng != null).map((spot) => (
+            <Marker key={spot.id} position={[spot.lat!, spot.lng!]} icon={getMarkerIcon(spot)}
               eventHandlers={{ click: () => onSelectSpot(spot.id) }}>
               <Popup><div className="text-center font-bold text-xs">{spot.name}</div></Popup>
             </Marker>

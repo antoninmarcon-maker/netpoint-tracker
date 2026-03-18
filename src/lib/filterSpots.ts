@@ -1,6 +1,9 @@
 import { EXTERIOR_TYPES, type SpotFiltersState } from '@/components/spots/SpotFilters';
+import type { Tables } from '@/integrations/supabase/types';
 
-function getDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+type Spot = Tables<'spots_with_coords'>;
+
+export function getDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLng = (lng2 - lng1) * Math.PI / 180;
@@ -8,7 +11,7 @@ function getDistance(lat1: number, lng1: number, lat2: number, lng2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export function filterSpots(spots: any[], filters: SpotFiltersState, userPosition: [number, number] | null): any[] {
+export function filterSpots(spots: Spot[], filters: SpotFiltersState, userPosition: [number, number] | null): Spot[] {
   return spots.filter(spot => {
     const type = spot.type || 'outdoor_hard';
 
@@ -24,10 +27,11 @@ export function filterSpots(spots: any[], filters: SpotFiltersState, userPositio
 
     // Main category gates
     if (type === 'club' && !filters.showClubs) return false;
-    if (EXTERIOR_TYPES.includes(type) && !filters.showExterieur) return false;
+    const isExterior = EXTERIOR_TYPES.includes(type);
+    if (isExterior && !filters.showExterieur) return false;
 
     // Exterior sub-type gates
-    if (EXTERIOR_TYPES.includes(type)) {
+    if (isExterior) {
       if (type === 'beach' && !filters.subFilters.ext_beach) return false;
       if ((type === 'green_volley' || type === 'outdoor_grass') && !filters.subFilters.ext_herbe) return false;
       if (type === 'outdoor_hard' && !filters.subFilters.ext_dur) return false;
@@ -51,6 +55,7 @@ export function filterSpots(spots: any[], filters: SpotFiltersState, userPositio
 
     // Radius filter
     if (filters.radiusKm && userPosition) {
+      if (spot.lat == null || spot.lng == null) return false;
       const dist = getDistance(userPosition[0], userPosition[1], spot.lat, spot.lng);
       if (dist > filters.radiusKm) return false;
     }

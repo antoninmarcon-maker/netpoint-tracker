@@ -6,6 +6,21 @@ import "./i18n";
 
 import { toast } from "sonner";
 
+// Store build version — used to detect stale caches
+const BUILD_VERSION = __BUILD_TIMESTAMP__;
+const STORED_VERSION_KEY = 'app-build-version';
+const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
+
+if (storedVersion && storedVersion !== BUILD_VERSION) {
+  // New version detected — clear old caches and force reload
+  localStorage.setItem(STORED_VERSION_KEY, BUILD_VERSION);
+  caches.keys().then((names) => Promise.all(names.map((n) => caches.delete(n)))).then(() => {
+    window.location.reload();
+  });
+} else {
+  localStorage.setItem(STORED_VERSION_KEY, BUILD_VERSION);
+}
+
 // Force reload when a new service worker takes control
 let refreshing = false;
 navigator.serviceWorker?.addEventListener('controllerchange', () => {
@@ -15,17 +30,11 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   }
 });
 
-// Register SW with prompt strategy
+// Register SW with autoUpdate strategy — updates apply silently
 const updateSW = registerSW({
   onNeedRefresh() {
-    toast("Une mise à jour est disponible", {
-      description: "L'application doit être rafraîchie pour appliquer les derniers changements.",
-      action: {
-        label: "Mettre à jour",
-        onClick: () => updateSW(true),
-      },
-      duration: Infinity,
-    });
+    // Auto-update: apply immediately, then reload
+    updateSW(true);
   },
   onOfflineReady() {
     toast.success("Application prête pour usage hors-ligne");
@@ -34,10 +43,10 @@ const updateSW = registerSW({
     if (registration) {
       // Check immediately on page load
       registration.update();
-      // Then check every 2 minutes
+      // Then check every 60 seconds
       setInterval(() => {
         registration.update();
-      }, 2 * 60 * 1000);
+      }, 60 * 1000);
     }
   },
 });

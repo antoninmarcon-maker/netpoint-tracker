@@ -142,7 +142,7 @@ export default function SpotFilters({ filters, onChange, count, userPosition, is
 
       {/* Sub-filter panel */}
       {showSubPanel && filters.showExterieur && (
-        <div className="bg-background/95 backdrop-blur-sm border border-border rounded-xl p-3 shadow-lg w-[calc(100vw-1.5rem)] sm:max-w-[260px] max-h-[50vh] overflow-y-auto pointer-events-auto">
+        <div className="bg-background/95 backdrop-blur-sm border border-border rounded-xl p-3 shadow-lg w-[min(calc(100vw-1.5rem),260px)] max-h-[40vh] overflow-y-auto pointer-events-auto">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Filtres extérieur</p>
             <button onClick={() => setShowSubPanel(false)} className="text-muted-foreground hover:text-foreground">

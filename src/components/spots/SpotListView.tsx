@@ -1,7 +1,13 @@
+import { useMemo } from 'react';
 import { MapPin, Zap, Leaf, Building2 } from 'lucide-react';
+import { getDistance } from '@/lib/filterSpots';
+import { SPOT_TYPE_CONFIG } from '@/lib/spotTypes';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Spot = Tables<'spots_with_coords'>;
 
 interface SpotListViewProps {
-  spots: any[];
+  spots: Spot[];
   selectedSpotId: string | null;
   onSelectSpot: (id: string) => void;
   userPosition: [number, number] | null;
@@ -9,34 +15,20 @@ interface SpotListViewProps {
   onSortChange: (sort: 'distance' | 'type' | 'name') => void;
 }
 
-function getDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-const TYPE_LABELS: Record<string, { emoji: string; label: string }> = {
-  club: { emoji: '🏛️', label: 'Club' },
-  indoor: { emoji: '🏟️', label: 'Gymnase' },
-  beach: { emoji: '🏖️', label: 'Beach' },
-  green_volley: { emoji: '🌿', label: 'Herbe' },
-  outdoor_hard: { emoji: '☀️', label: 'Dur' },
-  outdoor_grass: { emoji: '🌱', label: 'Herbe' },
-};
-
 export default function SpotListView({ spots, selectedSpotId, onSelectSpot, userPosition, sortBy, onSortChange }: SpotListViewProps) {
-  const spotsWithDist = spots.map(s => ({
-    ...s,
-    distance: userPosition ? getDistance(userPosition[0], userPosition[1], s.lat, s.lng) : null,
-  }));
-
-  const sorted = [...spotsWithDist].sort((a, b) => {
-    if (sortBy === 'distance' && a.distance != null && b.distance != null) return a.distance - b.distance;
-    if (sortBy === 'type') return (a.type || '').localeCompare(b.type || '');
-    return (a.name || '').localeCompare(b.name || '');
-  });
+  const sorted = useMemo(() => {
+    const withDist = spots.map(s => ({
+      ...s,
+      distance: userPosition && s.lat != null && s.lng != null
+        ? getDistance(userPosition[0], userPosition[1], s.lat, s.lng)
+        : null,
+    }));
+    return [...withDist].sort((a, b) => {
+      if (sortBy === 'distance' && a.distance != null && b.distance != null) return a.distance - b.distance;
+      if (sortBy === 'type') return (a.type || '').localeCompare(b.type || '');
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  }, [spots, userPosition, sortBy]);
 
   const sortOptions: { key: typeof sortBy; label: string }[] = [
     ...(userPosition ? [{ key: 'distance' as const, label: '📍 Distance' }] : []),
@@ -70,7 +62,7 @@ export default function SpotListView({ spots, selectedSpotId, onSelectSpot, user
           <p className="text-center text-sm text-muted-foreground py-12">Aucun terrain trouvé</p>
         )}
         {sorted.map(spot => {
-          const typeInfo = TYPE_LABELS[spot.type] || { emoji: '📍', label: 'Terrain' };
+          const typeInfo = SPOT_TYPE_CONFIG[spot.type] || { emoji: '📍', label: 'Terrain', bg: 'bg-gray-500' };
           const isSelected = spot.id === selectedSpotId;
 
           return (

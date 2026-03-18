@@ -1,0 +1,21 @@
+export const SPOT_TYPE_CONFIG: Record<string, { emoji: string; label: string; bg: string }> = {
+  club: { emoji: '🏛️', label: 'Club', bg: 'bg-blue-700' },
+  beach: { emoji: '🏖️', label: 'Beach', bg: 'bg-yellow-500' },
+  green_volley: { emoji: '🌿', label: 'Green-Volley', bg: 'bg-green-600' },
+  outdoor_hard: { emoji: '☀️', label: 'Dur', bg: 'bg-green-500' },
+  outdoor_grass: { emoji: '🌱', label: 'Herbe', bg: 'bg-green-400' },
+};
+
+export const MONTHS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+export const MONTHS_FULL = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+export function getTypeLabel(type: string): string {
+  const config = SPOT_TYPE_CONFIG[type];
+  return config ? `${config.emoji} ${config.label}` : '📍 Terrain';
+}
+
+export function calcAverageRating(comments: Array<{ rating?: number | null }>): number {
+  const rated = comments.filter(c => c.rating != null && c.rating > 0);
+  if (rated.length === 0) return 0;
+  return rated.reduce((sum, c) => sum + c.rating!, 0) / rated.length;
+}

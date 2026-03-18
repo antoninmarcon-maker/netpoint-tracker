@@ -254,7 +254,7 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
               <SelectItem value="beach">{t('spots.typeBeach')}</SelectItem>
               <SelectItem value="outdoor_hard">{t('spots.typeOutdoorHard')}</SelectItem>
               <SelectItem value="outdoor_grass">{t('spots.typeOutdoorGrass')}</SelectItem>
-              <SelectItem value="indoor">{t('spots.typeIndoor')}</SelectItem>
+
             </SelectContent>
           </Select>
         </div>
