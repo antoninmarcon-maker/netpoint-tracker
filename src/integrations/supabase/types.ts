@@ -14,30 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      feedback: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          message: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          email?: string
-          id?: string
-          message: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          message?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       matches: {
         Row: {
           chrono_seconds: number
@@ -88,102 +64,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      players: {
-        Row: {
-          created_at: string
-          id: string
-          match_id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          match_id: string
-          name?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          match_id?: string
-          name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "players_match_id_fkey"
-            columns: ["match_id"]
-            isOneToOne: false
-            referencedRelation: "matches"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      points: {
-        Row: {
-          action: string
-          created_at: string
-          id: string
-          match_id: string
-          player_id: string | null
-          point_value: number | null
-          set_id: string | null
-          team: string
-          timestamp: number
-          type: string
-          x: number
-          y: number
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          id?: string
-          match_id: string
-          player_id?: string | null
-          point_value?: number | null
-          set_id?: string | null
-          team: string
-          timestamp?: number
-          type: string
-          x?: number
-          y?: number
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          id?: string
-          match_id?: string
-          player_id?: string | null
-          point_value?: number | null
-          set_id?: string | null
-          team?: string
-          timestamp?: number
-          type?: string
-          x?: number
-          y?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "points_match_id_fkey"
-            columns: ["match_id"]
-            isOneToOne: false
-            referencedRelation: "matches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "points_player_id_fkey"
-            columns: ["player_id"]
-            isOneToOne: false
-            referencedRelation: "players"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "points_set_id_fkey"
-            columns: ["set_id"]
-            isOneToOne: false
-            referencedRelation: "sets"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       profiles: {
         Row: {
@@ -277,47 +157,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      sets: {
-        Row: {
-          created_at: string
-          duration: number
-          id: string
-          match_id: string
-          number: number
-          score_blue: number
-          score_red: number
-          winner: string | null
-        }
-        Insert: {
-          created_at?: string
-          duration?: number
-          id?: string
-          match_id: string
-          number: number
-          score_blue?: number
-          score_red?: number
-          winner?: string | null
-        }
-        Update: {
-          created_at?: string
-          duration?: number
-          id?: string
-          match_id?: string
-          number?: number
-          score_blue?: number
-          score_red?: number
-          winner?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sets_match_id_fkey"
-            columns: ["match_id"]
-            isOneToOne: false
-            referencedRelation: "matches"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       spot_comments: {
         Row: {
