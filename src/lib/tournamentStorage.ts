@@ -197,7 +197,21 @@ export async function acceptCaptaincyRequest(memberId: string, teamId: string, r
     return true;
 }
 
-export async function leaveTeam(memberId: string): Promise<boolean> {
+export async function leaveTeam(memberId: string, teamId: string, userId: string): Promise<boolean> {
+    // Prevent sole captain from leaving — team would become unmanageable
+    const { data: team } = await db.from('tournament_teams').select('captain_id').eq('id', teamId).single();
+    if (team?.captain_id === userId) {
+        const { count } = await db.from('tournament_members').select('id', { count: 'exact', head: true }).eq('team_id', teamId);
+        if ((count ?? 0) <= 1) {
+            // Last member who is also captain — delete the team entirely
+            await db.from('tournament_members').delete().eq('id', memberId);
+            await db.from('tournament_teams').delete().eq('id', teamId);
+            return true;
+        }
+        // Captain with other members — must transfer captaincy first
+        return false;
+    }
+
     const { error } = await db.from('tournament_members').delete().eq('id', memberId);
     if (error) { console.error('[leaveTeam]', error); return false; }
     return true;
@@ -234,7 +248,12 @@ export async function createMatch(tournamentId: string, teamBlueId: string, team
     return data as TournamentMatch;
 }
 
-export async function updateMatchScore(matchId: string, scoreBlue: number[], scoreRed: number[], setsToWin: number, winnerId?: string | null): Promise<boolean> {
+export async function updateMatchScore(matchId: string, scoreBlue: number[], scoreRed: number[], setsToWin: number, winnerId?: string | null, teamBlueId?: string, teamRedId?: string): Promise<boolean> {
+    // Validate scores are non-negative
+    if (scoreBlue.some(s => s < 0) || scoreRed.some(s => s < 0)) return false;
+    // Validate winner is one of the match teams (if provided)
+    if (winnerId && teamBlueId && teamRedId && winnerId !== teamBlueId && winnerId !== teamRedId) return false;
+
     const blueWins = scoreBlue.filter((s, i) => s > (scoreRed[i] ?? 0)).length;
     const redWins = scoreRed.filter((s, i) => s > (scoreBlue[i] ?? 0)).length;
     const finished = blueWins >= setsToWin || redWins >= setsToWin;

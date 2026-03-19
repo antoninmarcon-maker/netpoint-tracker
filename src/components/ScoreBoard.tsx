@@ -199,7 +199,7 @@ export function ScoreBoard({
           <button onClick={onSwitchSides} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
             <ArrowLeftRight size={16} /> {t('scoreboard.switch')}
           </button>
-          <button onClick={() => setConfirmEndSet(true)} disabled={!canUndo} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all">
+          <button onClick={() => setConfirmEndSet(true)} disabled={!canUndo || score.blue === score.red} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all">
             <Flag size={16} /> {t('scoreboard.endPeriod', { period: periodLabel })}
           </button>
         </div>

@@ -57,17 +57,22 @@ export default function SpotListView({ spots, selectedSpotId, onSelectSpot, user
   ];
 
   return (
-    <div className="flex flex-col h-full bg-background/95 backdrop-blur-xl border-l border-border/40">
+    <div className="flex flex-col h-full bg-background/95 backdrop-blur-xl md:border-l border-border/40 rounded-t-3xl md:rounded-none shadow-2xl md:shadow-none">
+      {/* Drag handle — mobile only */}
+      <div className="flex justify-center pt-2.5 pb-1 md:hidden">
+        <div className="w-10 h-1 rounded-full bg-border" />
+      </div>
+
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/40" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
-        <div>
+      <div className="flex items-center justify-between px-4 py-2.5 md:py-3 md:border-b md:border-border/40" style={{ paddingTop: undefined }}>
+        <div className="flex items-baseline gap-2">
           <h2 className="text-sm font-bold text-foreground">Terrains</h2>
-          <p className="text-[10px] text-muted-foreground mt-0.5">{sorted.length} résultat{sorted.length !== 1 ? 's' : ''}</p>
+          <span className="text-[10px] text-muted-foreground tabular-nums">{sorted.length} résultat{sorted.length !== 1 ? 's' : ''}</span>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <X size={14} />
           </button>
@@ -75,7 +80,7 @@ export default function SpotListView({ spots, selectedSpotId, onSelectSpot, user
       </div>
 
       {/* Sort bar */}
-      <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-border/30 bg-secondary/20">
+      <div className="flex items-center gap-1.5 px-4 py-2 border-b border-border/30 bg-secondary/20">
         <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest mr-1">Tri</span>
         {sortOptions.map(opt => (
           <SortChip key={opt.key} active={sortBy === opt.key} onClick={() => onSortChange(opt.key)}>
@@ -85,10 +90,10 @@ export default function SpotListView({ spots, selectedSpotId, onSelectSpot, user
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overscroll-contain">
         {sorted.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mb-3">
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center mb-3">
               <span className="text-lg">🏐</span>
             </div>
             <p className="text-sm text-muted-foreground">Aucun terrain trouvé</p>
@@ -104,20 +109,18 @@ export default function SpotListView({ spots, selectedSpotId, onSelectSpot, user
             <button
               key={spot.id}
               onClick={() => onSelectSpot(spot.id)}
-              className={`w-full text-left px-4 py-3.5 border-b border-border/30 transition-all hover:bg-secondary/40 active:bg-secondary/60 group ${
+              className={`w-full text-left px-4 py-3 border-b border-border/20 transition-all hover:bg-secondary/40 active:bg-secondary/60 group ${
                 isSelected ? 'bg-primary/5 border-l-[3px] border-l-primary' : ''
               }`}
-              style={{ animationDelay: `${i * 20}ms` }}
             >
               <div className="flex items-center gap-3">
-                {/* Type indicator dot */}
                 <div className={`w-9 h-9 rounded-xl ${typeInfo.bg} flex items-center justify-center text-sm shadow-sm flex-none`}>
                   {typeInfo.emoji}
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-semibold text-foreground truncate leading-tight">{spot.name}</p>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[10px] text-muted-foreground">{typeInfo.label}</span>
                     {spot.equip_acces_libre && (
                       <span className="text-[9px] text-green-600 dark:text-green-400 font-medium">🔓 Libre</span>

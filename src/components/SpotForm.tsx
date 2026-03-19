@@ -48,7 +48,12 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
   const [startMonth, setStartMonth] = useState(initAv.start);
   const [endMonth, setEndMonth] = useState(initAv.end);
   
-  const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+  const months = [
+    t('months.january', 'Janvier'), t('months.february', 'Février'), t('months.march', 'Mars'),
+    t('months.april', 'Avril'), t('months.may', 'Mai'), t('months.june', 'Juin'),
+    t('months.july', 'Juillet'), t('months.august', 'Août'), t('months.september', 'Septembre'),
+    t('months.october', 'Octobre'), t('months.november', 'Novembre'), t('months.december', 'Décembre'),
+  ];
 
   // Address search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,7 +67,9 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
     // Simple rate limiting/feedback for search
     setSearching(true);
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=fr,ch,be,ca`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=fr,ch,be,ca`, {
+        headers: { 'User-Agent': 'MyVolley/1.0 (https://my-volley.com)' },
+      });
       if (!res.ok) throw new Error('Search failed');
       const data = await res.json();
       setSearchResults(data);
@@ -153,25 +160,26 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
       for (const file of photos) {
         const fileExt = file.name.split('.').pop();
         const filePath = `${spotId}/${crypto.randomUUID()}.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('spot-photos')
           .upload(filePath, file);
-          
+
         if (uploadError) {
           console.error("Upload error:", uploadError);
-          continue;
+          continue; // Skip DB insert — file wasn't uploaded
         }
 
         const { data: { publicUrl } } = supabase.storage
           .from('spot-photos')
           .getPublicUrl(filePath);
 
-        await supabase.from('spot_photos').insert([{
+        const { error: insertError } = await supabase.from('spot_photos').insert([{
           spot_id: spotId,
           photo_url: publicUrl,
           user_id: userId
         }]);
+        if (insertError) console.error("Photo record insert error:", insertError);
       }
 
       toast.success(t('spots.spotAdded'));
@@ -226,7 +234,7 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
                   <MapPin size={14} />
                   <span>{location[0].toFixed(5)}, {location[1].toFixed(5)}</span>
                 </div>
-                <span className="text-[10px] uppercase opacity-70">Ajustable sur la carte</span>
+                <span className="text-[10px] uppercase opacity-70">{t('spots.adjustableOnMap', 'Ajustable sur la carte')}</span>
               </div>
             )}
           </div>
@@ -254,14 +262,14 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
               <SelectItem value="beach">{t('spots.typeBeach')}</SelectItem>
               <SelectItem value="outdoor_hard">{t('spots.typeOutdoorHard')}</SelectItem>
               <SelectItem value="outdoor_grass">{t('spots.typeOutdoorGrass')}</SelectItem>
-
+              <SelectItem value="indoor">{t('spots.typeIndoor')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-3 p-3 bg-secondary/20 border border-border rounded-xl">
           <div className="flex items-center justify-between">
-            <Label htmlFor="availability-switch" className="flex-1 cursor-pointer">Disponible toute l'année</Label>
+            <Label htmlFor="availability-switch" className="flex-1 cursor-pointer">{t('spots.allYear', "Disponible toute l'année")}</Label>
             <Switch 
               id="availability-switch" 
               checked={allYear} 
@@ -271,14 +279,14 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
           
           {!allYear && (
             <div className="flex gap-2 items-center">
-              <span className="text-sm">De</span>
+              <span className="text-sm">{t('spots.from', 'De')}</span>
               <Select value={startMonth} onValueChange={setStartMonth}>
                 <SelectTrigger className="bg-secondary/50 h-8 text-sm"><SelectValue placeholder="Mois" /></SelectTrigger>
                 <SelectContent>
                   {months.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <span className="text-sm">à</span>
+              <span className="text-sm">{t('spots.to', 'à')}</span>
               <Select value={endMonth} onValueChange={setEndMonth}>
                 <SelectTrigger className="bg-secondary/50 h-8 text-sm"><SelectValue placeholder="Mois" /></SelectTrigger>
                 <SelectContent>
@@ -339,7 +347,7 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
           {t('common.cancel')}
         </Button>
         <Button type="submit" className="flex-1" disabled={loading || (!location && !spotToEdit)}>
-          {loading ? <Loader2 size={16} className="animate-spin" /> : spotToEdit ? "Enregistrer" : t('spots.submitSpot')}
+          {loading ? <Loader2 size={16} className="animate-spin" /> : spotToEdit ? t('common.save') : t('spots.submitSpot')}
         </Button>
       </div>
     </form>

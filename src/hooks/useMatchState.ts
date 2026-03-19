@@ -509,7 +509,8 @@ export function useMatchState(matchId: string, ready: boolean = true) {
 
   const endSet = useCallback(() => {
     if (points.length === 0) return;
-    const winner: Team = score.blue >= score.red ? 'blue' : 'red';
+    if (score.blue === score.red) return; // Cannot end set on a tie
+    const winner: Team = score.blue > score.red ? 'blue' : 'red';
     const setData: SetData = {
       id: crypto.randomUUID(),
       number: currentSetNumber,

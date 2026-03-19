@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useMap } from 'react-leaflet';
-import { Input } from '@/components/ui/input';
 import { Loader2, Search, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +23,9 @@ export default function MapSearchControl({ isAddingMode, onLocationSelected }: M
 
     setSearching(true);
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=fr,ch,be,ca`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=fr,ch,be,ca`, {
+        headers: { 'User-Agent': 'MyVolley/1.0 (https://my-volley.com)' },
+      });
       if (!res.ok) throw new Error('Search failed');
       const data = await res.json();
       setSearchResults(data);
@@ -51,10 +52,13 @@ export default function MapSearchControl({ isAddingMode, onLocationSelected }: M
   };
 
   return (
-    <div className="absolute top-[4.5rem] left-3 right-3 z-[400] pointer-events-auto">
+    <div
+      className="absolute left-[3.25rem] right-3 z-[400] pointer-events-auto"
+      style={{ top: 'max(0.625rem, env(safe-area-inset-top))' }}
+    >
       <form
         onSubmit={handleSearch}
-        className="flex bg-background/95 backdrop-blur-md border border-border/50 rounded-full overflow-hidden shadow-lg transition-all focus-within:shadow-xl focus-within:border-primary/30"
+        className="flex bg-background/90 backdrop-blur-md border border-border/50 rounded-2xl overflow-hidden shadow-lg transition-all focus-within:shadow-xl focus-within:border-primary/30"
       >
         <div className="flex items-center pl-3.5">
           <Search size={15} className="text-muted-foreground/60" />

@@ -142,7 +142,6 @@
     "connected": "Connecté !",
     "authError": "Erreur d'authentification",
     "googleError": "Erreur Google : ",
-    "appleError": "Erreur Apple : ",
     "requiresLogin": "Cette fonctionnalité nécessite une connexion.",
     "magicLink": "Se connecter sans mot de passe",
     "magicLinkSent": "Un lien de connexion a été envoyé à votre adresse email.",
@@ -169,7 +168,7 @@
     "passwordUpdated": "Mot de passe mis à jour !",
     "passwordMinLength": "Le mot de passe doit contenir au moins 6 caractères.",
     "passwordMismatch": "Les mots de passe ne correspondent pas.",
-    "oauthPasswordWarning": "⚠️ La gestion du mot de passe n'est pas disponible pour les comptes connectés via Google ou Apple.",
+    "oauthPasswordWarning": "⚠️ La gestion du mot de passe n'est pas disponible pour les comptes connectés via Google.",
     "support": "Support et feedback",
     "feedbackPlaceholder": "Dites-nous ce que vous pensez, ce qui pourrait être amélioré…",
     "sendFeedback": "Envoyer le feedback",
@@ -429,7 +428,8 @@
     "iosInstall": "Appuyez sur le bouton « Partager » ⎙ puis « Sur l'écran d'accueil » pour installer l'app.",
     "androidInstall": "Appuyez sur les trois points ⋮ puis « Installer l'application » pour un accès rapide.",
     "updateAvailable": "Une nouvelle mise à jour est disponible !",
-    "update": "Mettre à jour"
+    "update": "Mettre à jour",
+    "offlineReady": "Application prête pour usage hors-ligne"
   },
   "savedPlayers": {
     "title": "Joueurs enregistrés",
@@ -606,7 +606,7 @@
     "tabMatches": "Matchs",
     "tabResults": "Résultats",
     "noTeams": "Aucune équipe inscrite",
-    "captainRequest": "Cap. request",
+    "captainRequest": "Dem. capitanat",
     "captaincyTransferred": "Capitanat transféré",
     "captainRequests": "Demandes de capitanat",
     "registrationQR": "Inscription",
@@ -631,7 +631,10 @@
     "standings": "Classement",
     "finishedMatches": "Matchs terminés",
     "upcoming": "À venir",
-    "matchesCount": "{{count}} matchs"
+    "matchesCount": "{{count}} matchs",
+    "oddTeamWarning": "Nombre impair d'équipes : \"{{team}}\" ne sera pas assignée à un match.",
+    "playerCount": "{{count}} joueur(s)",
+    "captainCannotLeave": "Transférez le capitanat avant de quitter l'équipe."
   },
   "spots": {
     "title": "Où jouer ?",
@@ -675,6 +678,24 @@
     "firstComment": "Soyez le premier à commenter ce terrain !",
     "loadError": "Erreur lors du chargement des infos",
     "loadDataError": "Erreur lors du chargement des données.",
-    "youAreHere": "Vous êtes ici"
+    "youAreHere": "Vous êtes ici",
+    "allYear": "Disponible toute l'année",
+    "from": "De",
+    "to": "à",
+    "adjustableOnMap": "Ajustable sur la carte"
+  },
+  "months": {
+    "january": "Janvier",
+    "february": "Février",
+    "march": "Mars",
+    "april": "Avril",
+    "may": "Mai",
+    "june": "Juin",
+    "july": "Juillet",
+    "august": "Août",
+    "september": "Septembre",
+    "october": "Octobre",
+    "november": "Novembre",
+    "december": "Décembre"
   }
 }

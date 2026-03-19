@@ -69,7 +69,9 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
     if (!searchQuery.trim()) return;
     setSearching(true);
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=fr,ch,be,ca`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=fr,ch,be,ca`, {
+        headers: { 'User-Agent': 'MyVolley/1.0 (https://my-volley.com)' },
+      });
       const data = await res.json();
       setSearchResults(data);
     } catch { toast.error("Erreur recherche adresse."); }

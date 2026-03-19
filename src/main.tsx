@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
-import "./i18n";
+import i18n from "./i18n";
 
 import { toast } from "sonner";
 
@@ -37,7 +37,7 @@ const updateSW = registerSW({
     updateSW(true);
   },
   onOfflineReady() {
-    toast.success("Application prête pour usage hors-ligne");
+    toast.success(i18n.t('pwa.offlineReady', 'App ready for offline use'));
   },
   onRegisteredSW(swUrl, registration) {
     if (registration) {
@@ -51,11 +51,6 @@ const updateSW = registerSW({
   },
 });
 
-// Apply saved theme immediately to avoid flash
-const savedTheme = localStorage.getItem('theme') || 'dark';
-const resolved = savedTheme === 'system'
-  ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-  : savedTheme;
-if (resolved === 'dark') document.documentElement.classList.add('dark');
+// Theme is applied in index.html <head> to prevent flash
 
 createRoot(document.getElementById("root")!).render(<App />);

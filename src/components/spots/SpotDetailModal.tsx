@@ -61,7 +61,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
       setComments((cData || []).map((c: any) => ({ ...c, authorName: profileMap[c.user_id] || 'Anonyme' })));
     } catch (err) {
       console.error(err);
-      toast.error("Erreur chargement");
+      toast.error(t('spots.loadError'));
     } finally {
       setLoading(false);
     }
@@ -80,7 +80,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
     const next = isFavorite ? favs.filter(f => f !== spotId) : [...favs, spotId];
     localStorage.setItem('spot_favorites', JSON.stringify(next));
     setIsFavorite(!isFavorite);
-    toast.success(isFavorite ? 'Retiré des favoris' : 'Ajouté aux favoris');
+    toast.success(isFavorite ? t('spots.removedFromFavorites', 'Removed from favorites') : t('spots.addedToFavorites', 'Added to favorites'));
   };
 
   const handlePostComment = async (e: React.FormEvent) => {
@@ -91,7 +91,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
     try {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
-      if (!userId) { toast.error("Connectez-vous pour commenter."); return; }
+      if (!userId) { toast.error(t('spots.loginRequired')); return; }
 
       const uploadedUrls = (await Promise.all(newPhotos.map(f => uploadSpotPhoto(spotId!, f, userId)))).filter(Boolean) as string[];
 

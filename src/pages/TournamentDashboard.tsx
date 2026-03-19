@@ -117,7 +117,11 @@ export default function TournamentDashboard() {
     const copy = (url: string) => { navigator.clipboard.writeText(url); toast.success(t('shared.linkCopied')); };
 
     const handleRandomDispatch = async () => {
-        if (!id || !confirm(t('tournaments.randomDispatchConfirm', { count: teams.length }))) return;
+        if (!id) return;
+        const isOdd = teams.length % 2 !== 0;
+        const msg = t('tournaments.randomDispatchConfirm', { count: teams.length })
+            + (isOdd ? `\n⚠️ ${t('tournaments.oddTeamWarning', { team: teams[teams.length - 1]?.name })}` : '');
+        if (!confirm(msg)) return;
         const ok = await randomDispatch(id, teams);
         if (ok) { getMatches(id).then(setMatches); toast.success(t('tournaments.matchesGenerated')); }
     };
@@ -168,7 +172,7 @@ export default function TournamentDashboard() {
                                 <span className="text-xs text-foreground">{m.player_name} — {teams.find(t => t.id === m.team_id)?.name}</span>
                                 <div className="flex gap-1">
                                     <button onClick={() => acceptCaptaincyRequest(m.id, m.team_id, m.user_id).then(() => { getTeams(id!).then(setTeams); getMembers(id!).then(setMembers); toast.success(t('tournaments.captaincyTransferred')); }).catch(err => { console.error(err); toast.error(t('common.error') || 'Erreur'); })} className="p-1 rounded-lg bg-emerald-500/15 text-emerald-500"><CheckCircle size={14} /></button>
-                                    <button onClick={() => leaveTeam(m.id).then(() => setMembers(p => p.filter(x => x.id !== m.id))).catch(err => { console.error(err); toast.error(t('common.error') || 'Erreur'); })} className="p-1 rounded-lg bg-destructive/15 text-destructive"><XCircle size={14} /></button>
+                                    <button onClick={() => leaveTeam(m.id, m.team_id, m.user_id).then((ok) => { if (ok) { setMembers(p => p.filter(x => x.id !== m.id)); getTeams(id!).then(setTeams); } else { toast.error(t('tournaments.captainCannotLeave', 'Transfer captaincy first')); } }).catch(err => { console.error(err); toast.error(t('common.error') || 'Erreur'); })} className="p-1 rounded-lg bg-destructive/15 text-destructive"><XCircle size={14} /></button>
                                 </div>
                             </div>
                         ))}

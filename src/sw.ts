@@ -16,8 +16,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) =>
       Promise.all(
         cacheNames
-          .filter((name) => name !== 'workbox-precache-v2' && name !== 'navigations')
-          .filter((name) => !name.startsWith('workbox-precache'))
+          .filter((name) => !name.startsWith('workbox-precache') && name !== 'navigations')
           .map((name) => caches.delete(name))
       )
     )

@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
 
     const { data: spot } = await serviceClient
       .from('spots')
-      .select('name, type, description')
+      .select('name, type, description, user_id')
       .eq('id', spot_id)
       .maybeSingle()
 
@@ -147,6 +147,15 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'empty_response' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
+    }
+
+    // Only allow spot owner or system-imported spots to be updated
+    const isOwner = spot.user_id === user.id;
+    const isSystemSpot = spot.user_id === '00000000-0000-0000-0000-000000000000';
+    if (!isOwner && !isSystemSpot) {
+      return new Response(JSON.stringify({ error: "Forbidden: you do not own this spot" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     await serviceClient

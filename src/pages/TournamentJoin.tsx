@@ -206,7 +206,7 @@ export default function TournamentJoin() {
                                                         <Users size={15} className="text-muted-foreground" />
                                                         <span className="font-semibold text-sm text-foreground">{team.name}</span>
                                                     </div>
-                                                    <span className="text-xs text-muted-foreground">{count} {count > 1 ? 'joueurs' : 'joueur'}</span>
+                                                    <span className="text-xs text-muted-foreground">{t('tournaments.playerCount', { count })}</span>
                                                 </button>
                                             );
                                         })}

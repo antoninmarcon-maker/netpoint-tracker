@@ -6,7 +6,6 @@ import { supabase } from '@/integrations/supabase/client';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useTranslation } from 'react-i18next';
-import { Locate } from 'lucide-react';
 
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
@@ -30,11 +29,11 @@ interface SpotMapProps {
   onFiltersChange: (f: SpotFiltersState) => void;
   isModerator?: boolean;
   onUserPositionChange?: (pos: [number, number]) => void;
+  recenterTrigger?: number;
 }
 
 const defaultCenter: [number, number] = [46.603354, 1.888334];
 
-// Marker icon builder + cache to avoid recreating icons per render
 function buildMarkerSvg(color: string, icon: string, isPending: boolean): string {
   const borderColor = isPending ? '#facc15' : 'white';
   const borderWidth = isPending ? 3 : 2;
@@ -72,7 +71,6 @@ function getCachedMarkerIcon(type: string, isPending: boolean): L.DivIcon {
   return icon;
 }
 
-// Static icons (never change, created once)
 const userLocationIcon = L.divIcon({
   className: '',
   html: `<div style="
@@ -127,24 +125,16 @@ function UserLocationMarker({ onPosition }: { onPosition?: (pos: [number, number
   );
 }
 
-function RecenterButton() {
+function RecenterController({ trigger }: { trigger: number }) {
   const map = useMap();
-  const handleRecenter = () => {
+  useEffect(() => {
+    if (trigger === 0) return;
     map.once("locationfound", (e) => {
       map.flyTo(e.latlng, 13, { duration: 1 });
     });
     map.locate();
-  };
-
-  return (
-    <button
-      onClick={handleRecenter}
-      className="absolute bottom-28 right-3 z-[400] w-11 h-11 rounded-full bg-background/95 backdrop-blur-md border border-border shadow-lg flex items-center justify-center text-foreground hover:bg-background transition-colors active:scale-95"
-      title="Ma position"
-    >
-      <Locate size={18} />
-    </button>
-  );
+  }, [trigger, map]);
+  return null;
 }
 
 function AddMarkerController({ isActive, location, onChange }: {
@@ -162,7 +152,7 @@ function AddMarkerController({ isActive, location, onChange }: {
 
 export default function SpotMap({
   selectedSpotId, onSelectSpot, isAddingMode, newSpotLocation, onNewSpotLocationChange,
-  filters, onFiltersChange, isModerator, onUserPositionChange,
+  filters, onFiltersChange, isModerator, onUserPositionChange, recenterTrigger = 0,
 }: SpotMapProps) {
   const { t } = useTranslation();
   const [spots, setSpots] = useState<Tables<'spots_with_coords'>[]>([]);
@@ -223,16 +213,15 @@ export default function SpotMap({
         zoomControl={false}
         attributionControl={false}
       >
-        {/* CartoDB Voyager — clean, modern tiles */}
         <TileLayer
           attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
 
-        {/* Search bar */}
+        {/* Search bar — sits in the top bar area alongside back button */}
         <MapSearchControl isAddingMode={isAddingMode} onLocationSelected={onNewSpotLocationChange} />
 
-        {/* Filters */}
+        {/* Filters — compact row below search */}
         <SpotFilters
           filters={filters}
           onChange={onFiltersChange}
@@ -242,10 +231,8 @@ export default function SpotMap({
         />
 
         <UserLocationMarker onPosition={handleUserPosition} />
+        <RecenterController trigger={recenterTrigger} />
         <AddMarkerController isActive={isAddingMode} location={newSpotLocation} onChange={onNewSpotLocationChange} />
-
-        {/* Recenter button */}
-        <RecenterButton />
 
         {isAddingMode && newSpotLocation && (
           <Marker

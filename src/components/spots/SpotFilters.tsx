@@ -122,7 +122,7 @@ export default function SpotFilters({ filters, onChange, count, userPosition, is
     filters.subFilters.green_saison !== 'all';
 
   return (
-    <div className="absolute top-14 left-0 right-0 z-[400] flex flex-col gap-1.5 pointer-events-none px-3">
+    <div className="absolute left-0 right-0 z-[400] flex flex-col gap-1.5 pointer-events-none px-3" style={{ top: 'calc(max(0.625rem, env(safe-area-inset-top)) + 3rem)' }}>
       {/* Main filter row — horizontal scroll */}
       <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar pointer-events-auto pb-0.5">
         <Chip active={filters.showExterieur} onClick={() => set('showExterieur', !filters.showExterieur)}>

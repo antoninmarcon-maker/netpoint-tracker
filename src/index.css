@@ -249,6 +249,27 @@
   color: hsl(var(--primary)) !important;
 }
 
+/* Spot list half-sheet enter animation */
+.spot-list-enter {
+  animation: spot-list-slide-up 0.35s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@media (min-width: 768px) {
+  .spot-list-enter {
+    animation: spot-list-slide-right 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+}
+
+@keyframes spot-list-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes spot-list-slide-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
 /* Hide scrollbar utility */
 .hide-scrollbar {
   -ms-overflow-style: none;

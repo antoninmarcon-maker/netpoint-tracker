@@ -142,7 +142,6 @@
     "connected": "Connected!",
     "authError": "Authentication error",
     "googleError": "Google error: ",
-    "appleError": "Apple error: ",
     "requiresLogin": "This feature requires login.",
     "magicLink": "Sign in without password",
     "magicLinkSent": "A login link has been sent to your email address.",
@@ -169,7 +168,7 @@
     "passwordUpdated": "Password updated!",
     "passwordMinLength": "Password must be at least 6 characters.",
     "passwordMismatch": "Passwords do not match.",
-    "oauthPasswordWarning": "⚠️ Password management is not available for accounts connected via Google or Apple.",
+    "oauthPasswordWarning": "⚠️ Password management is not available for accounts connected via Google.",
     "support": "Support and feedback",
     "feedbackPlaceholder": "Tell us what you think, what could be improved…",
     "sendFeedback": "Send feedback",
@@ -429,7 +428,8 @@
     "iosInstall": "Tap the \"Share\" button ⎙ then \"Add to Home Screen\" to install the app.",
     "androidInstall": "Tap the three dots ⋮ then \"Install app\" for quick access.",
     "updateAvailable": "A new update is available!",
-    "update": "Update"
+    "update": "Update",
+    "offlineReady": "App ready for offline use"
   },
   "savedPlayers": {
     "title": "Saved players",
@@ -631,7 +631,10 @@
     "standings": "Standings",
     "finishedMatches": "Finished matches",
     "upcoming": "Upcoming",
-    "matchesCount": "{{count}} matches"
+    "matchesCount": "{{count}} matches",
+    "oddTeamWarning": "Odd number of teams: \"{{team}}\" will not be assigned a match.",
+    "playerCount": "{{count}} player(s)",
+    "captainCannotLeave": "Transfer captaincy before leaving the team."
   },
   "spots": {
     "title": "Where to Play?",
@@ -675,6 +678,24 @@
     "firstComment": "Be the first to comment on this court!",
     "loadError": "Error loading details",
     "loadDataError": "Error loading data.",
-    "youAreHere": "You are here"
+    "youAreHere": "You are here",
+    "allYear": "Available all year",
+    "from": "From",
+    "to": "to",
+    "adjustableOnMap": "Adjustable on the map"
+  },
+  "months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
   }
 }
