@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Loader2, ImagePlus, X, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
 import { MONTHS_FULL } from '@/lib/spotTypes';
 import { uploadSpotPhoto } from '@/lib/uploadSpotPhoto';
@@ -24,6 +25,7 @@ interface SpotFormModalProps {
 }
 
 export default function SpotFormModal({ open, onClose, onSuccess, location, onLocationChange, spotToEdit, isSuggestion }: SpotFormModalProps) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -74,14 +76,14 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
       });
       const data = await res.json();
       setSearchResults(data);
-    } catch { toast.error("Erreur recherche adresse."); }
+    } catch { toast.error(t('spots.searchError', 'Search error.')); }
     finally { setSearching(false); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return toast.error("Le nom du terrain est requis.");
-    if (!location && !spotToEdit) return toast.error("Choisissez un emplacement.");
+    if (!name.trim()) return toast.error(t('spots.spotNameRequired'));
+    if (!location && !spotToEdit) return toast.error(t('spots.chooseLocation'));
     if (!checkAndIncrementRateLimit()) return;
 
     const finalAvailability = allYear ? "Toute l'année" : (startMonth && endMonth ? `De ${startMonth} à ${endMonth}` : '');
@@ -90,7 +92,7 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
     try {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
-      if (!userId) { toast.error("Connectez-vous d'abord."); return; }
+      if (!userId) { toast.error(t('spots.loginRequired')); return; }
 
       let spotId = spotToEdit?.id;
 
@@ -103,7 +105,7 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
         }]).select('id').single();
         spotId = newSpot?.id;
       } else {
-        if (!location) { toast.error("Choisissez un emplacement."); setLoading(false); return; }
+        if (!location) { toast.error(t('spots.chooseLocation')); setLoading(false); return; }
         const { data: newSpot, error } = await supabase.from('spots').insert([{
           name, description, type, availability_period: finalAvailability,
           lat: location[0], lng: location[1], user_id: userId,
@@ -118,10 +120,10 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
         await supabase.from('spot_photos').insert([{ spot_id: spotId, photo_url: url, user_id: userId }]);
       }
 
-      toast.success(isSuggestion ? "Modification suggérée !" : "Terrain ajouté !");
+      toast.success(isSuggestion ? t('spots.suggestionSubmitted', 'Suggestion submitted!') : t('spots.spotAdded'));
       onSuccess();
       onClose();
-    } catch (err: any) { console.error(err); toast.error(err.message || "Erreur"); }
+    } catch (err: any) { console.error(err); toast.error(err.message || t('spots.spotAddError')); }
     finally { setLoading(false); }
   };
 
@@ -140,7 +142,7 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
           {!spotToEdit && (
             <div className="space-y-2">
               <div className="flex gap-2">
-                <Input placeholder="Rechercher une adresse..." value={searchQuery}
+                <Input placeholder={t('spots.searchAddress', 'Search an address...')} value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleSearch())}
                   className="bg-secondary/50 text-sm" />

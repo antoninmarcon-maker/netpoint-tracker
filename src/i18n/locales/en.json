@@ -687,7 +687,13 @@
     "addedToFavorites": "Added to favorites",
     "noCommentsForSummary": "Not enough comments for a summary.",
     "aiSummaryGenerated": "AI summary generated!",
-    "aiSummaryError": "AI summary error."
+    "aiSummaryError": "AI summary error.",
+    "searchAddress": "Search an address...",
+    "searchError": "Address search error.",
+    "suggestionSubmitted": "Suggestion submitted!",
+    "moderationError": "Moderation error",
+    "spotApproved": "Court approved",
+    "spotRejected": "Court rejected"
   },
   "months": {
     "january": "January",

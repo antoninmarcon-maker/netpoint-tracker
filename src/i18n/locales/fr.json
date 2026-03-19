@@ -687,7 +687,13 @@
     "addedToFavorites": "Ajouté aux favoris",
     "noCommentsForSummary": "Pas assez de commentaires pour un résumé.",
     "aiSummaryGenerated": "Résumé IA généré !",
-    "aiSummaryError": "Erreur lors de la génération du résumé IA."
+    "aiSummaryError": "Erreur lors de la génération du résumé IA.",
+    "searchAddress": "Rechercher une adresse...",
+    "searchError": "Erreur recherche adresse.",
+    "suggestionSubmitted": "Modification suggérée !",
+    "moderationError": "Erreur modération",
+    "spotApproved": "Terrain validé",
+    "spotRejected": "Terrain rejeté"
   },
   "months": {
     "january": "Janvier",

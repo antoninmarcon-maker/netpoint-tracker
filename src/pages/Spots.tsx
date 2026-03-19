@@ -10,10 +10,12 @@ import { DEFAULT_FILTERS, type SpotFiltersState } from '@/components/spots/SpotF
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const MODERATOR_EMAIL = 'antonin.marcon@gmail.com';
 
 export default function Spots() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [isAddingMode, setIsAddingMode] = useState(false);
@@ -52,8 +54,8 @@ export default function Spots() {
   const handleModerate = async (spotId: string, action: 'approve' | 'reject') => {
     const status = action === 'approve' ? 'validated' : 'rejected';
     const { error } = await supabase.from('spots').update({ status }).eq('id', spotId);
-    if (error) { toast.error("Erreur modération"); return; }
-    toast.success(action === 'approve' ? 'Terrain validé' : 'Terrain rejeté');
+    if (error) { toast.error(t('spots.moderationError', 'Moderation error')); return; }
+    toast.success(action === 'approve' ? t('spots.spotApproved', 'Court approved') : t('spots.spotRejected', 'Court rejected'));
     setSelectedSpotId(null);
     setRefreshKey(k => k + 1);
   };
