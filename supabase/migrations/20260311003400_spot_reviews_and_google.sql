@@ -11,13 +11,4 @@ ALTER TABLE public.spot_comments ADD COLUMN IF NOT EXISTS rating integer CHECK (
 ALTER TABLE public.spot_comments ADD COLUMN IF NOT EXISTS photos text[] DEFAULT '{}';
 
 -- 3. Update the `spots_with_coords` view to include the new columns
-DROP VIEW IF EXISTS public.spots_with_coords;
-CREATE OR REPLACE VIEW public.spots_with_coords AS
-SELECT 
-  id, name, description, type, availability_period, status, created_by, created_at,
-  is_temporary, google_place_id, availability_months, is_verified,
-  st_y(location::geometry) as lat,
-  st_x(location::geometry) as lng
-FROM public.spots;
-
-GRANT SELECT ON public.spots_with_coords TO anon, authenticated;
+-- View spots_with_coords is recreated by later migrations using lat/lng columns

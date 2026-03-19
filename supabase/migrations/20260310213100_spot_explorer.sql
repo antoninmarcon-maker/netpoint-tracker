@@ -45,7 +45,7 @@ create policy "Authenticated users can create spots." on public.spots
   for insert to authenticated with check (true);
 
 create policy "Users can update their own spots." on public.spots
-  for update to authenticated using (auth.uid() = created_by);
+  for update to authenticated using (auth.uid() = user_id);
 
 -- Policies for Photos
 create policy "Spot photos are viewable by everyone." on public.spot_photos
@@ -86,12 +86,4 @@ on storage.objects for delete
 to authenticated
 using ( auth.uid() = owner and bucket_id = 'spot-photos' );
 
--- Create view to cleanly fetch coordinates
-create or replace view public.spots_with_coords as
-select 
-  id, name, description, type, availability_period, status, created_by, created_at,
-  st_y(location::geometry) as lat,
-  st_x(location::geometry) as lng
-from public.spots;
-
-grant select on public.spots_with_coords to anon, authenticated;
+-- View spots_with_coords is created by later migrations using lat/lng columns directly

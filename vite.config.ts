@@ -29,7 +29,7 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/~oauth/],
       },
       injectManifest: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpeg,jpg,woff,woff2}"],
+        globPatterns: ["**/*.{js,css,ico,png,svg,jpeg,jpg,woff,woff2}"],
       },
       manifest: {
         name: "My Volley",

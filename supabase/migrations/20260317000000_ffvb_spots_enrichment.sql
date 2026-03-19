@@ -74,9 +74,9 @@ SELECT
   equip_nb_terrains,
   equip_tribunes,
   equip_vestiaires,
-  -- Coordinates from PostGIS
-  st_y(location::geometry) AS lat,
-  st_x(location::geometry) AS lng
+  -- Coordinates
+  lat,
+  lng
 FROM public.spots;
 
 GRANT SELECT ON public.spots_with_coords TO anon, authenticated;

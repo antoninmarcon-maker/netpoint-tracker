@@ -12,8 +12,8 @@ create table if not exists public.tournaments (
   player_scoring bool default false,
   strict_validation bool default false,
   status text check (status in ('draft', 'open', 'in_progress', 'finished')) default 'open',
-  join_token text unique default encode(gen_random_bytes(12), 'hex'),
-  spectator_token text unique default encode(gen_random_bytes(12), 'hex'),
+  join_token text unique default encode(extensions.gen_random_bytes(12), 'hex'),
+  spectator_token text unique default encode(extensions.gen_random_bytes(12), 'hex'),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
