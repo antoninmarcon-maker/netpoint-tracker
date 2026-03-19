@@ -181,7 +181,8 @@ const Index = () => {
     setViewingActionIndex(0);
     setViewingPointIndex(null);
     setReplaySetIndex(null);
-  }, []);
+    setPreSelectedRating(null);
+  }, [setPreSelectedRating]);
 
   const handleSelectReplaySet = useCallback((index: number) => {
     setReplaySetIndex(index);
@@ -435,9 +436,7 @@ const Index = () => {
             )}
 
             {metadata?.hasCourt !== false && (() => {
-              const activeCourtActions = isPerformanceMode
-                ? currentRallyActions
-                : currentRallyActions;
+              const activeCourtActions = currentRallyActions;
 
               return (
                 <VolleyballCourt

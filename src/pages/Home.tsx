@@ -122,7 +122,14 @@ export default function Home() {
       title: t('home.whatsNewAiAnalysis'),
       desc: t('home.whatsNewAiAnalysisDesc'),
       btnText: t('home.whatsNewAiAnalysisBtn'),
-      action: () => setShowNew(true),
+      action: () => {
+        const lastFinished = matches.find(m => m.finished);
+        if (lastFinished) {
+          navigate(`/match/${lastFinished.id}?tab=stats`);
+        } else {
+          toast.info(t('home.noFinishedMatch', 'Aucun match terminé. Jouez un match pour obtenir une analyse IA !'));
+        }
+      },
     },
     {
       id: 'spot-explorer',
@@ -173,7 +180,7 @@ export default function Home() {
       btnText: t('home.whatsNewSavedPlayersBtn'),
       action: () => navigate('/players')
     }
-  ], [t, navigate]);
+  ], [t, navigate, matches]);
 
   const visibleWhatsNew = whatsNewCards.filter(c => !dismissedWhatsNew.includes(c.id));
 

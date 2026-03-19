@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Claude settings (contains allowed command history with tokens)
+.claude/settings.json
+
+# Supabase temp files
+supabase/.temp/

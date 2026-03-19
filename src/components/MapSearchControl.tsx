@@ -51,7 +51,7 @@ export default function MapSearchControl({ isAddingMode, onLocationSelected }: M
   };
 
   return (
-    <div className="absolute top-2 left-14 right-14 z-[500] pointer-events-auto">
+    <div className="absolute top-[4.5rem] left-3 right-3 z-[400] pointer-events-auto">
       <form
         onSubmit={handleSearch}
         className="flex bg-background/95 backdrop-blur-md border border-border/50 rounded-full overflow-hidden shadow-lg transition-all focus-within:shadow-xl focus-within:border-primary/30"

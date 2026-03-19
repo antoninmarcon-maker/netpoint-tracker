@@ -104,7 +104,8 @@
     "whatsNewSpotFilters": "Court Filters",
     "whatsNewSpotFiltersDesc": "Search by surface type (sand, grass, hard court), available equipment or category to find the perfect court near you.",
     "whatsNewSpotFiltersBtn": "Filter courts",
-    "learnMore": "Learn more"
+    "learnMore": "Learn more",
+    "noFinishedMatch": "No finished match yet. Play a match to get an AI analysis!"
   },
   "credits": {
     "title": "Project Story",

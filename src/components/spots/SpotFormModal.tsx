@@ -101,9 +101,10 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
         }]).select('id').single();
         spotId = newSpot?.id;
       } else {
+        if (!location) { toast.error("Choisissez un emplacement."); setLoading(false); return; }
         const { data: newSpot, error } = await supabase.from('spots').insert([{
           name, description, type, availability_period: finalAvailability,
-          lat: location![0], lng: location![1], user_id: userId,
+          lat: location[0], lng: location[1], user_id: userId,
           status: 'waiting_for_validation',
         }]).select('id').single();
         if (error) throw error;

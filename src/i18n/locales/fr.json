@@ -104,7 +104,8 @@
     "whatsNewSpotFilters": "Filtres de terrains",
     "whatsNewSpotFiltersDesc": "Recherchez par type de sol (sable, herbe, dur), par équipement disponible ou par catégorie pour trouver le terrain idéal près de chez vous.",
     "whatsNewSpotFiltersBtn": "Filtrer les terrains",
-    "learnMore": "En savoir plus"
+    "learnMore": "En savoir plus",
+    "noFinishedMatch": "Aucun match terminé. Jouez un match pour obtenir une analyse IA !"
   },
   "credits": {
     "title": "Histoire du projet",
