@@ -112,9 +112,9 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
     try {
       const { data, error } = await supabase.functions.invoke('summarize-spot', { body: { spot_id: spot.id } });
       if (error) throw error;
-      if (data?.error === 'no_comments') { toast.info("Pas assez de commentaires."); return; }
-      if (data?.summary) { toast.success("Résumé IA généré !"); loadSpotDetails(spot.id); }
-    } catch { toast.error("Erreur résumé IA."); }
+      if (data?.error === 'no_comments') { toast.info(t('spots.noCommentsForSummary', 'Not enough comments.')); return; }
+      if (data?.summary) { toast.success(t('spots.aiSummaryGenerated', 'AI summary generated!')); loadSpotDetails(spot.id); }
+    } catch { toast.error(t('spots.aiSummaryError', 'AI summary error.')); }
     finally { setGeneratingSummary(false); }
   };
 

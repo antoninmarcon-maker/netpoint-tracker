@@ -176,12 +176,12 @@ export default function SpotSidebar({
         return;
       }
       if (data?.summary) {
-        toast.success("Résumé IA généré !");
+        toast.success(t('spots.aiSummaryGenerated', 'AI summary generated!'));
         loadSpotDetails(spot.id);
       }
     } catch (err) {
       console.error(err);
-      toast.error("Erreur lors de la génération du résumé IA.");
+      toast.error(t('spots.aiSummaryError', 'AI summary error.'));
     } finally {
       setGeneratingSummary(false);
     }

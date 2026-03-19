@@ -682,7 +682,12 @@
     "allYear": "Disponible toute l'année",
     "from": "De",
     "to": "à",
-    "adjustableOnMap": "Ajustable sur la carte"
+    "adjustableOnMap": "Ajustable sur la carte",
+    "removedFromFavorites": "Retiré des favoris",
+    "addedToFavorites": "Ajouté aux favoris",
+    "noCommentsForSummary": "Pas assez de commentaires pour un résumé.",
+    "aiSummaryGenerated": "Résumé IA généré !",
+    "aiSummaryError": "Erreur lors de la génération du résumé IA."
   },
   "months": {
     "january": "Janvier",

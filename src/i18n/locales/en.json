@@ -682,7 +682,12 @@
     "allYear": "Available all year",
     "from": "From",
     "to": "to",
-    "adjustableOnMap": "Adjustable on the map"
+    "adjustableOnMap": "Adjustable on the map",
+    "removedFromFavorites": "Removed from favorites",
+    "addedToFavorites": "Added to favorites",
+    "noCommentsForSummary": "Not enough comments for a summary.",
+    "aiSummaryGenerated": "AI summary generated!",
+    "aiSummaryError": "AI summary error."
   },
   "months": {
     "january": "January",
