@@ -1,6 +1,16 @@
 import { supabase } from '@/integrations/supabase/client';
 import { MatchSummary, SetData, Point, Player } from '@/types/sports';
-import { getAllMatches as getLocalMatches, deleteMatch } from './matchStorage';
+import { getAllMatches as getLocalMatches, deleteMatch, MatchSummarySchema } from './matchStorage';
+
+function parseMatchData(raw: unknown, label: string): MatchSummary | null {
+  if (!raw) return null;
+  const result = MatchSummarySchema.safeParse(raw);
+  if (!result.success) {
+    if (import.meta.env.DEV) console.warn(`${label} validation failed:`, result.error.issues);
+    return raw as unknown as MatchSummary;
+  }
+  return result.data as unknown as MatchSummary;
+}
 
 // Helper: get current session user id, or null
 async function getSessionUserId(): Promise<string | null> {
@@ -122,8 +132,8 @@ export async function getMatchByShareToken(token: string): Promise<MatchSummary 
     .eq('share_token', token)
     .maybeSingle();
 
-  if (error || !data) return null;
-  return data.match_data as unknown as MatchSummary;
+  if (error || !data?.match_data) return null;
+  return parseMatchData(data.match_data, 'Shared match');
 }
 
 // Fetch a single match from cloud by ID — strictly filtered by current user
@@ -139,5 +149,5 @@ export async function getCloudMatchById(matchId: string): Promise<MatchSummary |
     .maybeSingle();
 
   if (!data?.match_data) return null;
-  return data.match_data as unknown as MatchSummary;
+  return parseMatchData(data.match_data, 'Cloud match');
 }

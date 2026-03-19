@@ -289,7 +289,14 @@
     "whoServes": "Qui sert en premier ?",
     "neutralTab": "Stats",
     "touchCourtNeutral": "Touchez le terrain où l'action a eu lieu",
-    "confirmTrajectory": "Tracer puis valider la trajectoire"
+    "confirmTrajectory": "Tracer puis valider la trajectoire",
+    "serving": "Au service",
+    "rateAction": "Évaluer l'action",
+    "perfOnboardingTitle": "Bienvenue dans le Mode Performance !",
+    "perfOnboardingP1": "Vous pouvez maintenant tracker chaque échange de A à Z.",
+    "perfOnboardingP2": "Les limites de placement sur le terrain sont <strong>désactivées</strong> pour vous offrir une liberté totale !",
+    "perfOnboardingP3": "Enfin, dans le menu <strong>'Actions Personnalisées'</strong>, vous pouvez activer les <em>trajectoires</em> pour n'importe quelle action et activer l'<em>évaluation de la qualité (🔴 🟠 🟢)</em>.",
+    "perfOnboardingDismiss": "J'ai compris"
   },
   "roster": {
     "defineRoster": "Définir le roster {{team}}",
@@ -391,7 +398,17 @@
     "point": "Point",
     "actionOf": "Action {{current}}/{{total}}",
     "viewMode": "Mode visualisation",
-    "overview": "Vue d'ensemble · {{total}} pts"
+    "overview": "Vue d'ensemble · {{total}} pts",
+    "replay": "Replay",
+    "cumulative": "Cumul",
+    "overviewLabel": "Vue d'ensemble",
+    "firstPoint": "Premier point"
+  },
+  "rating": {
+    "negative": "Négatif",
+    "neutral": "Neutre",
+    "positive": "Positif",
+    "skip": "Ignorer"
   },
   "analysis": {
     "analyze": "Analyse",

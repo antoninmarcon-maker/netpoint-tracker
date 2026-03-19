@@ -1,37 +1,75 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.47.0"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+const ALLOWED_ORIGINS = [
+  "https://www.my-volley.com",
+  "https://my-volley.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:8080",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.some((o) => origin === o || origin.endsWith(".vercel.app"))
+    ? origin
+    : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  };
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { spot_id } = await req.json()
-    if (!spot_id) {
-      return new Response(JSON.stringify({ error: 'spot_id is required' }), {
+
+    if (!spot_id || typeof spot_id !== "string" || !/^[0-9a-f-]{36}$/i.test(spot_id)) {
+      return new Response(JSON.stringify({ error: 'spot_id must be a valid UUID' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY')
-
     if (!anthropicApiKey) {
       return new Response(JSON.stringify({ error: 'AI not configured' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const serviceClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
 
-    // Fetch spot info
-    const { data: spot } = await supabase
+    const { data: spot } = await serviceClient
       .from('spots')
       .select('name, type, description')
       .eq('id', spot_id)
@@ -43,8 +81,7 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Fetch comments
-    const { data: comments } = await supabase
+    const { data: comments } = await serviceClient
       .from('spot_comments')
       .select('content, rating')
       .eq('spot_id', spot_id)
@@ -68,6 +105,8 @@ Deno.serve(async (req) => {
       })
     }
 
+    const sanitizedName = spot.name.replace(/["'`\\]/g, "").slice(0, 100);
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -78,7 +117,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 512,
-        system: `Tu es un assistant qui résume les avis de joueurs sur un terrain de volleyball/beach-volley appelé "${spot.name}". Crée un résumé court (3 phrases max) et utile en français. Mentionne la qualité du terrain, l'ambiance et les points positifs/négatifs. Sois factuel et direct.`,
+        system: `Tu es un assistant qui résume les avis de joueurs sur un terrain de volleyball/beach-volley appelé ${sanitizedName}. Crée un résumé court (3 phrases max) et utile en français. Mentionne la qualité du terrain, l'ambiance et les points positifs/négatifs. Sois factuel et direct.`,
         messages: [
           { role: "user", content: `Voici les ${comments.length} avis des joueurs :\n${commentsList}` },
         ],
@@ -110,8 +149,7 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Save summary as description
-    await supabase
+    await serviceClient
       .from('spots')
       .update({ description: summary })
       .eq('id', spot_id)

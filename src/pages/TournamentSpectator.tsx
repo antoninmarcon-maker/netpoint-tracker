@@ -5,6 +5,7 @@ import { Loader2, Trophy, Eye } from 'lucide-react';
 import { getTournamentBySpectatorToken, getTeams, getMatches } from '@/lib/tournamentStorage';
 import type { Tournament, TournamentTeam, TournamentMatch } from '@/types/tournament';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 export default function TournamentSpectator() {
     const { t } = useTranslation();
@@ -19,14 +20,14 @@ export default function TournamentSpectator() {
 
     useEffect(() => {
         if (!token) { setLoading(false); return; }
-        getTournamentBySpectatorToken(token).then(async t => {
-            if (!t) { setLoading(false); return; }
-            setTournament(t);
-            const [tm, mx] = await Promise.all([getTeams(t.id), getMatches(t.id)]);
+        getTournamentBySpectatorToken(token).then(async tournament => {
+            if (!tournament) { toast.error(t('tournaments.invalidSpectatorLink') || 'Lien invalide'); setLoading(false); return; }
+            setTournament(tournament);
+            const [tm, mx] = await Promise.all([getTeams(tournament.id), getMatches(tournament.id)]);
             setTeams(tm);
             setMatches(mx);
             setLoading(false);
-        });
+        }).catch(err => { console.error(err); toast.error(t('common.error') || 'Erreur'); setLoading(false); });
     }, [token]);
 
     // Real-time updates — score changes propagate instantly

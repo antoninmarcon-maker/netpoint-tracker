@@ -54,7 +54,7 @@ const SetDataSchema = z.object({
   duration: z.number(),
 });
 
-const MatchSummarySchema = z.object({
+export const MatchSummarySchema = z.object({
   id: z.string(),
   teamNames: z.object({ blue: z.string(), red: z.string() }),
   completedSets: z.array(SetDataSchema),

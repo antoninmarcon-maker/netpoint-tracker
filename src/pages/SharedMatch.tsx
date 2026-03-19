@@ -7,6 +7,7 @@ import { SetHistory } from '@/components/SetHistory';
 import { VolleyballCourt } from '@/components/VolleyballCourt';
 import { HeatmapView } from '@/components/HeatmapView';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 type Tab = 'match' | 'stats';
 
@@ -24,7 +25,7 @@ export default function SharedMatch() {
       if (data) setMatch(data);
       else setNotFound(true);
       setLoading(false);
-    });
+    }).catch(err => { console.error(err); toast.error(t('common.error') || 'Erreur'); setNotFound(true); setLoading(false); });
   }, [token]);
 
   if (loading) {
@@ -78,12 +79,12 @@ export default function SharedMatch() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
-              const url = `https://www.my-volley.com${window.location.pathname}`;
+              const url = `${window.location.origin}${window.location.pathname}`;
               if (navigator.share) {
                 navigator.share({ title: `${match.teamNames.blue} vs ${match.teamNames.red}`, text: t('shared.followScore'), url });
               } else {
                 navigator.clipboard.writeText(url);
-                import('sonner').then(({ toast }) => toast.success(t('shared.linkCopied')));
+                toast.success(t('shared.linkCopied'));
               }
             }}
             className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"

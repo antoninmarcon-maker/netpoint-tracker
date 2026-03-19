@@ -99,14 +99,14 @@ export function PlayByPlayNavigator({
           </button>
         ) : (
           <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
-            <Eye size={14} /> Replay
+            <Eye size={14} /> {t('playByPlay.replay')}
           </div>
         )}
         <div className="flex items-center gap-2">
           {hasRally && !isOverview && onToggleCumulative && (
             <div className="flex items-center gap-1.5">
               <Layers size={12} className="text-muted-foreground" />
-              <span className="text-[10px] text-muted-foreground">Cumul</span>
+              <span className="text-[10px] text-muted-foreground">{t('playByPlay.cumulative')}</span>
               <Switch
                 checked={cumulativeMode}
                 onCheckedChange={onToggleCumulative}
@@ -128,7 +128,7 @@ export function PlayByPlayNavigator({
           onClick={handleFastBackward}
           disabled={(!isOverview && viewingPointIndex === 0) || points.length === 0}
           className="p-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all"
-          title="Premier point"
+          title={t('playByPlay.firstPoint')}
         >
           <ChevronsLeft size={16} />
         </button>
@@ -141,7 +141,7 @@ export function PlayByPlayNavigator({
         </button>
         <div className="flex-1 text-center min-w-0">
           {isOverview ? (
-            <p className="text-sm font-bold text-primary">🗺️ Vue d'ensemble</p>
+            <p className="text-sm font-bold text-primary">🗺️ {t('playByPlay.overviewLabel')}</p>
           ) : point ? (
             <>
               <p className="text-sm font-bold text-foreground">
@@ -166,7 +166,7 @@ export function PlayByPlayNavigator({
           onClick={handleFastForward}
           disabled={isOverview}
           className="p-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 transition-all"
-          title="Vue d'ensemble"
+          title={t('playByPlay.overviewLabel')}
         >
           <ChevronsRight size={16} />
         </button>

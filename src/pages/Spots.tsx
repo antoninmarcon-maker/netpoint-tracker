@@ -30,8 +30,12 @@ export default function Spots() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data?.user?.email === MODERATOR_EMAIL) setIsModerator(true);
+      setIsModerator(data?.user?.email === MODERATOR_EMAIL);
     });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsModerator(session?.user?.email === MODERATOR_EMAIL);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {

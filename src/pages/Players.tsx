@@ -58,10 +58,15 @@ export default function Players() {
     setPlayerNumbers(numbers);
 
     if (userId) {
-      const { data: matches } = await supabase
+      const { data: matches, error: matchesError } = await supabase
         .from('matches')
         .select('match_data')
         .eq('user_id', userId);
+
+      if (matchesError) {
+        console.error(matchesError);
+        toast.error(t('common.error') || 'Erreur');
+      }
 
       const statsMap = new Map<string, { points: number; faults: number; matches: Set<string>; actions: Record<string, number> }>();
 

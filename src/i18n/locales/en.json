@@ -289,7 +289,14 @@
     "whoServes": "Who serves first?",
     "neutralTab": "Stats",
     "touchCourtNeutral": "Tap the court where the action occurred",
-    "confirmTrajectory": "Draw then confirm the trajectory"
+    "confirmTrajectory": "Draw then confirm the trajectory",
+    "serving": "Serving",
+    "rateAction": "Rate the action",
+    "perfOnboardingTitle": "Welcome to Performance Mode!",
+    "perfOnboardingP1": "You can now track every rally from start to finish.",
+    "perfOnboardingP2": "Court placement limits are <strong>disabled</strong> to give you full freedom!",
+    "perfOnboardingP3": "In the <strong>'Custom Actions'</strong> menu, you can enable <em>trajectories</em> for any action and activate <em>quality rating (🔴 🟠 🟢)</em>.",
+    "perfOnboardingDismiss": "Got it"
   },
   "roster": {
     "defineRoster": "Set roster {{team}}",
@@ -391,7 +398,17 @@
     "point": "Point",
     "actionOf": "Action {{current}}/{{total}}",
     "viewMode": "Visualization mode",
-    "overview": "Overview · {{total}} pts"
+    "overview": "Overview · {{total}} pts",
+    "replay": "Replay",
+    "cumulative": "Cumulative",
+    "overviewLabel": "Overview",
+    "firstPoint": "First point"
+  },
+  "rating": {
+    "negative": "Negative",
+    "neutral": "Neutral",
+    "positive": "Positive",
+    "skip": "Skip"
   },
   "analysis": {
     "analyze": "Analysis",

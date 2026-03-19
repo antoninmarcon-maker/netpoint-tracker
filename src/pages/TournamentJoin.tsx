@@ -40,34 +40,45 @@ export default function TournamentJoin() {
                 setPlayerName(user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? '');
             }
         });
-        getTournamentByJoinToken(token).then(async t => {
-            if (!t) { setLoading(false); return; }
-            setTournament(t);
-            const [tm, mb] = await Promise.all([getTeams(t.id), getMembers(t.id)]);
+        getTournamentByJoinToken(token).then(async tournament => {
+            if (!tournament) { toast.error(t('tournaments.invalidLink') || 'Lien invalide'); setLoading(false); return; }
+            setTournament(tournament);
+            const [tm, mb] = await Promise.all([getTeams(tournament.id), getMembers(tournament.id)]);
             setTeams(tm);
             setMembers(mb);
             setLoading(false);
-        });
+        }).catch(err => { console.error(err); toast.error(t('common.error') || 'Erreur'); setLoading(false); });
     }, [token]);
 
     const handleCreateTeam = async () => {
         if (!tournament || !user || !newTeamName.trim() || !playerName.trim()) return;
         setSaving(true);
-        const team = await createTeam(tournament.id, newTeamName.trim());
-        if (!team) { toast.error(t('tournaments.creationError')); setSaving(false); return; }
-        // Join as captain (already set as captain in createTeam)
-        await joinTeam(team.id, tournament.id, playerName.trim());
-        toast.success(t('tournaments.teamCreated', { name: team.name }));
-        navigate(`/tournaments/${tournament.id}`);
+        try {
+            const team = await createTeam(tournament.id, newTeamName.trim());
+            if (!team) { toast.error(t('tournaments.creationError')); setSaving(false); return; }
+            await joinTeam(team.id, tournament.id, playerName.trim());
+            toast.success(t('tournaments.teamCreated', { name: team.name }));
+            navigate(`/tournaments/${tournament.id}`);
+        } catch (err) {
+            console.error(err);
+            toast.error(t('common.error') || 'Erreur');
+            setSaving(false);
+        }
     };
 
     const handleJoinTeam = async () => {
         if (!tournament || !user || !selectedTeamId || !playerName.trim()) return;
         setSaving(true);
-        const membership = await joinTeam(selectedTeamId, tournament.id, playerName.trim());
-        if (!membership) { toast.error(t('tournaments.joiningError')); setSaving(false); return; }
-        toast.success(t('tournaments.joinedSuccess'));
-        navigate(`/tournaments/${tournament.id}`);
+        try {
+            const membership = await joinTeam(selectedTeamId, tournament.id, playerName.trim());
+            if (!membership) { toast.error(t('tournaments.joiningError')); setSaving(false); return; }
+            toast.success(t('tournaments.joinedSuccess'));
+            navigate(`/tournaments/${tournament.id}`);
+        } catch (err) {
+            console.error(err);
+            toast.error(t('common.error') || 'Erreur');
+            setSaving(false);
+        }
     };
 
     const handleRequestCaptaincy = async () => {

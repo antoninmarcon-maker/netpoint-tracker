@@ -100,9 +100,9 @@ export default function TournamentDashboard() {
     useEffect(() => {
         if (!id) return;
         supabase.auth.getUser().then(({ data: { user } }) => setUserId(user?.id ?? null));
-        Promise.all([getTournamentById(id), getTeams(id), getMembers(id), getMatches(id)]).then(([t, tm, mb, mx]) => {
-            setTournament(t); setTeams(tm); setMembers(mb); setMatches(mx); setLoading(false);
-        });
+        Promise.all([getTournamentById(id), getTeams(id), getMembers(id), getMatches(id)]).then(([tn, tm, mb, mx]) => {
+            setTournament(tn); setTeams(tm); setMembers(mb); setMatches(mx); setLoading(false);
+        }).catch(err => { console.error(err); toast.error(t('common.error') || 'Erreur'); setLoading(false); });
     }, [id]);
 
     useEffect(() => {
@@ -167,8 +167,8 @@ export default function TournamentDashboard() {
                             <div key={m.id} className="flex items-center justify-between">
                                 <span className="text-xs text-foreground">{m.player_name} — {teams.find(t => t.id === m.team_id)?.name}</span>
                                 <div className="flex gap-1">
-                                    <button onClick={() => acceptCaptaincyRequest(m.id, m.team_id, m.user_id).then(() => { getTeams(id!).then(setTeams); getMembers(id!).then(setMembers); toast.success(t('tournaments.captaincyTransferred')); })} className="p-1 rounded-lg bg-emerald-500/15 text-emerald-500"><CheckCircle size={14} /></button>
-                                    <button onClick={() => leaveTeam(m.id).then(() => setMembers(p => p.filter(x => x.id !== m.id)))} className="p-1 rounded-lg bg-destructive/15 text-destructive"><XCircle size={14} /></button>
+                                    <button onClick={() => acceptCaptaincyRequest(m.id, m.team_id, m.user_id).then(() => { getTeams(id!).then(setTeams); getMembers(id!).then(setMembers); toast.success(t('tournaments.captaincyTransferred')); }).catch(err => { console.error(err); toast.error(t('common.error') || 'Erreur'); })} className="p-1 rounded-lg bg-emerald-500/15 text-emerald-500"><CheckCircle size={14} /></button>
+                                    <button onClick={() => leaveTeam(m.id).then(() => setMembers(p => p.filter(x => x.id !== m.id))).catch(err => { console.error(err); toast.error(t('common.error') || 'Erreur'); })} className="p-1 rounded-lg bg-destructive/15 text-destructive"><XCircle size={14} /></button>
                                 </div>
                             </div>
                         ))}
@@ -199,7 +199,7 @@ export default function TournamentDashboard() {
                                             <p className="font-bold text-foreground">{team.name}</p>
                                             <span className="text-xs text-muted-foreground">({tm.length})</span>
                                         </div>
-                                        {isAdmin && <button onClick={() => deleteTeam(team.id).then(() => setTeams(p => p.filter(t => t.id !== team.id)))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={13} /></button>}
+                                        {isAdmin && <button onClick={() => deleteTeam(team.id).then(() => setTeams(p => p.filter(t => t.id !== team.id))).catch(err => { console.error(err); toast.error(t('common.error') || 'Erreur'); })} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={13} /></button>}
                                     </div>
                                     {tm.map(m => (
                                         <div key={m.id} className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -245,8 +245,8 @@ export default function TournamentDashboard() {
                                             }
                                             {isAdmin && (
                                                 <div className="flex gap-2">
-                                                    {!isLocked && <button onClick={() => lockMatch(match.id).then(() => setMatches(p => p.map(m => m.id === match.id ? { ...m, status: 'locked' } : m)))} className="flex-1 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground flex items-center justify-center gap-1"><Lock size={12} /> {t('tournaments.lock')}</button>}
-                                                    <button onClick={() => deleteMatch(match.id).then(() => setMatches(p => p.filter(m => m.id !== match.id)))} className="flex-1 py-2 rounded-xl bg-destructive/10 text-destructive text-xs font-semibold flex items-center justify-center gap-1"><Trash2 size={12} /> {t('common.delete')}</button>
+                                                    {!isLocked && <button onClick={() => lockMatch(match.id).then(() => setMatches(p => p.map(m => m.id === match.id ? { ...m, status: 'locked' } : m))).catch(err => { console.error(err); toast.error(t('common.error') || 'Erreur'); })} className="flex-1 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground flex items-center justify-center gap-1"><Lock size={12} /> {t('tournaments.lock')}</button>}
+                                                    <button onClick={() => deleteMatch(match.id).then(() => setMatches(p => p.filter(m => m.id !== match.id))).catch(err => { console.error(err); toast.error(t('common.error') || 'Erreur'); })} className="flex-1 py-2 rounded-xl bg-destructive/10 text-destructive text-xs font-semibold flex items-center justify-center gap-1"><Trash2 size={12} /> {t('common.delete')}</button>
                                                 </div>
                                             )}
                                         </div>

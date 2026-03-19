@@ -231,7 +231,7 @@ export function ScoreBoard({
         <div className="flex-1 text-center">
           <div className="flex items-center justify-center gap-1.5">
             <p className={`text-xs font-semibold uppercase tracking-widest ${left === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{teamNames[left]}</p>
-            {servingTeam === left && <span className="text-[10px]" title="Au service">🏐</span>}
+            {servingTeam === left && <span className="text-[10px]" title={t('scoreboard.serving')}>🏐</span>}
           </div>
           <p className={`text-5xl font-black tabular-nums ${left === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{score[left]}</p>
           {menuTeam === left && (
@@ -254,7 +254,7 @@ export function ScoreBoard({
         <div className="flex-1 text-center">
           <div className="flex items-center justify-center gap-1.5">
             <p className={`text-xs font-semibold uppercase tracking-widest ${right === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{teamNames[right]}</p>
-            {servingTeam === right && <span className="text-[10px]" title="Au service">🏐</span>}
+            {servingTeam === right && <span className="text-[10px]" title={t('scoreboard.serving')}>🏐</span>}
           </div>
           <p className={`text-5xl font-black tabular-nums ${right === 'blue' ? 'text-team-blue' : 'text-team-red'}`}>{score[right]}</p>
           {menuTeam === right && (
@@ -334,7 +334,7 @@ export function ScoreBoard({
             <div className="flex items-center justify-between">
               <p className="text-sm font-bold text-foreground">
                 <span className={`mr-1 ${selectedTeam === 'red' ? 'text-team-red' : 'text-team-blue'}`}>[{selectedTeam ? teamNames[selectedTeam] : ''}]</span>
-                Évaluer l'action
+                {t('scoreboard.rateAction')}
               </p>
               <button onClick={onCancelSelection} className="p-1 rounded-md text-muted-foreground hover:text-foreground">
                 <X size={16} />
@@ -343,19 +343,19 @@ export function ScoreBoard({
             <div className="grid grid-cols-3 gap-2">
               <button onClick={() => onSelectRating('negative')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 border-2 border-transparent hover:border-destructive/30 transition-all active:scale-95">
                 <span className="w-8 h-8 rounded-full bg-destructive" />
-                <span className="text-xs font-bold">Négatif</span>
+                <span className="text-xs font-bold">{t('rating.negative')}</span>
               </button>
               <button onClick={() => onSelectRating('neutral')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 border-2 border-transparent hover:border-orange-500/30 transition-all active:scale-95">
                 <span className="w-8 h-8 rounded-full bg-orange-500" />
-                <span className="text-xs font-bold">Neutre</span>
+                <span className="text-xs font-bold">{t('rating.neutral')}</span>
               </button>
               <button onClick={() => onSelectRating('positive')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-green-500/10 text-green-500 hover:bg-green-500/20 border-2 border-transparent hover:border-green-500/30 transition-all active:scale-95">
                 <span className="w-8 h-8 rounded-full bg-green-500" />
-                <span className="text-xs font-bold">Positif</span>
+                <span className="text-xs font-bold">{t('rating.positive')}</span>
               </button>
             </div>
             <button onClick={() => onSelectRating('none')} className="w-full py-2 text-xs font-medium text-muted-foreground rounded-lg bg-secondary hover:bg-secondary/80 transition-all">
-              Ignorer
+              {t('rating.skip')}
             </button>
           </div>
         </div>
@@ -426,15 +426,16 @@ export function ScoreBoard({
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={handleClosePerfOnboarding}>
           <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4 animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-foreground text-center flex items-center justify-center gap-2">
-              <span className="text-2xl">⚡</span> Bienvenue dans le Mode Performance !
+              <span className="text-2xl">⚡</span> {t('scoreboard.perfOnboardingTitle')}
             </h2>
             <div className="text-sm text-muted-foreground space-y-3">
-              <p>Vous pouvez maintenant tracker chaque échange de A à Z.</p>
-              <p>Les limites de placement sur le terrain sont <strong>désactivées</strong> pour vous offrir une liberté totale !</p>
-              <p>Enfin, dans le menu <strong>'Actions Personnalisées'</strong>, vous pouvez activer les <em>trajectoires</em> pour n'importe quelle action et activer l'<em>évaluation de la qualité (🔴 🟠 🟢)</em>.</p>
+              <p>{t('scoreboard.perfOnboardingP1')}</p>
+              {/* Content is from static translation files (developer-controlled), safe to render */}
+              <p dangerouslySetInnerHTML={{ __html: t('scoreboard.perfOnboardingP2') }} />
+              <p dangerouslySetInnerHTML={{ __html: t('scoreboard.perfOnboardingP3') }} />
             </div>
             <button onClick={handleClosePerfOnboarding} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] hover:opacity-90 mt-2">
-              J'ai compris
+              {t('scoreboard.perfOnboardingDismiss')}
             </button>
           </div>
         </div>

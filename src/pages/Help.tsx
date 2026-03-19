@@ -40,7 +40,7 @@ export default function Help() {
 
         <section className="pb-6">
           <a
-            href="mailto:contact@my-volley.com"
+            href="mailto:contact@myvolley.app"
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm"
           >
             <MessageSquare size={16} /> {t('help.leaveFeedback')}
