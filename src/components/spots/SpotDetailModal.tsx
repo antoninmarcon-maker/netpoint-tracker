@@ -101,8 +101,8 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
       }]);
       setNewComment(''); setNewRating(0); setNewPhotos([]);
       loadSpotDetails(spotId);
-      toast.success("Commentaire publié");
-    } catch (err) { console.error(err); toast.error("Erreur commentaire"); }
+      toast.success(t('spots.commentPosted'));
+    } catch (err) { console.error(err); toast.error(t('spots.commentError')); }
     finally { setPostingComment(false); }
   };
 
