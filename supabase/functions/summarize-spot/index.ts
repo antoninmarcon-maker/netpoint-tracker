@@ -20,9 +20,9 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')
+    const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY')
 
-    if (!lovableApiKey) {
+    if (!anthropicApiKey) {
       return new Response(JSON.stringify({ error: 'AI not configured' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -68,19 +68,18 @@ Deno.serve(async (req) => {
       })
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
+        "x-api-key": anthropicApiKey,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 512,
+        system: `Tu es un assistant qui résume les avis de joueurs sur un terrain de volleyball/beach-volley appelé "${spot.name}". Crée un résumé court (3 phrases max) et utile en français. Mentionne la qualité du terrain, l'ambiance et les points positifs/négatifs. Sois factuel et direct.`,
         messages: [
-          {
-            role: "system",
-            content: `Tu es un assistant qui résume les avis de joueurs sur un terrain de volleyball/beach-volley appelé "${spot.name}". Crée un résumé court (3 phrases max) et utile en français. Mentionne la qualité du terrain, l'ambiance et les points positifs/négatifs. Sois factuel et direct.`
-          },
           { role: "user", content: `Voici les ${comments.length} avis des joueurs :\n${commentsList}` },
         ],
       }),
@@ -89,16 +88,11 @@ Deno.serve(async (req) => {
     if (!response.ok) {
       const status = response.status
       const text = await response.text()
-      console.error("AI Gateway error:", status, text)
+      console.error("Anthropic API error:", status, text)
 
       if (status === 429) {
         return new Response(JSON.stringify({ error: 'rate_limit', message: 'Trop de requêtes, réessayez plus tard.' }), {
           status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: 'payment', message: 'Crédits IA épuisés.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
 
@@ -108,7 +102,7 @@ Deno.serve(async (req) => {
     }
 
     const data = await response.json()
-    const summary = data.choices?.[0]?.message?.content || null
+    const summary = data.content?.[0]?.text || null
 
     if (!summary) {
       return new Response(JSON.stringify({ error: 'empty_response' }), {

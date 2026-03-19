@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable/index';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { updateTutorialStep, linkUserToSubscription } from '@/lib/pushNotifications';
@@ -60,13 +59,19 @@ export function AuthDialog({ open, onOpenChange, onGuest, message }: AuthDialogP
   };
 
   const handleGoogle = async () => {
-    const { error } = await lovable.auth.signInWithOAuth('google', { redirect_uri: window.location.origin });
-    if (error) toast.error(t('auth.googleError') + (error as any).message);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) toast.error(t('auth.googleError') + error.message);
   };
 
   const handleApple = async () => {
-    const { error } = await lovable.auth.signInWithOAuth('apple', { redirect_uri: window.location.origin });
-    if (error) toast.error(t('auth.appleError') + (error as any).message);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) toast.error(t('auth.appleError') + error.message);
   };
 
   return (

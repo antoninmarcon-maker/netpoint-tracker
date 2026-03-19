@@ -5,43 +5,41 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
-async function getAiSummary(reviews: any[], louvableApiKey: string) {
+async function getAiSummary(reviews: any[], anthropicApiKey: string) {
   if (!reviews || reviews.length === 0) return null;
-  
-  // Clean reviews to avoid context window issues
+
   const reviewsText = reviews
-    .slice(0, 5) // Top 5 reviews
+    .slice(0, 5)
     .map(r => r.text?.text)
     .filter(Boolean)
     .join('\n---\n');
-    
+
   if (!reviewsText) return null;
 
   try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${louvableApiKey}`,
+        "x-api-key": anthropicApiKey,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp",
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 256,
+        system: "Tu es un assistant qui résume des avis sur des terrains de volley/beach-volley. Crée un résumé court (2 phrases max) et attrayant en français basé sur les avis fournis. Ne mentionne pas que c'est un résumé IA dans le texte lui-même. Sois factuel sur les installations.",
         messages: [
-          { 
-            role: "system", 
-            content: "Tu es un assistant qui résume des avis sur des terrains de volley/beach-volley. Crée un résumé court (2 phrases max) et attrayant en français basé sur les avis fournis. Ne mentionne pas que c'est un résumé IA dans le texte lui-même. Sois factuel sur les installations." 
-          },
           { role: "user", content: `Voici les avis :\n${reviewsText}` },
         ],
       }),
     });
 
     if (!response.ok) {
-      console.error("AI Gateway responded with:", response.status, await response.text());
+      console.error("Anthropic API error:", response.status, await response.text());
       return null;
     }
     const data = await response.json();
-    return data.choices?.[0]?.message?.content || null;
+    return data.content?.[0]?.text || null;
   } catch (err) {
     console.error("AI aggregation error:", err);
     return null;
@@ -52,7 +50,7 @@ async function runImportSpots(query: string = 'terrain de beach volley France') 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   const googleApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY')
-  const louvableApiKey = Deno.env.get('LOVABLE_API_KEY')
+  const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY')
 
   if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase config")
   if (!googleApiKey) throw new Error("Missing GOOGLE_PLACES_API_KEY")
@@ -124,8 +122,8 @@ async function runImportSpots(query: string = 'terrain de beach volley France') 
 
     // AI Summary
     let description = `Importé automatiquement de Google Places. Adresse : ${address}`;
-    if (louvableApiKey && place.reviews?.length > 0) {
-      const summary = await getAiSummary(place.reviews, louvableApiKey);
+    if (anthropicApiKey && place.reviews?.length > 0) {
+      const summary = await getAiSummary(place.reviews, anthropicApiKey);
       if (summary) description = summary;
     }
 
