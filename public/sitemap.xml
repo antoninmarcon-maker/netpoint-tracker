@@ -2,37 +2,49 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.my-volley.com/</loc>
-    <lastmod>2026-02-20</lastmod>
+    <lastmod>2026-03-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.my-volley.com/players</loc>
-    <lastmod>2026-02-22</lastmod>
+    <lastmod>2026-03-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.my-volley.com/help</loc>
-    <lastmod>2026-02-20</lastmod>
+    <lastmod>2026-03-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.my-volley.com/tournaments</loc>
+    <lastmod>2026-03-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.my-volley.com/spots</loc>
+    <lastmod>2026-03-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.my-volley.com/credits</loc>
-    <lastmod>2026-02-20</lastmod>
+    <lastmod>2026-03-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.my-volley.com/settings</loc>
-    <lastmod>2026-02-20</lastmod>
+    <lastmod>2026-03-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://www.my-volley.com/actions</loc>
-    <lastmod>2026-02-21</lastmod>
+    <lastmod>2026-03-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>

@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { getDemoMatch, DEMO_MATCH_ID } from '@/lib/demoMatch';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, LogIn, HelpCircle, Loader2, X, MessageSquare, ImagePlus, Share2, Copy, Mail, MoreVertical, FileSpreadsheet, BarChart2, Users, Settings2, Activity, Trophy, MapPin, Download, LinkIcon } from 'lucide-react';
+import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, LogIn, HelpCircle, Loader2, X, MessageSquare, ImagePlus, Share2, Copy, Mail, MoreVertical, FileSpreadsheet, BarChart2, Users, Settings2, Activity, Trophy, MapPin, Download, LinkIcon, Sparkles, SlidersHorizontal } from 'lucide-react';
 import logoCapbreton from '@/assets/logo-capbreton.jpeg';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -105,7 +105,25 @@ export default function Home() {
     if (action) action();
   };
 
-  const whatsNewCards = [
+  const whatsNewCards = useMemo(() => [
+    {
+      id: 'spot-filters',
+      icon: <SlidersHorizontal size={32} className="text-primary mb-2" />,
+      images: [],
+      title: t('home.whatsNewSpotFilters'),
+      desc: t('home.whatsNewSpotFiltersDesc'),
+      btnText: t('home.whatsNewSpotFiltersBtn'),
+      action: () => navigate('/spots'),
+    },
+    {
+      id: 'ai-analysis',
+      icon: <Sparkles size={32} className="text-primary mb-2" />,
+      images: [],
+      title: t('home.whatsNewAiAnalysis'),
+      desc: t('home.whatsNewAiAnalysisDesc'),
+      btnText: t('home.whatsNewAiAnalysisBtn'),
+      action: () => setShowNew(true),
+    },
     {
       id: 'spot-explorer',
       icon: <MapPin size={32} className="text-primary mb-2" />,
@@ -121,7 +139,7 @@ export default function Home() {
       images: ["/assets/whatsnew/tournoi1.PNG", "/assets/whatsnew/tournoi2.PNG", "/assets/whatsnew/tournoi3.PNG"],
       title: t('home.whatsNewTournaments'),
       desc: t('home.whatsNewTournamentsDesc'),
-      btnText: t('home.whatsNewTournamentsBtn', 'Découvrir les tournois'),
+      btnText: t('home.whatsNewTournamentsBtn'),
       action: () => navigate('/tournaments'),
     },
     {
@@ -130,7 +148,7 @@ export default function Home() {
       images: ["/assets/whatsnew/Mode perf.jpeg"],
       title: t('home.whatsNewPerfMode'),
       desc: t('home.whatsNewPerfModeDesc'),
-      btnText: t('home.whatsNewPerfModeBtn', 'Démarrer en Perf'),
+      btnText: t('home.whatsNewPerfModeBtn'),
       action: () => {
         setHasCourt(true);
         setIsPerformanceMode(true);
@@ -143,7 +161,7 @@ export default function Home() {
       images: ["/assets/whatsnew/actions persos.jpeg"],
       title: t('home.whatsNewCustomActions'),
       desc: t('home.whatsNewCustomActionsDesc'),
-      btnText: t('common.settings', 'Paramètres'),
+      btnText: t('home.whatsNewCustomActionsBtn'),
       action: () => navigate('/actions')
     },
     {
@@ -152,10 +170,10 @@ export default function Home() {
       images: ["/assets/whatsnew/joueurs1.jpeg", "/assets/whatsnew/joueurs2.jpeg"],
       title: t('home.whatsNewSavedPlayers'),
       desc: t('home.whatsNewSavedPlayersDesc'),
-      btnText: t('common.settings', 'Paramètres'),
+      btnText: t('home.whatsNewSavedPlayersBtn'),
       action: () => navigate('/players')
     }
-  ];
+  ], [t, navigate]);
 
   const visibleWhatsNew = whatsNewCards.filter(c => !dismissedWhatsNew.includes(c.id));
 

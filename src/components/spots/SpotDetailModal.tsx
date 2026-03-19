@@ -1,9 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
-import { X, MapPin, Calendar, Info, MessageSquare, Plus, Loader2, Star, Upload, Edit3, ExternalLink, Sparkles, Navigation, Zap, Phone, Globe, Leaf, Heart } from 'lucide-react';
+import { X, MapPin, Calendar, Info, MessageSquare, Loader2, Star, Upload, Edit3, ExternalLink, Sparkles, Navigation, Zap, Phone, Globe, Leaf, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
@@ -68,7 +67,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
     }
   };
 
-  const checkFavorite = async (id: string) => {
+  const checkFavorite = (id: string) => {
     try {
       const favs = JSON.parse(localStorage.getItem('spot_favorites') || '[]');
       setIsFavorite(favs.includes(id));
@@ -81,7 +80,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
     const next = isFavorite ? favs.filter(f => f !== spotId) : [...favs, spotId];
     localStorage.setItem('spot_favorites', JSON.stringify(next));
     setIsFavorite(!isFavorite);
-    toast.success(isFavorite ? 'Retiré des favoris' : 'Ajouté aux favoris ❤️');
+    toast.success(isFavorite ? 'Retiré des favoris' : 'Ajouté aux favoris');
   };
 
   const handlePostComment = async (e: React.FormEvent) => {
@@ -136,244 +135,288 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
   if (!spotId) return null;
 
   return (
-    <Dialog open={!!spotId} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto p-0">
-        {loading ? (
-          <div className="flex items-center justify-center p-12"><Loader2 className="animate-spin text-primary" size={28} /></div>
-        ) : spot ? (
-          <div className="flex flex-col">
-            {/* Header with photo or placeholder */}
-            {photos.length > 0 ? (
-              <div className="flex overflow-x-auto snap-x hide-scrollbar gap-0">
-                {photos.map((p: any, i: number) => (
-                  <img key={i} src={p.photo_url} alt="Spot" className="w-full h-48 object-cover shrink-0 snap-center" />
-                ))}
-              </div>
-            ) : (
-              <div className="h-32 bg-gradient-to-br from-primary/20 to-secondary/30 flex items-center justify-center">
-                <MapPin size={32} className="text-muted-foreground/40" />
-              </div>
-            )}
+    <>
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${spotId ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={onClose}
+      />
 
-            <div className="p-5 space-y-5">
-              {/* Title + type + favorite */}
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-black text-foreground leading-tight">{spot.name}</h2>
-                  <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-primary/15 text-primary text-[11px] font-bold">
-                    {getTypeLabel(spot.type)}
-                  </span>
-                  {spot.status === 'waiting_for_validation' && (
-                    <span className="inline-block mt-1 ml-2 px-2.5 py-0.5 rounded-full bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 text-[11px] font-bold">
-                      ⏳ En attente
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {averageRating > 0 && (
-                    <div className="flex items-center gap-1 text-yellow-500 font-bold text-sm">
-                      <Star size={16} fill="currentColor" />
-                      {averageRating.toFixed(1)}
-                    </div>
-                  )}
-                  <button onClick={toggleFavorite} className="p-2 rounded-full hover:bg-secondary transition-colors">
-                    <Heart size={20} className={isFavorite ? 'text-red-500 fill-red-500' : 'text-muted-foreground'} />
-                  </button>
-                </div>
-              </div>
+      {/* Bottom sheet */}
+      <div className={`fixed inset-x-0 bottom-0 z-50 max-h-[90vh] transition-transform duration-300 ease-out ${spotId ? 'translate-y-0' : 'translate-y-full'}`}>
+        <div className="bg-background rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-1 flex-none">
+            <div className="w-10 h-1 rounded-full bg-border" />
+          </div>
 
-              {/* Address */}
-              {spot.address && (
-                <div className="flex items-start gap-2.5 text-sm">
-                  <MapPin size={15} className="text-muted-foreground mt-0.5 shrink-0" />
-                  <p className="text-foreground/80">{spot.address}</p>
+          {loading ? (
+            <div className="flex items-center justify-center p-16">
+              <Loader2 className="animate-spin text-primary" size={24} />
+            </div>
+          ) : spot ? (
+            <div className="overflow-y-auto flex-1 overscroll-contain">
+              {/* Photo carousel */}
+              {photos.length > 0 ? (
+                <div className="flex overflow-x-auto snap-x hide-scrollbar">
+                  {photos.map((p: any, i: number) => (
+                    <img key={i} src={p.photo_url} alt="Spot" className="w-full h-52 object-cover shrink-0 snap-center" />
+                  ))}
+                </div>
+              ) : (
+                <div className="h-28 bg-gradient-to-br from-primary/10 via-secondary/20 to-primary/5 flex items-center justify-center">
+                  <MapPin size={28} className="text-muted-foreground/30" />
                 </div>
               )}
 
-              {/* Equipment badges */}
-              <div className="flex flex-wrap gap-1.5">
-                {spot.equip_acces_libre && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 text-[11px] font-semibold border border-green-500/20">🔓 Libre accès</span>
-                )}
-                {spot.equip_eclairage && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 text-[11px] font-semibold border border-yellow-500/20"><Zap size={10} /> Éclairé</span>
-                )}
-                {spot.equip_pmr && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 text-[11px] font-semibold border border-blue-500/20">♿ PMR</span>
-                )}
-                {spot.equip_sol && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-foreground text-[11px] font-semibold border border-border"><Leaf size={10} /> {spot.equip_sol}</span>
-                )}
-              </div>
+              <div className="px-5 pb-8 pt-4 space-y-5">
+                {/* Title row */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-xl font-black text-foreground leading-tight tracking-tight">{spot.name}</h2>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="inline-block px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-bold">
+                        {getTypeLabel(spot.type)}
+                      </span>
+                      {spot.status === 'waiting_for_validation' && (
+                        <span className="inline-block px-2.5 py-0.5 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-[11px] font-bold">
+                          En attente
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-none">
+                    {averageRating > 0 && (
+                      <div className="flex items-center gap-1 bg-yellow-500/10 px-2 py-1 rounded-full">
+                        <Star size={13} className="text-yellow-500" fill="currentColor" />
+                        <span className="text-xs font-bold text-yellow-600 dark:text-yellow-400">{averageRating.toFixed(1)}</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={toggleFavorite}
+                      className="w-9 h-9 rounded-full bg-secondary/60 flex items-center justify-center hover:bg-secondary transition-colors active:scale-95"
+                    >
+                      <Heart size={16} className={isFavorite ? 'text-red-500 fill-red-500' : 'text-muted-foreground'} />
+                    </button>
+                  </div>
+                </div>
 
-              {/* Seasonality visual */}
-              {(() => {
-                const season = parseSeasonality(spot.availability_period, spot.equip_saisonnier);
-                if (!season) return null;
-                if (season.type === 'yearly') {
+                {/* Address */}
+                {spot.address && (
+                  <div className="flex items-start gap-2.5">
+                    <MapPin size={14} className="text-muted-foreground mt-0.5 shrink-0" />
+                    <p className="text-sm text-foreground/70 leading-snug">{spot.address}</p>
+                  </div>
+                )}
+
+                {/* Equipment badges */}
+                <div className="flex flex-wrap gap-1.5">
+                  {spot.equip_acces_libre && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[11px] font-semibold">🔓 Libre accès</span>
+                  )}
+                  {spot.equip_eclairage && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-[11px] font-semibold"><Zap size={10} /> Éclairé</span>
+                  )}
+                  {spot.equip_pmr && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-semibold">♿ PMR</span>
+                  )}
+                  {spot.equip_sol && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-foreground/80 text-[11px] font-semibold"><Leaf size={10} /> {spot.equip_sol}</span>
+                  )}
+                </div>
+
+                {/* Seasonality */}
+                {(() => {
+                  const season = parseSeasonality(spot.availability_period, spot.equip_saisonnier);
+                  if (!season) return null;
+                  if (season.type === 'yearly') {
+                    return (
+                      <div className="flex items-center gap-2.5 bg-green-500/8 border border-green-500/15 rounded-xl p-3">
+                        <Calendar size={14} className="text-green-600 dark:text-green-400 shrink-0" />
+                        <span className="text-sm font-semibold text-green-600 dark:text-green-400">Disponible toute l'année</span>
+                      </div>
+                    );
+                  }
                   return (
-                    <div className="flex items-center gap-2 text-sm bg-green-500/10 border border-green-500/20 rounded-lg p-2.5">
-                      <Calendar size={15} className="text-green-600 dark:text-green-400 shrink-0" />
-                      <span className="font-semibold text-green-600 dark:text-green-400">Disponible toute l'année</span>
-                    </div>
-                  );
-                }
-                return (
-                  <div className="bg-secondary/30 border border-border rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar size={14} className="text-muted-foreground" />
-                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Saisonnier</span>
-                    </div>
-                    <div className="flex gap-0.5">
-                      {MONTHS_SHORT.map((m, i) => {
-                        const isActive = season.start != null && season.end != null
-                          ? (season.start <= season.end
-                            ? i >= season.start && i <= season.end
-                            : i >= season.start || i <= season.end)
-                          : false;
-                        return (
-                          <div key={m} className="flex-1 flex flex-col items-center gap-1">
-                            <div className={`w-full h-3 rounded-sm transition-colors ${isActive ? 'bg-primary' : 'bg-secondary'}`} />
-                            <span className={`text-[8px] ${isActive ? 'text-primary font-bold' : 'text-muted-foreground/50'}`}>{m}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
-
-
-              {/* Club contact */}
-              {spot.source === 'ffvb_club' && (
-                <div className="space-y-2">
-                  {spot.club_lien_fiche && (
-                    <a href={spot.club_lien_fiche} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-primary hover:underline">
-                      <Info size={14} className="shrink-0" /><span className="font-medium">Fiche club FFVB</span><ExternalLink size={10} />
-                    </a>
-                  )}
-                  {spot.club_site_web && (
-                    <a href={spot.club_site_web} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-primary hover:underline">
-                      <Globe size={14} className="shrink-0" /><span className="font-medium">Site du club</span><ExternalLink size={10} />
-                    </a>
-                  )}
-                  {spot.club_telephone && (
-                    <a href={`tel:${spot.club_telephone}`} className="flex items-center gap-2.5 text-sm text-primary hover:underline">
-                      <Phone size={14} className="shrink-0" /><span className="font-medium">{spot.club_telephone}</span>
-                    </a>
-                  )}
-                </div>
-              )}
-
-              {/* FFVB region */}
-              {(spot.ffvb_ligue || spot.ffvb_comite) && (
-                <p className="text-xs text-muted-foreground">{[spot.ffvb_comite, spot.ffvb_ligue].filter(Boolean).join(' — ')}</p>
-              )}
-
-              {spot.description && (
-                <p className="text-sm text-foreground/80 leading-relaxed">{spot.description}</p>
-              )}
-
-              {/* Navigation links */}
-              {spot.lat && spot.lng && (
-                <div className="flex gap-2">
-                  <a href={`https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lng}`} target="_blank" rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-2 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg py-2.5 transition-colors">
-                    <MapPin size={14} /> Google Maps
-                  </a>
-                  <a href={`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}`} target="_blank" rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-2 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg py-2.5 transition-colors">
-                    <Navigation size={14} /> Itinéraire
-                  </a>
-                </div>
-              )}
-
-              {/* Actions: Edit + Suggest modification */}
-              <div className="flex gap-2">
-                <Button onClick={() => onEdit(spot)} variant="outline" className="flex-1 text-xs h-9">
-                  <Edit3 size={14} className="mr-1.5" /> Suggérer une modification
-                </Button>
-              </div>
-
-              {/* Moderator actions */}
-              {isModerator && spot.status !== 'validated' && (
-                <div className="flex gap-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                  <Button onClick={() => onModerate?.(spot.id, 'approve')} className="flex-1 text-xs h-9 bg-green-600 hover:bg-green-700">
-                    ✅ Valider
-                  </Button>
-                  <Button onClick={() => onModerate?.(spot.id, 'reject')} variant="destructive" className="flex-1 text-xs h-9">
-                    ❌ Rejeter
-                  </Button>
-                </div>
-              )}
-
-              {/* AI summary */}
-              {comments.length > 0 && (
-                <Button onClick={generateAiSummary} disabled={generatingSummary} variant="outline" className="w-full text-xs h-9 gap-2">
-                  {generatingSummary ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                  {generatingSummary ? 'Génération...' : 'Résumé IA des avis'}
-                </Button>
-              )}
-
-              {/* Comments section */}
-              <div className="border-t border-border pt-5 space-y-4">
-                <h3 className="font-bold text-sm flex items-center gap-2">
-                  <MessageSquare size={15} /> Commentaires ({comments.length})
-                </h3>
-
-                <form onSubmit={handlePostComment} className="flex flex-col gap-2.5 bg-secondary/20 p-3 rounded-xl border border-border">
-                  <div className="flex items-center gap-1">
-                    {[1,2,3,4,5].map(star => (
-                      <button key={star} type="button" onClick={() => setNewRating(star)}>
-                        <Star size={18} className={star <= newRating ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground/30"} />
-                      </button>
-                    ))}
-                  </div>
-                  <Input placeholder="Votre avis..." value={newComment} onChange={e => setNewComment(e.target.value)} className="bg-background text-sm" />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <input type="file" ref={fileInputRef} onChange={e => {
-                        if (e.target.files) {
-                          const files = Array.from(e.target.files);
-                          if (newPhotos.length + files.length > 5) { toast.error("Max 5 photos"); return; }
-                          setNewPhotos([...newPhotos, ...files]);
-                        }
-                      }} multiple accept="image/*" className="hidden" />
-                      <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="text-[10px]">
-                        <Upload size={12} className="mr-1" /> Photos ({newPhotos.length}/5)
-                      </Button>
-                    </div>
-                    <Button type="submit" size="sm" disabled={postingComment || (!newComment.trim() && newRating === 0 && newPhotos.length === 0)}>
-                      Envoyer
-                    </Button>
-                  </div>
-                </form>
-
-                {comments.map((c: any, i: number) => (
-                  <div key={i} className="bg-secondary/30 p-3 rounded-xl border border-border/50">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="font-semibold text-xs">{c.authorName}</span>
-                      <div className="flex items-center gap-2">
-                        {c.rating && <div className="flex items-center text-yellow-500"><Star size={10} fill="currentColor" className="mr-0.5" /><span className="text-[10px] font-bold">{c.rating}</span></div>}
-                        <span className="text-[9px] text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</span>
+                    <div className="bg-secondary/20 border border-border/40 rounded-xl p-3">
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <Calendar size={13} className="text-muted-foreground" />
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Saisonnier</span>
+                      </div>
+                      <div className="flex gap-[3px]">
+                        {MONTHS_SHORT.map((m, i) => {
+                          const isActive = season.start != null && season.end != null
+                            ? (season.start <= season.end
+                              ? i >= season.start && i <= season.end
+                              : i >= season.start || i <= season.end)
+                            : false;
+                          return (
+                            <div key={m} className="flex-1 flex flex-col items-center gap-1">
+                              <div className={`w-full h-2.5 rounded-sm transition-colors ${isActive ? 'bg-primary' : 'bg-secondary'}`} />
+                              <span className={`text-[7px] leading-none ${isActive ? 'text-primary font-bold' : 'text-muted-foreground/40'}`}>{m}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                    {c.content && <p className="text-xs text-foreground/80">{c.content}</p>}
-                  </div>
-                ))}
+                  );
+                })()}
 
-                {comments.length === 0 && (
-                  <p className="text-xs text-center text-muted-foreground py-6 bg-secondary/10 rounded-xl border border-dashed border-border">
-                    Soyez le premier à commenter !
-                  </p>
+                {/* Club contact */}
+                {spot.source === 'ffvb_club' && (
+                  <div className="space-y-2">
+                    {spot.club_lien_fiche && (
+                      <a href={spot.club_lien_fiche} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-primary hover:underline">
+                        <Info size={14} className="shrink-0" /><span className="font-medium">Fiche club FFVB</span><ExternalLink size={10} />
+                      </a>
+                    )}
+                    {spot.club_site_web && (
+                      <a href={spot.club_site_web} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-primary hover:underline">
+                        <Globe size={14} className="shrink-0" /><span className="font-medium">Site du club</span><ExternalLink size={10} />
+                      </a>
+                    )}
+                    {spot.club_telephone && (
+                      <a href={`tel:${spot.club_telephone}`} className="flex items-center gap-2.5 text-sm text-primary hover:underline">
+                        <Phone size={14} className="shrink-0" /><span className="font-medium">{spot.club_telephone}</span>
+                      </a>
+                    )}
+                  </div>
                 )}
+
+                {/* FFVB region */}
+                {(spot.ffvb_ligue || spot.ffvb_comite) && (
+                  <p className="text-xs text-muted-foreground">{[spot.ffvb_comite, spot.ffvb_ligue].filter(Boolean).join(' — ')}</p>
+                )}
+
+                {spot.description && (
+                  <p className="text-sm text-foreground/70 leading-relaxed">{spot.description}</p>
+                )}
+
+                {/* Navigation buttons */}
+                {spot.lat && spot.lng && (
+                  <div className="flex gap-2">
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-2 text-xs font-semibold text-primary bg-primary/8 hover:bg-primary/15 rounded-xl py-3 transition-colors active:scale-[0.98]"
+                    >
+                      <MapPin size={14} /> Google Maps
+                    </a>
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-2 text-xs font-semibold text-primary bg-primary/8 hover:bg-primary/15 rounded-xl py-3 transition-colors active:scale-[0.98]"
+                    >
+                      <Navigation size={14} /> Itinéraire
+                    </a>
+                  </div>
+                )}
+
+                {/* Edit action */}
+                <Button onClick={() => onEdit(spot)} variant="outline" className="w-full text-xs h-10 rounded-xl">
+                  <Edit3 size={14} className="mr-1.5" /> Suggérer une modification
+                </Button>
+
+                {/* Moderator actions */}
+                {isModerator && spot.status !== 'validated' && (
+                  <div className="flex gap-2 p-3 bg-yellow-500/8 border border-yellow-500/15 rounded-xl">
+                    <Button onClick={() => onModerate?.(spot.id, 'approve')} className="flex-1 text-xs h-9 bg-green-600 hover:bg-green-700 rounded-lg">
+                      Valider
+                    </Button>
+                    <Button onClick={() => onModerate?.(spot.id, 'reject')} variant="destructive" className="flex-1 text-xs h-9 rounded-lg">
+                      Rejeter
+                    </Button>
+                  </div>
+                )}
+
+                {/* AI summary */}
+                {comments.length > 0 && (
+                  <Button onClick={generateAiSummary} disabled={generatingSummary} variant="outline" className="w-full text-xs h-10 gap-2 rounded-xl">
+                    {generatingSummary ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    {generatingSummary ? 'Génération...' : 'Résumé IA des avis'}
+                  </Button>
+                )}
+
+                {/* Comments */}
+                <div className="border-t border-border/40 pt-5 space-y-4">
+                  <h3 className="font-bold text-sm flex items-center gap-2">
+                    <MessageSquare size={14} /> Commentaires ({comments.length})
+                  </h3>
+
+                  <form onSubmit={handlePostComment} className="space-y-3 bg-secondary/15 p-3.5 rounded-xl border border-border/40">
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button key={star} type="button" onClick={() => setNewRating(star)} className="p-0.5 active:scale-110 transition-transform">
+                          <Star size={20} className={star <= newRating ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground/20"} />
+                        </button>
+                      ))}
+                    </div>
+                    <Input
+                      placeholder="Votre avis..."
+                      value={newComment}
+                      onChange={e => setNewComment(e.target.value)}
+                      className="bg-background text-sm rounded-lg h-10"
+                    />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <input type="file" ref={fileInputRef} onChange={e => {
+                          if (e.target.files) {
+                            const files = Array.from(e.target.files);
+                            if (newPhotos.length + files.length > 5) { toast.error("Max 5 photos"); return; }
+                            setNewPhotos([...newPhotos, ...files]);
+                          }
+                        }} multiple accept="image/*" className="hidden" />
+                        <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="text-[10px] rounded-lg h-8">
+                          <Upload size={11} className="mr-1" /> Photos ({newPhotos.length}/5)
+                        </Button>
+                      </div>
+                      <Button type="submit" size="sm" disabled={postingComment || (!newComment.trim() && newRating === 0 && newPhotos.length === 0)} className="rounded-lg h-8 text-xs">
+                        Envoyer
+                      </Button>
+                    </div>
+                  </form>
+
+                  {comments.map((c: any, i: number) => (
+                    <div key={i} className="bg-secondary/15 p-3.5 rounded-xl border border-border/30">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="font-semibold text-xs text-foreground">{c.authorName}</span>
+                        <div className="flex items-center gap-2">
+                          {c.rating && (
+                            <div className="flex items-center text-yellow-500">
+                              <Star size={10} fill="currentColor" className="mr-0.5" />
+                              <span className="text-[10px] font-bold">{c.rating}</span>
+                            </div>
+                          )}
+                          <span className="text-[9px] text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      {c.content && <p className="text-xs text-foreground/70 leading-relaxed">{c.content}</p>}
+                    </div>
+                  ))}
+
+                  {comments.length === 0 && (
+                    <p className="text-xs text-center text-muted-foreground py-8 bg-secondary/10 rounded-xl border border-dashed border-border/40">
+                      Soyez le premier à commenter !
+                    </p>
+                  )}
+                </div>
+
+                {/* Close button at the very bottom for mobile */}
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Fermer
+                </button>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="p-8 text-center text-muted-foreground text-sm">Terrain introuvable</div>
-        )}
-      </DialogContent>
-    </Dialog>
+          ) : (
+            <div className="p-12 text-center text-muted-foreground text-sm">Terrain introuvable</div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }

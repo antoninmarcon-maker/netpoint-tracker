@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { MapPin, SlidersHorizontal, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { SlidersHorizontal, X, ChevronDown } from 'lucide-react';
 
 export const EXTERIOR_TYPES = ['beach', 'green_volley', 'outdoor_hard', 'outdoor_grass'];
 
@@ -44,20 +43,57 @@ export const DEFAULT_FILTERS: SpotFiltersState = {
   showPending: false,
 };
 
-function FilterPill({ active, onClick, children, size = 'md' }: { active: boolean; onClick: () => void; children: React.ReactNode; size?: 'sm' | 'md' }) {
+function Chip({ active, onClick, children, variant = 'default' }: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  variant?: 'default' | 'small' | 'icon';
+}) {
+  const base = "flex-none rounded-full font-semibold tracking-wide border transition-all select-none active:scale-95";
+  const sizing = variant === 'icon'
+    ? 'w-8 h-8 flex items-center justify-center'
+    : variant === 'small'
+      ? 'px-2.5 py-1 text-[10px]'
+      : 'px-3 py-1.5 text-[11px]';
+
+  const colors = active
+    ? 'bg-foreground text-background border-foreground shadow-sm'
+    : 'bg-background/90 text-foreground/70 border-border/60 backdrop-blur-md hover:bg-background hover:text-foreground';
+
   return (
-    <button
-      onClick={onClick}
-      className={`flex-none px-3 py-1.5 rounded-full font-semibold tracking-wide border transition-all shadow-sm whitespace-nowrap ${
-        size === 'sm' ? 'text-[10px]' : 'text-xs'
-      } ${
-        active
-          ? 'bg-primary text-primary-foreground border-primary'
-          : 'bg-background/90 text-foreground border-border backdrop-blur-sm opacity-70 hover:opacity-100'
-      }`}
-    >
+    <button onClick={onClick} className={`${base} ${sizing} ${colors}`}>
       {children}
     </button>
+  );
+}
+
+function RadioOption({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
+  return (
+    <label className="flex items-center gap-2.5 text-[12px] cursor-pointer py-1 text-foreground/80 hover:text-foreground transition-colors">
+      <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+        checked ? 'border-primary bg-primary' : 'border-border'
+      }`}>
+        {checked && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+      </span>
+      {label}
+    </label>
+  );
+}
+
+function CheckOption({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex items-center gap-2.5 text-[12px] cursor-pointer py-1 text-foreground/80 hover:text-foreground transition-colors">
+      <span className={`w-4 h-4 rounded-md border-2 flex items-center justify-center transition-all ${
+        checked ? 'border-primary bg-primary' : 'border-border'
+      }`}>
+        {checked && (
+          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+            <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
+      {label}
+    </label>
   );
 }
 
@@ -80,126 +116,123 @@ export default function SpotFilters({ filters, onChange, count, userPosition, is
 
   const radiusOptions = [10, 25, 50] as const;
 
+  const hasActiveSubFilters = !filters.subFilters.ext_beach || !filters.subFilters.ext_herbe ||
+    !filters.subFilters.ext_dur || filters.subFilters.beach_eclairage || filters.subFilters.beach_pmr ||
+    filters.subFilters.beach_saison !== 'all' || filters.subFilters.green_sol !== 'all' ||
+    filters.subFilters.green_saison !== 'all';
+
   return (
-    <div className="absolute top-3 left-3 right-3 z-[400] flex flex-col gap-2 pointer-events-none">
-      {/* Row 1: Main categories */}
-      <div className="flex items-center gap-1.5 flex-wrap pointer-events-auto">
-        <FilterPill active={filters.showExterieur} onClick={() => set('showExterieur', !filters.showExterieur)}>
+    <div className="absolute top-14 left-0 right-0 z-[400] flex flex-col gap-1.5 pointer-events-none px-3">
+      {/* Main filter row — horizontal scroll */}
+      <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar pointer-events-auto pb-0.5">
+        <Chip active={filters.showExterieur} onClick={() => set('showExterieur', !filters.showExterieur)}>
           ☀️ Extérieur
-        </FilterPill>
+        </Chip>
+
         {filters.showExterieur && (
-          <button
+          <Chip
+            active={showSubPanel || hasActiveSubFilters}
             onClick={() => setShowSubPanel(p => !p)}
-            className={`w-6 h-6 rounded-full text-[10px] flex items-center justify-center border transition-all ${
-              showSubPanel
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-background/90 border-border text-muted-foreground hover:bg-background'
-            }`}
+            variant="icon"
           >
-            <SlidersHorizontal size={10} />
-          </button>
+            <SlidersHorizontal size={13} />
+          </Chip>
         )}
-        <FilterPill active={filters.showClubs} onClick={() => set('showClubs', !filters.showClubs)}>
+
+        <Chip active={filters.showClubs} onClick={() => set('showClubs', !filters.showClubs)}>
           🏛️ Clubs
-        </FilterPill>
+        </Chip>
 
-        {isModerator && (
-          <FilterPill active={filters.showPending} onClick={() => set('showPending', !filters.showPending)}>
-            ⏳ En attente
-          </FilterPill>
-        )}
-
-        <span className="text-[10px] text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full border border-border whitespace-nowrap pointer-events-auto">
-          {count} terrains
-        </span>
-      </div>
-
-      {/* Row 2: Quick filters */}
-      <div className="flex items-center gap-1.5 flex-wrap pointer-events-auto">
         {filters.showExterieur && (
-          <FilterPill active={filters.subFilters.acces_libre} onClick={() => setSub('acces_libre', !filters.subFilters.acces_libre)} size="sm">
+          <Chip active={filters.subFilters.acces_libre} onClick={() => setSub('acces_libre', !filters.subFilters.acces_libre)} variant="small">
             🔓 Libre accès
-          </FilterPill>
+          </Chip>
         )}
 
         {/* Proximity radius */}
         {userPosition && (
           <>
-            <span className="text-[9px] text-muted-foreground ml-1">📍</span>
+            <div className="w-px h-5 bg-border/40 flex-none mx-0.5" />
             {radiusOptions.map(r => (
-              <FilterPill
+              <Chip
                 key={r}
                 active={filters.radiusKm === r}
                 onClick={() => set('radiusKm', filters.radiusKm === r ? null : r)}
-                size="sm"
+                variant="small"
               >
                 {r} km
-              </FilterPill>
+              </Chip>
             ))}
           </>
         )}
+
+        {isModerator && (
+          <Chip active={filters.showPending} onClick={() => set('showPending', !filters.showPending)} variant="small">
+            ⏳ En attente
+          </Chip>
+        )}
+
+        {/* Count badge */}
+        <span className="flex-none text-[10px] text-muted-foreground bg-background/80 backdrop-blur-md px-2 py-1 rounded-full border border-border/40 whitespace-nowrap font-medium tabular-nums">
+          {count} terrain{count !== 1 ? 's' : ''}
+        </span>
       </div>
 
       {/* Sub-filter panel */}
       {showSubPanel && filters.showExterieur && (
-        <div className="bg-background/95 backdrop-blur-sm border border-border rounded-xl p-3 shadow-lg w-[min(calc(100vw-1.5rem),260px)] max-h-[40vh] overflow-y-auto pointer-events-auto">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Filtres extérieur</p>
-            <button onClick={() => setShowSubPanel(false)} className="text-muted-foreground hover:text-foreground">
-              <X size={14} />
+        <div className="pointer-events-auto bg-background/95 backdrop-blur-xl border border-border/60 rounded-2xl p-4 shadow-xl w-[min(calc(100vw-1.5rem),280px)] max-h-[45vh] overflow-y-auto animate-fade-in">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs font-bold text-foreground tracking-tight">Filtres extérieur</p>
+            <button onClick={() => setShowSubPanel(false)} className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors">
+              <X size={12} />
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            <FilterPill active={filters.subFilters.ext_beach} onClick={() => setSub('ext_beach', !filters.subFilters.ext_beach)} size="sm">
+          {/* Surface type chips */}
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Surface</p>
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            <Chip active={filters.subFilters.ext_beach} onClick={() => setSub('ext_beach', !filters.subFilters.ext_beach)} variant="small">
               🏖️ Beach
-            </FilterPill>
-            <FilterPill active={filters.subFilters.ext_herbe} onClick={() => setSub('ext_herbe', !filters.subFilters.ext_herbe)} size="sm">
+            </Chip>
+            <Chip active={filters.subFilters.ext_herbe} onClick={() => setSub('ext_herbe', !filters.subFilters.ext_herbe)} variant="small">
               🌿 Herbe
-            </FilterPill>
-            <FilterPill active={filters.subFilters.ext_dur} onClick={() => setSub('ext_dur', !filters.subFilters.ext_dur)} size="sm">
+            </Chip>
+            <Chip active={filters.subFilters.ext_dur} onClick={() => setSub('ext_dur', !filters.subFilters.ext_dur)} variant="small">
               🏗️ Dur
-            </FilterPill>
+            </Chip>
           </div>
 
           {filters.subFilters.ext_beach && (
-            <div className="border-t border-border pt-2 mb-2">
-              <p className="text-[10px] text-muted-foreground mb-1.5 font-semibold">🏖️ Beach</p>
-              <label className="flex items-center gap-2 text-xs cursor-pointer mb-1">
-                <input type="checkbox" checked={filters.subFilters.beach_eclairage} onChange={e => setSub('beach_eclairage', e.target.checked)} className="rounded" />
-                Éclairage
-              </label>
-              <label className="flex items-center gap-2 text-xs cursor-pointer mb-1">
-                <input type="checkbox" checked={filters.subFilters.beach_pmr} onChange={e => setSub('beach_pmr', e.target.checked)} className="rounded" />
-                Accès PMR
-              </label>
-              <p className="text-[10px] text-muted-foreground mb-1 mt-1.5">Disponibilité</p>
-              {(['all', 'annee', 'saisonnier'] as const).map(v => (
-                <label key={v} className="flex items-center gap-2 text-xs cursor-pointer mb-1">
-                  <input type="radio" name="beach_saison" value={v} checked={filters.subFilters.beach_saison === v} onChange={() => setSub('beach_saison', v)} />
-                  {v === 'all' ? 'Tous' : v === 'annee' ? "À l'année" : 'Saisonnier'}
-                </label>
-              ))}
+            <div className="border-t border-border/40 pt-3 mb-3">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">🏖️ Beach</p>
+              <div className="space-y-0.5 mb-2">
+                <CheckOption label="Éclairage" checked={filters.subFilters.beach_eclairage} onChange={v => setSub('beach_eclairage', v)} />
+                <CheckOption label="Accès PMR" checked={filters.subFilters.beach_pmr} onChange={v => setSub('beach_pmr', v)} />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-2 mb-1">Disponibilité</p>
+              <div className="space-y-0.5">
+                <RadioOption label="Tous" checked={filters.subFilters.beach_saison === 'all'} onChange={() => setSub('beach_saison', 'all')} />
+                <RadioOption label="À l'année" checked={filters.subFilters.beach_saison === 'annee'} onChange={() => setSub('beach_saison', 'annee')} />
+                <RadioOption label="Saisonnier" checked={filters.subFilters.beach_saison === 'saisonnier'} onChange={() => setSub('beach_saison', 'saisonnier')} />
+              </div>
             </div>
           )}
 
           {filters.subFilters.ext_herbe && (
-            <div className="border-t border-border pt-2 mb-2">
-              <p className="text-[10px] text-muted-foreground mb-1.5 font-semibold">🌿 Herbe</p>
+            <div className="border-t border-border/40 pt-3 mb-3">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">🌿 Herbe</p>
               <p className="text-[10px] text-muted-foreground mb-1">Surface</p>
-              {(['all', 'naturel', 'synthetique'] as const).map(v => (
-                <label key={v} className="flex items-center gap-2 text-xs cursor-pointer mb-1">
-                  <input type="radio" name="green_sol" value={v} checked={filters.subFilters.green_sol === v} onChange={() => setSub('green_sol', v)} />
-                  {v === 'all' ? 'Toutes' : v === 'naturel' ? '🌿 Naturel' : '⚡ Synthétique'}
-                </label>
-              ))}
-              <p className="text-[10px] text-muted-foreground mb-1 mt-1.5">Disponibilité</p>
-              {(['all', 'annee', 'saisonnier'] as const).map(v => (
-                <label key={v} className="flex items-center gap-2 text-xs cursor-pointer mb-1">
-                  <input type="radio" name="green_saison" value={v} checked={filters.subFilters.green_saison === v} onChange={() => setSub('green_saison', v)} />
-                  {v === 'all' ? 'Tous' : v === 'annee' ? "À l'année" : 'Saisonnier'}
-                </label>
-              ))}
+              <div className="space-y-0.5">
+                <RadioOption label="Toutes" checked={filters.subFilters.green_sol === 'all'} onChange={() => setSub('green_sol', 'all')} />
+                <RadioOption label="🌿 Naturel" checked={filters.subFilters.green_sol === 'naturel'} onChange={() => setSub('green_sol', 'naturel')} />
+                <RadioOption label="⚡ Synthétique" checked={filters.subFilters.green_sol === 'synthetique'} onChange={() => setSub('green_sol', 'synthetique')} />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-2 mb-1">Disponibilité</p>
+              <div className="space-y-0.5">
+                <RadioOption label="Tous" checked={filters.subFilters.green_saison === 'all'} onChange={() => setSub('green_saison', 'all')} />
+                <RadioOption label="À l'année" checked={filters.subFilters.green_saison === 'annee'} onChange={() => setSub('green_saison', 'annee')} />
+                <RadioOption label="Saisonnier" checked={filters.subFilters.green_saison === 'saisonnier'} onChange={() => setSub('green_saison', 'saisonnier')} />
+              </div>
             </div>
           )}
         </div>

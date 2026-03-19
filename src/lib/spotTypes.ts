@@ -1,9 +1,9 @@
-export const SPOT_TYPE_CONFIG: Record<string, { emoji: string; label: string; bg: string }> = {
-  club: { emoji: '🏛️', label: 'Club', bg: 'bg-blue-700' },
-  beach: { emoji: '🏖️', label: 'Beach', bg: 'bg-yellow-500' },
-  green_volley: { emoji: '🌿', label: 'Green-Volley', bg: 'bg-green-600' },
-  outdoor_hard: { emoji: '☀️', label: 'Dur', bg: 'bg-green-500' },
-  outdoor_grass: { emoji: '🌱', label: 'Herbe', bg: 'bg-green-400' },
+export const SPOT_TYPE_CONFIG: Record<string, { emoji: string; label: string; bg: string; hex: string }> = {
+  club: { emoji: '🏛️', label: 'Club', bg: 'bg-blue-700', hex: '#1d4ed8' },
+  beach: { emoji: '🏖️', label: 'Beach', bg: 'bg-yellow-500', hex: '#eab308' },
+  green_volley: { emoji: '🌿', label: 'Green-Volley', bg: 'bg-green-600', hex: '#16a34a' },
+  outdoor_hard: { emoji: '☀️', label: 'Dur', bg: 'bg-green-500', hex: '#22c55e' },
+  outdoor_grass: { emoji: '🌱', label: 'Herbe', bg: 'bg-green-400', hex: '#4ade80' },
 };
 
 export const MONTHS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];

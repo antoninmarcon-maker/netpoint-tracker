@@ -2,6 +2,20 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+const helpSections: { titleKey: string; descKeys: string[] }[] = [
+  { titleKey: 'help.scoringTitle', descKeys: ['help.scoringP1', 'help.scoringP2'] },
+  { titleKey: 'help.heatmapTitle', descKeys: ['help.heatmapP1', 'help.heatmapP2'] },
+  { titleKey: 'help.teamTitle', descKeys: ['help.teamP1', 'help.teamP2'] },
+  { titleKey: 'help.exportTitle', descKeys: ['help.exportDesc'] },
+  { titleKey: 'help.playersTitle', descKeys: ['help.playersDesc'] },
+  { titleKey: 'help.actionsTitle', descKeys: ['help.actionsDesc'] },
+  { titleKey: 'help.perfModeTitle', descKeys: ['help.perfModeDesc'] },
+  { titleKey: 'help.tournamentsTitle', descKeys: ['help.tournamentsDesc'] },
+  { titleKey: 'help.aiAnalysisTitle', descKeys: ['help.aiAnalysisDesc'] },
+  { titleKey: 'help.spotsTitle', descKeys: ['help.spotsDesc'] },
+  { titleKey: 'help.spotFiltersTitle', descKeys: ['help.spotFiltersDesc'] },
+];
+
 export default function Help() {
   const { t } = useTranslation();
 
@@ -15,71 +29,14 @@ export default function Help() {
       </header>
 
       <main className="flex-1 overflow-auto p-4 max-w-2xl mx-auto w-full space-y-8">
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">{t('help.scoringTitle')}</h2>
-          <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
-            <p>{t('help.scoringP1')}</p>
-            <p>{t('help.scoringP2')}</p>
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">{t('help.heatmapTitle')}</h2>
-          <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
-            <p>{t('help.heatmapP1')}</p>
-            <p>{t('help.heatmapP2')}</p>
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">{t('help.teamTitle')}</h2>
-          <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
-            <p>{t('help.teamP1')}</p>
-            <p>{t('help.teamP2')}</p>
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">{t('help.exportTitle')}</h2>
-          <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
-            <p>{t('help.exportDesc')}</p>
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">{t('help.playersTitle')}</h2>
-          <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
-            <p>{t('help.playersDesc')}</p>
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">{t('help.actionsTitle')}</h2>
-          <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
-            <p>{t('help.actionsDesc')}</p>
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">{t('help.perfModeTitle')}</h2>
-          <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
-            <p>{t('help.perfModeDesc')}</p>
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">{t('help.tournamentsTitle')}</h2>
-          <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
-            <p>{t('help.tournamentsDesc')}</p>
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">{t('help.spotsTitle')}</h2>
-          <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
-            <p>{t('help.spotsDesc')}</p>
-          </div>
-        </section>
+        {helpSections.map(({ titleKey, descKeys }) => (
+          <section key={titleKey}>
+            <h2 className="text-xl font-bold text-foreground mb-3">{t(titleKey)}</h2>
+            <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
+              {descKeys.map(key => <p key={key}>{t(key)}</p>)}
+            </div>
+          </section>
+        ))}
 
         <section className="pb-6">
           <a

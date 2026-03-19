@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: "My Volley",
         short_name: "My Volley",
-        description: "Scouting multi-sports : volley, basket, tennis & padel",
+        description: "Scouting & statistiques volleyball : scoring en direct, heatmaps, analyse IA, tournois et carte des terrains.",
         theme_color: "#0f172a",
         background_color: "#0f172a",
         display: "standalone",

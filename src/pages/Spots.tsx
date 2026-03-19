@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, List, Map as MapIcon } from 'lucide-react';
+import { ArrowLeft, Plus, List, Map as MapIcon, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SpotMap from '@/components/SpotMap';
 import { filterSpots } from '@/lib/filterSpots';
@@ -28,24 +28,19 @@ export default function Spots() {
   const [spotsForList, setSpotsForList] = useState<Tables<'spots_with_coords'>[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Check moderator status
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data?.user?.email === MODERATOR_EMAIL) setIsModerator(true);
     });
   }, []);
 
-  // Load spots for list view (only when list is visible)
   useEffect(() => {
     if (!showList) return;
     const query = supabase.from('spots_with_coords')
       .select('id, name, type, source, lat, lng, status, equip_sol, equip_eclairage, equip_acces_libre, equip_pmr, equip_saisonnier');
     if (!filters.showPending) query.eq('status', 'validated');
     query.then(({ data }) => {
-      if (data) {
-        const filtered = filterSpots(data, filters, userPosition);
-        setSpotsForList(filtered);
-      }
+      if (data) setSpotsForList(filterSpots(data, filters, userPosition));
     });
   }, [filters, userPosition, refreshKey, showList]);
 
@@ -53,7 +48,7 @@ export default function Spots() {
     const status = action === 'approve' ? 'validated' : 'rejected';
     const { error } = await supabase.from('spots').update({ status }).eq('id', spotId);
     if (error) { toast.error("Erreur modération"); return; }
-    toast.success(action === 'approve' ? '✅ Terrain validé' : '❌ Terrain rejeté');
+    toast.success(action === 'approve' ? 'Terrain validé' : 'Terrain rejeté');
     setSelectedSpotId(null);
     setRefreshKey(k => k + 1);
   };
@@ -62,68 +57,91 @@ export default function Spots() {
 
   return (
     <div className="flex flex-col h-dvh bg-background overflow-hidden relative">
-      {/* Header */}
-      <header className="flex-none bg-background/80 backdrop-blur-md border-b border-border z-20" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
-        <div className="flex items-center justify-between px-4 py-3">
-          <button onClick={() => navigate('/')} className="p-2 rounded-full bg-secondary hover:bg-secondary/80 text-foreground transition-colors">
+      {/* Full-bleed map */}
+      <div className="absolute inset-0 z-0">
+        <SpotMap
+          key={refreshKey}
+          selectedSpotId={selectedSpotId}
+          onSelectSpot={setSelectedSpotId}
+          isAddingMode={isAddingMode}
+          newSpotLocation={newSpotLocation || undefined}
+          onNewSpotLocationChange={setNewSpotLocation}
+          filters={filters}
+          onFiltersChange={setFilters}
+          isModerator={isModerator}
+          onUserPositionChange={setUserPosition}
+        />
+      </div>
+
+      {/* Floating top bar */}
+      <div className="relative z-10 pointer-events-none" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
+        <div className="flex items-center justify-between px-3 py-2">
+          {/* Back button */}
+          <button
+            onClick={() => navigate('/')}
+            className="pointer-events-auto w-10 h-10 rounded-full bg-background/90 backdrop-blur-md border border-border/50 shadow-lg flex items-center justify-center text-foreground hover:bg-background transition-colors active:scale-95"
+          >
             <ArrowLeft size={18} />
           </button>
 
-          <h1 className="text-lg font-black text-foreground">📍 Où jouer ?</h1>
+          {/* Title pill */}
+          <div className="pointer-events-none">
+            <h1 className="text-sm font-black text-foreground bg-background/90 backdrop-blur-md border border-border/50 shadow-lg px-4 py-2 rounded-full">
+              Où jouer ?
+            </h1>
+          </div>
 
-          <div className="flex items-center gap-2">
-            {/* Toggle list / map */}
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 pointer-events-auto">
             <button
               onClick={() => setShowList(p => !p)}
-              className={`p-2 rounded-full transition-colors ${showList ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground hover:bg-secondary/80'}`}
+              className={`w-10 h-10 rounded-full border shadow-lg flex items-center justify-center transition-all active:scale-95 ${
+                showList
+                  ? 'bg-foreground text-background border-foreground'
+                  : 'bg-background/90 backdrop-blur-md text-foreground border-border/50 hover:bg-background'
+              }`}
               title={showList ? 'Carte seule' : 'Vue liste'}
             >
-              {showList ? <MapIcon size={18} /> : <List size={18} />}
+              {showList ? <MapIcon size={16} /> : <List size={16} />}
             </button>
 
             <button
-              onClick={() => { setSelectedSpotId(null); setIsAddingMode(true); }}
-              className={`p-2 rounded-full transition-colors shadow-lg ${isAddingMode ? 'bg-secondary text-foreground' : 'bg-primary text-primary-foreground hover:opacity-90'}`}
+              onClick={() => {
+                if (isAddingMode) {
+                  setIsAddingMode(false);
+                  setNewSpotLocation(null);
+                } else {
+                  setSelectedSpotId(null);
+                  setIsAddingMode(true);
+                }
+              }}
+              className={`w-10 h-10 rounded-full border shadow-lg flex items-center justify-center transition-all active:scale-95 ${
+                isAddingMode
+                  ? 'bg-destructive text-destructive-foreground border-destructive'
+                  : 'bg-primary text-primary-foreground border-primary hover:opacity-90'
+              }`}
               title="Ajouter un terrain"
             >
-              <Plus size={18} className={isAddingMode ? "rotate-45" : ""} />
+              {isAddingMode ? <X size={16} /> : <Plus size={16} />}
             </button>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Body */}
-      <div className="flex-1 relative flex overflow-hidden">
-        {/* Map always rendered */}
-        <div className={`${showList ? 'hidden md:block md:flex-1' : 'flex-1'} h-full z-0 relative`}>
-          <SpotMap
-            key={refreshKey}
+      {/* List overlay — slides from bottom on mobile, side panel on desktop */}
+      {showList && (
+        <div className="absolute inset-x-0 bottom-0 top-0 z-20 md:left-auto md:w-[380px] md:top-0 animate-slide-in-right">
+          <SpotListView
+            spots={spotsForList}
             selectedSpotId={selectedSpotId}
-            onSelectSpot={setSelectedSpotId}
-            isAddingMode={isAddingMode}
-            newSpotLocation={newSpotLocation || undefined}
-            onNewSpotLocationChange={setNewSpotLocation}
-            filters={filters}
-            onFiltersChange={setFilters}
-            isModerator={isModerator}
-            onUserPositionChange={setUserPosition}
+            onSelectSpot={(id) => { setSelectedSpotId(id); setShowList(false); }}
+            userPosition={userPosition}
+            sortBy={listSort}
+            onSortChange={setListSort}
+            onClose={() => setShowList(false)}
           />
         </div>
-
-        {/* List view */}
-        {showList && (
-          <div className={`${showList ? 'flex-1 md:w-96 md:flex-none' : 'hidden'} h-full`}>
-            <SpotListView
-              spots={spotsForList}
-              selectedSpotId={selectedSpotId}
-              onSelectSpot={setSelectedSpotId}
-              userPosition={userPosition}
-              sortBy={listSort}
-              onSortChange={setListSort}
-            />
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Detail modal */}
       <SpotDetailModal
