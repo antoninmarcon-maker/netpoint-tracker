@@ -82,8 +82,8 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return toast.error(t('spots.spotNameRequired'));
-    if (!location && !spotToEdit) return toast.error(t('spots.chooseLocation'));
+    if (!name.trim()) return toast.error(t('spots.spotNameRequired', 'Court name is required.'));
+    if (!location && !spotToEdit) return toast.error(t('spots.chooseLocation', 'Please choose a location on the map.'));
     if (!checkAndIncrementRateLimit()) return;
 
     const finalAvailability = allYear ? "Toute l'année" : (startMonth && endMonth ? `De ${startMonth} à ${endMonth}` : '');
@@ -92,7 +92,7 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
     try {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
-      if (!userId) { toast.error(t('spots.loginRequired')); return; }
+      if (!userId) { toast.error(t('spots.loginRequired', 'You must be logged in.')); return; }
 
       let spotId = spotToEdit?.id;
 
@@ -105,7 +105,7 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
         }]).select('id').single();
         spotId = newSpot?.id;
       } else {
-        if (!location) { toast.error(t('spots.chooseLocation')); setLoading(false); return; }
+        if (!location) { toast.error(t('spots.chooseLocation', 'Please choose a location on the map.')); setLoading(false); return; }
         const { data: newSpot, error } = await supabase.from('spots').insert([{
           name, description, type, availability_period: finalAvailability,
           lat: location[0], lng: location[1], user_id: userId,
@@ -120,10 +120,10 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
         await supabase.from('spot_photos').insert([{ spot_id: spotId, photo_url: url, user_id: userId }]);
       }
 
-      toast.success(isSuggestion ? t('spots.suggestionSubmitted', 'Suggestion submitted!') : t('spots.spotAdded'));
+      toast.success(isSuggestion ? t('spots.suggestionSubmitted', 'Suggestion submitted!') : t('spots.spotAdded', 'Court added!'));
       onSuccess();
       onClose();
-    } catch (err: any) { console.error(err); toast.error(err.message || t('spots.spotAddError')); }
+    } catch (err: any) { console.error(err); toast.error(err.message || t('spots.spotAddError', 'Error adding the court.')); }
     finally { setLoading(false); }
   };
 
