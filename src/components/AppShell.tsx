@@ -49,7 +49,7 @@ export function AppShell() {
         </div>
       </header>
 
-      <main className="flex-1 pb-16">
+      <main key={location.pathname} className="flex-1 pb-16 page-enter">
         <Outlet context={{ showNewMatch, setShowNewMatch }} />
       </main>
 
