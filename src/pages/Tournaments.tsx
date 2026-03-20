@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Plus, ArrowLeft, Calendar, MapPin, ChevronRight, Loader2, Trash2 } from 'lucide-react';
+import { Trophy, Plus, ChevronRight, Loader2, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { getMyTournaments, createTournament, deleteTournament } from '@/lib/tournamentStorage';
 import type { Tournament, TournamentFormat } from '@/types/tournament';
@@ -10,10 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Switch } from '@/components/ui/switch';
 
 const STATUS_COLORS: Record<string, string> = {
-    draft: 'bg-muted text-muted-foreground',
-    open: 'bg-emerald-500/15 text-emerald-500',
-    in_progress: 'bg-amber-500/15 text-amber-500',
-    finished: 'bg-muted text-muted-foreground',
+    draft: 'border-border bg-muted text-muted-foreground',
+    open: 'border-action-scored/15 bg-action-scored/10 text-action-scored',
+    in_progress: 'border-accent/20 bg-accent/10 text-accent',
+    finished: 'border-border bg-muted text-muted-foreground',
 };
 
 export default function Tournaments() {
@@ -120,15 +120,8 @@ export default function Tournaments() {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            {/* Header */}
-            <header className="px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] border-b border-border flex items-center gap-3">
-                <button onClick={() => navigate('/')} className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-                    <ArrowLeft size={18} />
-                </button>
-                <div className="flex items-center gap-2 flex-1">
-                    <Trophy size={20} className="text-primary" />
-                    <h1 className="text-lg font-black text-foreground tracking-tight">{t('tournaments.title')}</h1>
-                </div>
+            {/* Page actions */}
+            <div className="px-4 pt-3 max-w-2xl mx-auto w-full flex justify-end">
                 <button
                     onClick={() => setShowCreate(true)}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
@@ -136,10 +129,10 @@ export default function Tournaments() {
                     <Plus size={16} />
                     {t('tournaments.create')}
                 </button>
-            </header>
+            </div>
 
             {/* List */}
-            <main className="flex-1 p-4 max-w-2xl mx-auto w-full space-y-3">
+            <main className="flex-1 p-4 max-w-2xl mx-auto w-full">
                 {loading ? (
                     <div className="flex justify-center py-12">
                         <Loader2 className="animate-spin text-primary" size={32} />
@@ -159,46 +152,38 @@ export default function Tournaments() {
                         </button>
                     </div>
                 ) : (
-                    tournaments.map(t => (
-                        <button
-                            key={t.id}
-                            onClick={() => navigate(`/tournaments/${t.id}`)}
-                            className="w-full text-left bg-card border border-border rounded-2xl p-4 hover:border-primary/30 hover:bg-card/80 transition-all group"
-                        >
-                            <div className="flex items-start justify-between gap-3">
+                    <div className="rounded-[14px] border border-border bg-card p-5">
+                        {tournaments.map(t => (
+                            <button
+                                key={t.id}
+                                onClick={() => navigate(`/tournaments/${t.id}`)}
+                                className="w-full text-left border-b border-border py-3.5 last:border-b-0 flex items-center gap-3 group"
+                            >
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className={`text-[10px] font-bold uppercase rounded-full px-2 py-0.5 ${STATUS_COLORS[t.status]}`}>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm font-medium text-foreground truncate">{t.name}</p>
+                                        <span className={`shrink-0 rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${STATUS_COLORS[t.status]}`}>
                                             {getStatusLabel(t.status)}
                                         </span>
-                                        <span className="text-[10px] text-muted-foreground">{getFormatLabel(t.format)}</span>
                                     </div>
-                                    <p className="font-bold text-foreground truncate text-base">{t.name}</p>
-                                    <div className="flex items-center gap-3 mt-1.5">
-                                        {t.location && (
-                                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                <MapPin size={11} /> {t.location}
-                                            </span>
-                                        )}
-                                        {t.date && (
-                                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                <Calendar size={11} /> {new Date(t.date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })}
-                                            </span>
-                                        )}
-                                    </div>
+                                    <p className="text-[11px] text-border mt-0.5">
+                                        {[
+                                            t.location,
+                                            t.date && new Date(t.date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' }),
+                                            getFormatLabel(t.format),
+                                        ].filter(Boolean).join(' \u00b7 ')}
+                                    </p>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <button
-                                        onClick={(e) => handleDelete(t.id, e)}
-                                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
-                                    >
-                                        <Trash2 size={15} />
-                                    </button>
-                                    <ChevronRight size={18} className="text-muted-foreground group-hover:text-primary transition-colors mt-0.5" />
-                                </div>
-                            </div>
-                        </button>
-                    ))
+                                <button
+                                    onClick={(e) => handleDelete(t.id, e)}
+                                    className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                                >
+                                    <Trash2 size={15} />
+                                </button>
+                                <ChevronRight className="h-4 w-4 text-border shrink-0" />
+                            </button>
+                        ))}
+                    </div>
                 )}
             </main>
 
