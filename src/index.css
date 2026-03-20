@@ -4,39 +4,39 @@
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 98%;
+    --foreground: 240 6% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 240 6% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 240 6% 10%;
 
-    --primary: 215 100% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 240 6% 10%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
 
-    --muted: 220 14% 95%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
 
-    --accent: 40 96% 53%;
+    --accent: 46 97% 40%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 90%;
-    --input: 220 13% 87%;
-    --ring: 215 100% 50%;
+    --border: 240 6% 90%;
+    --input: 240 6% 87%;
+    --ring: 46 97% 40%;
 
     --radius: 0.875rem;
 
-    --team-blue: 215 100% 50%;
+    --team-blue: 217 91% 60%;
     --team-blue-foreground: 0 0% 100%;
-    --team-blue-glow: 215 100% 50% / 0.25;
+    --team-blue-glow: 217 91% 60% / 0.25;
 
     --team-red: 0 84% 60%;
     --team-red-foreground: 0 0% 100%;
@@ -44,24 +44,24 @@
 
     --action-scored: 152 69% 45%;
     --action-scored-foreground: 0 0% 100%;
-    --action-fault: 32 95% 55%;
+    --action-fault: 25 95% 53%;
     --action-fault-foreground: 0 0% 100%;
 
-    --action-cta: 152 69% 45%;
-    --action-cta-end: 170 80% 40%;
+    --action-cta: 240 6% 10%;
+    --action-cta-end: 240 6% 20%;
 
     --court: 142 50% 35%;
     --court-line: 0 0% 100%;
     --court-bg: 142 40% 28%;
 
     --sidebar-background: 0 0% 96%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 215 100% 50%;
+    --sidebar-foreground: 240 6% 10%;
+    --sidebar-primary: 46 97% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 92%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 220 13% 87%;
-    --sidebar-ring: 215 100% 50%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 6% 10%;
+    --sidebar-border: 240 6% 87%;
+    --sidebar-ring: 46 97% 40%;
   }
 
   .dark {
