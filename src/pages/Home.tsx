@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { getDemoMatch, DEMO_MATCH_ID } from '@/lib/demoMatch';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, Loader2, X, MessageSquare, Share2, Copy, Mail, MoreVertical, FileSpreadsheet, BarChart2, Users, Settings2, Activity, Trophy, MapPin, Download, LinkIcon, Sparkles, SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, Loader2, X, MessageSquare, Share2, Copy, Mail, MoreVertical, FileSpreadsheet, BarChart2, Users, Settings2, Activity, Trophy, MapPin, Download, LinkIcon, Sparkles, SlidersHorizontal, ChevronRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -1173,7 +1173,8 @@ export default function Home() {
           to="/privacy"
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
         >
-          Privacy
+          <ShieldCheck size={16} />
+          {t('home.privacy')}
         </Link>
       </footer>
     </>

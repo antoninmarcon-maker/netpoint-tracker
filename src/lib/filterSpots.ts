@@ -15,12 +15,12 @@ export function filterSpots(spots: Spot[], filters: SpotFiltersState, userPositi
   return spots.filter(spot => {
     const type = spot.type || 'outdoor_hard';
 
-    // Status filter: pending shows only pending, otherwise only validated
+    // Pending mode: show all waiting spots, bypass every other filter
     if (filters.showPending) {
-      if (spot.status !== 'waiting_for_validation') return false;
-    } else {
-      if (spot.status !== 'validated') return false;
+      return spot.status === 'waiting_for_validation';
     }
+
+    if (spot.status !== 'validated') return false;
 
     // Gymnasiums are never shown
     if (type === 'indoor') return false;
