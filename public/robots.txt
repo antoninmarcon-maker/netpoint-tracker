@@ -12,5 +12,7 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /reset-password
+Disallow: /~oauth
 
 Sitemap: https://www.my-volley.com/sitemap.xml

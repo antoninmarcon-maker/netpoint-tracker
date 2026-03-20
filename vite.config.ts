@@ -34,7 +34,7 @@ export default defineConfig({
       manifest: {
         name: "My Volley",
         short_name: "My Volley",
-        description: "Scouting & statistiques volleyball : scoring en direct, heatmaps, analyse IA, tournois et carte des terrains.",
+        description: "My Volley — Scouting & statistiques volleyball pour coachs et joueurs. Scoring en direct, heatmaps de précision, analyse tactique IA, gestion de tournois, carte communautaire des terrains et export Excel. Gratuit et hors-ligne.",
         theme_color: "#09090b",
         background_color: "#09090b",
         display: "standalone",
