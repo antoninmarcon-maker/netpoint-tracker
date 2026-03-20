@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, MessageSquare, ShieldCheck, UserRound, Loader2, Globe, Sun, Moon, Monitor, ImagePlus, Trash2, Bell, BellOff, RefreshCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Save, MessageSquare, ShieldCheck, UserRound, Loader2, Globe, Sun, Moon, Monitor, ImagePlus, Trash2, Bell, BellOff, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -147,72 +146,52 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 bg-background px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))] border-b border-border flex items-center gap-3">
-        <Link to="/" className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft size={18} />
-        </Link>
-        <h1 className="text-lg font-bold text-foreground">{t('settings.title')}</h1>
-      </header>
-
       <main className="max-w-lg mx-auto p-4 space-y-4">
-        {/* Language */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Globe size={18} className="text-primary" />
-              {t('settings.language')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">{t('settings.languageLabel')}</label>
-              <Select value={i18n.language?.startsWith('fr') ? 'fr' : 'en'} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fr">🇫🇷 {t('settings.french')}</SelectItem>
-                  <SelectItem value="en">🇬🇧 {t('settings.english')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <h2 className="mb-4 px-1 text-lg font-bold text-foreground">{t('settings.title')}</h2>
 
-        {/* Theme */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              {theme === 'light' ? <Sun size={18} className="text-primary" /> : theme === 'dark' ? <Moon size={18} className="text-primary" /> : <Monitor size={18} className="text-primary" />}
-              {t('settings.theme')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">{t('settings.themeLabel')}</label>
-              <Select value={theme} onValueChange={(v) => setTheme(v as 'light' | 'dark' | 'system')}>
-                <SelectTrigger className="h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="dark">🌙 {t('settings.themeDark')}</SelectItem>
-                  <SelectItem value="light">☀️ {t('settings.themeLight')}</SelectItem>
-                  <SelectItem value="system">💻 {t('settings.themeSystem')}</SelectItem>
-                </SelectContent>
-              </Select>
+        {/* Group 1: Language, Theme, Notifications */}
+        <div className="overflow-hidden rounded-[14px] border border-border bg-card">
+          {/* Language */}
+          <div className="border-b border-border px-5 py-4">
+            <div className="flex items-center gap-3 mb-3">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <span className="text-[13px] font-medium text-foreground/80">{t('settings.language')}</span>
             </div>
-          </CardContent>
-        </Card>
+            <Select value={i18n.language?.startsWith('fr') ? 'fr' : 'en'} onValueChange={handleLanguageChange}>
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="fr">🇫🇷 {t('settings.french')}</SelectItem>
+                <SelectItem value="en">🇬🇧 {t('settings.english')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Notifications */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Bell size={18} className="text-primary" />
-              {t('settings.notifications')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+          {/* Theme */}
+          <div className="border-b border-border px-5 py-4">
+            <div className="flex items-center gap-3 mb-3">
+              {theme === 'light' ? <Sun className="h-4 w-4 text-muted-foreground" /> : theme === 'dark' ? <Moon className="h-4 w-4 text-muted-foreground" /> : <Monitor className="h-4 w-4 text-muted-foreground" />}
+              <span className="text-[13px] font-medium text-foreground/80">{t('settings.theme')}</span>
+            </div>
+            <Select value={theme} onValueChange={(v) => setTheme(v as 'light' | 'dark' | 'system')}>
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dark">🌙 {t('settings.themeDark')}</SelectItem>
+                <SelectItem value="light">☀️ {t('settings.themeLight')}</SelectItem>
+                <SelectItem value="system">💻 {t('settings.themeSystem')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Notifications */}
+          <div className="px-5 py-4">
+            <div className="flex items-center gap-3 mb-3">
+              <Bell className="h-4 w-4 text-muted-foreground" />
+              <span className="text-[13px] font-medium text-foreground/80">{t('settings.notifications')}</span>
+            </div>
             {isIOSSafari() ? (
               <div className="text-sm text-muted-foreground bg-secondary rounded-lg p-3">
                 <p>{t('settings.iosNotifWarning')}</p>
@@ -232,7 +211,7 @@ export default function Settings() {
                 <span>{t('settings.notificationsDeniedInfo')}</span>
               </div>
             ) : (
-              <>
+              <div className="space-y-3">
                 <p className="text-xs text-muted-foreground">{t('settings.notifDesc')}</p>
                 <button
                   onClick={handleEnableNotifications}
@@ -242,21 +221,20 @@ export default function Settings() {
                   {subscribingPush ? <Loader2 size={14} className="animate-spin" /> : <Bell size={14} />}
                   {t('settings.enableNotifications')}
                 </button>
-              </>
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Logo */}
-        <Card id="logo">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <ImagePlus size={18} className="text-primary" />
-              {t('settings.logoTitle')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-xs text-muted-foreground">{t('settings.logoDesc')}</p>
+        {/* Group 2: Logo, Profile */}
+        <div className="overflow-hidden rounded-[14px] border border-border bg-card">
+          {/* Logo */}
+          <div className="border-b border-border px-5 py-4" id="logo">
+            <div className="flex items-center gap-3 mb-3">
+              <ImagePlus className="h-4 w-4 text-muted-foreground" />
+              <span className="text-[13px] font-medium text-foreground/80">{t('settings.logoTitle')}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">{t('settings.logoDesc')}</p>
             <div className="flex items-center gap-3">
               {customLogo ? (
                 <img src={customLogo} alt="Logo" className="w-14 h-14 rounded-full object-cover border border-border" />
@@ -319,7 +297,6 @@ export default function Settings() {
                     onClick={() => {
                       userStorage.removeItem('customLogo');
                       setCustomLogo(null);
-
                       toast.success(t('settings.logoRemoved'));
                     }}
                     className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-destructive/10 text-destructive font-semibold text-sm hover:bg-destructive/20 transition-colors"
@@ -330,44 +307,40 @@ export default function Settings() {
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Profile */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <UserRound size={18} className="text-primary" />
-              {t('settings.profile')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-xs text-muted-foreground">{user?.email}</p>
-            <p className="text-xs text-primary/80 flex items-center gap-1">☁️ {t('settings.cloudSyncNote')}</p>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">{t('settings.displayName')}</label>
-              <Input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder={t('settings.displayNamePlaceholder')} className="h-9" maxLength={100} />
+          {/* Profile */}
+          <div className="px-5 py-4">
+            <div className="flex items-center gap-3 mb-3">
+              <UserRound className="h-4 w-4 text-muted-foreground" />
+              <span className="text-[13px] font-medium text-foreground/80">{t('settings.profile')}</span>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">{t('settings.club')}</label>
-              <Input value={club} onChange={e => setClub(e.target.value)} placeholder={t('settings.clubPlaceholder')} className="h-9" maxLength={100} />
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">{user?.email}</p>
+              <p className="text-xs text-primary/80 flex items-center gap-1">☁️ {t('settings.cloudSyncNote')}</p>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-muted-foreground">{t('settings.displayName')}</label>
+                <Input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder={t('settings.displayNamePlaceholder')} className="h-9" maxLength={100} />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-muted-foreground">{t('settings.club')}</label>
+                <Input value={club} onChange={e => setClub(e.target.value)} placeholder={t('settings.clubPlaceholder')} className="h-9" maxLength={100} />
+              </div>
+              <button onClick={handleSaveProfile} disabled={savingProfile} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50">
+                {savingProfile ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                {t('settings.saveChanges')}
+              </button>
             </div>
-            <button onClick={handleSaveProfile} disabled={savingProfile} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50">
-              {savingProfile ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-              {t('settings.saveChanges')}
-            </button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Security */}
-        <Card ref={passwordSectionRef} id="password">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <ShieldCheck size={18} className="text-primary" />
-              {t('settings.security')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        {/* Group 3: Security */}
+        <div className="overflow-hidden rounded-[14px] border border-border bg-card" ref={passwordSectionRef} id="password">
+          <div className="px-5 py-4">
+            <div className="flex items-center gap-3 mb-3">
+              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+              <span className="text-[13px] font-medium text-foreground/80">{t('settings.security')}</span>
+            </div>
             {magicLinkArrival && !isOAuthUser && (
               <div className="text-sm text-action-scored bg-action-scored/10 rounded-lg p-3 mb-3">
                 {t('auth.magicLinkWelcome')}
@@ -392,34 +365,29 @@ export default function Settings() {
                 </button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Feedback */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <MessageSquare size={18} className="text-primary" />
-              {t('settings.support')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        {/* Group 4: Support, Force Update */}
+        <div className="overflow-hidden rounded-[14px] border border-border bg-card">
+          {/* Support */}
+          <div className="border-b border-border px-5 py-4">
+            <div className="flex items-center gap-3 mb-3">
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              <span className="text-[13px] font-medium text-foreground/80">{t('settings.support')}</span>
+            </div>
             <a href="mailto:contact@myvolley.app" className="w-full inline-flex items-center justify-center py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm">
               contact@myvolley.app
             </a>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Force Update */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <RefreshCw size={18} className="text-primary" />
-              {t('settings.forceUpdate')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-xs text-muted-foreground">{t('settings.forceUpdateDesc')}</p>
+          {/* Force Update */}
+          <div className="px-5 py-4">
+            <div className="flex items-center gap-3 mb-3">
+              <RefreshCw className="h-4 w-4 text-muted-foreground" />
+              <span className="text-[13px] font-medium text-foreground/80">{t('settings.forceUpdate')}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">{t('settings.forceUpdateDesc')}</p>
             <button
               onClick={async () => {
                 try {
@@ -441,9 +409,10 @@ export default function Settings() {
             >
               {t('settings.forceUpdateBtn')}
             </button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </main>
+
       <footer className="py-4 text-center">
         <p className="text-xs text-muted-foreground">{t('credits.techNote')}</p>
       </footer>
