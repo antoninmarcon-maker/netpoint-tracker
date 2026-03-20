@@ -1147,36 +1147,6 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      <footer className="sticky bottom-0 z-30 glass border-t border-border/50 px-4 py-3 flex items-center justify-around gap-2">
-        <button
-          onClick={() => navigate('/spots')}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
-        >
-          <MapPin size={16} />
-          {t('home.whatsNewSpots')}
-        </button>
-        <button
-          onClick={() => setShowShareInvite(true)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-primary hover:bg-primary/10 transition-all"
-        >
-          <Share2 size={16} />
-          {t('home.inviteFriend')}
-        </button>
-        <Link
-          to="/credits"
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
-        >
-          <Info size={16} />
-          {t('home.story')}
-        </Link>
-        <Link
-          to="/privacy"
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
-        >
-          <ShieldCheck size={16} />
-          {t('home.privacy')}
-        </Link>
-      </footer>
     </>
   );
 }

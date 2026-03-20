@@ -1,4 +1,11 @@
 {
+  "nav": {
+    "home": "Home",
+    "tournaments": "Tourneys",
+    "newMatch": "New",
+    "spots": "Courts",
+    "settings": "Settings"
+  },
   "common": {
     "cancel": "Cancel",
     "save": "Save",

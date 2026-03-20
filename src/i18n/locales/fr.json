@@ -1,4 +1,11 @@
 {
+  "nav": {
+    "home": "Accueil",
+    "tournaments": "Tournois",
+    "newMatch": "Nouveau",
+    "spots": "Terrains",
+    "settings": "Réglages"
+  },
   "common": {
     "cancel": "Annuler",
     "save": "Enregistrer",
