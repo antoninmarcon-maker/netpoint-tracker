@@ -144,7 +144,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
 
       {/* Bottom sheet */}
       <div className={`fixed inset-x-0 bottom-0 z-50 max-h-[90vh] transition-transform duration-300 ease-out ${spotId ? 'translate-y-0' : 'translate-y-full'}`}>
-        <div className="bg-background rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="bg-[rgba(9,9,11,0.92)] backdrop-blur-2xl rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
           {/* Drag handle */}
           <div className="flex justify-center pt-3 pb-1 flex-none">
             <div className="w-10 h-1 rounded-full bg-border" />
@@ -212,16 +212,16 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                 {/* Equipment badges */}
                 <div className="flex flex-wrap gap-1.5">
                   {spot.equip_acces_libre && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[11px] font-semibold">🔓 Libre accès</span>
+                    <span className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground rounded-md">🔓 Libre accès</span>
                   )}
                   {spot.equip_eclairage && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-[11px] font-semibold"><Zap size={10} /> Éclairé</span>
+                    <span className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground rounded-md"><Zap size={10} /> Éclairé</span>
                   )}
                   {spot.equip_pmr && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-semibold">♿ PMR</span>
+                    <span className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground rounded-md">♿ PMR</span>
                   )}
                   {spot.equip_sol && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-foreground/80 text-[11px] font-semibold"><Leaf size={10} /> {spot.equip_sol}</span>
+                    <span className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground rounded-md"><Leaf size={10} /> {spot.equip_sol}</span>
                   )}
                 </div>
 
@@ -231,17 +231,17 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                   if (!season) return null;
                   if (season.type === 'yearly') {
                     return (
-                      <div className="flex items-center gap-2.5 bg-green-500/8 border border-green-500/15 rounded-xl p-3">
-                        <Calendar size={14} className="text-green-600 dark:text-green-400 shrink-0" />
-                        <span className="text-sm font-semibold text-green-600 dark:text-green-400">Disponible toute l'année</span>
+                      <div className="border-b border-border py-3 flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Disponibilité</span>
+                        <span className="text-xs text-foreground/80">Toute l'année</span>
                       </div>
                     );
                   }
                   return (
-                    <div className="bg-secondary/20 border border-border/40 rounded-xl p-3">
-                      <div className="flex items-center gap-2 mb-2.5">
-                        <Calendar size={13} className="text-muted-foreground" />
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Saisonnier</span>
+                    <div className="border-b border-border py-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-muted-foreground">Disponibilité</span>
+                        <span className="text-xs text-foreground/80">Saisonnier</span>
                       </div>
                       <div className="flex gap-[3px]">
                         {MONTHS_SHORT.map((m, i) => {
@@ -252,8 +252,8 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                             : false;
                           return (
                             <div key={m} className="flex-1 flex flex-col items-center gap-1">
-                              <div className={`w-full h-2.5 rounded-sm transition-colors ${isActive ? 'bg-primary' : 'bg-secondary'}`} />
-                              <span className={`text-[7px] leading-none ${isActive ? 'text-primary font-bold' : 'text-muted-foreground/40'}`}>{m}</span>
+                              <div className={`w-full h-2.5 rounded-sm transition-colors ${isActive ? 'bg-accent' : 'bg-secondary'}`} />
+                              <span className={`text-[7px] leading-none ${isActive ? 'text-accent font-bold' : 'text-muted-foreground/40'}`}>{m}</span>
                             </div>
                           );
                         })}
@@ -315,7 +315,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                 )}
 
                 {/* Edit action */}
-                <Button onClick={() => onEdit(spot)} variant="outline" className="w-full text-xs h-10 rounded-xl">
+                <Button onClick={() => onEdit(spot)} variant="outline" className="w-full text-xs h-10 rounded-[10px]">
                   <Edit3 size={14} className="mr-1.5" /> Suggérer une modification
                 </Button>
 
@@ -349,7 +349,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                     <div className="flex items-center gap-0.5">
                       {[1, 2, 3, 4, 5].map(star => (
                         <button key={star} type="button" onClick={() => setNewRating(star)} className="p-0.5 active:scale-110 transition-transform">
-                          <Star size={20} className={star <= newRating ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground/20"} />
+                          <Star size={20} className={star <= newRating ? "text-accent fill-accent" : "text-border"} />
                         </button>
                       ))}
                     </div>

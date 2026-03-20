@@ -20,10 +20,10 @@ function SortChip({ active, onClick, children }: { active: boolean; onClick: () 
   return (
     <button
       onClick={onClick}
-      className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-all active:scale-95 ${
+      className={`px-2 py-1 rounded-md text-[10px] font-medium transition-all active:scale-95 ${
         active
-          ? 'bg-foreground text-background border-foreground'
-          : 'bg-background border-border text-muted-foreground hover:text-foreground'
+          ? 'bg-secondary text-muted-foreground'
+          : 'text-border hover:text-muted-foreground'
       }`}
     >
       {children}
@@ -57,7 +57,7 @@ export default function SpotListView({ spots, selectedSpotId, onSelectSpot, user
   ];
 
   return (
-    <div className="flex flex-col h-full bg-background/95 backdrop-blur-xl md:border-l border-border/40 rounded-t-3xl md:rounded-none shadow-2xl md:shadow-none">
+    <div className="flex flex-col h-full bg-[rgba(9,9,11,0.92)] backdrop-blur-2xl md:border-l border-border/40 rounded-t-3xl md:rounded-none shadow-2xl md:shadow-none">
       {/* Drag handle — mobile only */}
       <div className="flex justify-center pt-2.5 pb-1 md:hidden">
         <div className="w-10 h-1 rounded-full bg-border" />
