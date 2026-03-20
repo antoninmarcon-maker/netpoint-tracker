@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { getDemoMatch, DEMO_MATCH_ID } from '@/lib/demoMatch';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, Loader2, X, MessageSquare, Share2, Copy, Mail, MoreVertical, FileSpreadsheet, BarChart2, Users, Settings2, Activity, Trophy, MapPin, Download, LinkIcon, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, Loader2, X, MessageSquare, Share2, Copy, Mail, MoreVertical, FileSpreadsheet, BarChart2, Users, Settings2, Activity, Trophy, MapPin, Download, LinkIcon, Sparkles, SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -821,30 +822,27 @@ export default function Home() {
             </div>
           </DialogContent>
         </Dialog>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowNew(true)}
-            className="group flex-1 relative flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-bold text-white overflow-hidden transition-all duration-300 active:scale-[0.97] hover:shadow-xl hover:shadow-action-scored/30 shadow-md shadow-action-scored/20"
-            style={{ background: 'linear-gradient(135deg, hsl(var(--action-scored)), hsl(var(--action-scored-end, 142 71% 35%)))' }}
-          >
-            <span className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-300" />
-            <Plus size={20} className="relative z-10 transition-transform duration-300 group-hover:rotate-90" />
-            <span className="relative z-10 font-display tracking-wide">{t('home.newMatch')}</span>
-          </button>
-        </div>
+        <Button
+          onClick={() => setShowNew(true)}
+          className="w-full rounded-xl py-6 text-sm font-semibold"
+        >
+          <Plus size={18} className="mr-2" />
+          {t('home.newMatch')}
+        </Button>
 
         {!user && (
-          <button
+          <Button
+            variant="secondary"
             onClick={() => {
               saveMatch(getDemoMatch());
               setActiveMatchId(DEMO_MATCH_ID);
               navigate(`/match/${DEMO_MATCH_ID}`);
             }}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-border bg-card text-foreground font-semibold text-sm hover:bg-secondary transition-all active:scale-[0.97]"
+            className="w-full rounded-xl py-6 text-sm font-semibold"
           >
-            <Eye size={18} className="text-primary" />
+            <Eye size={18} className="mr-2" />
             {t('home.demoMatch')}
-          </button>
+          </Button>
         )}
 
         <Dialog open={showNew} onOpenChange={setShowNew}>
@@ -924,104 +922,108 @@ export default function Home() {
           ) : matches.length === 0 ? (
             <Instructions />
           ) : (
-            <>
-              <div className="flex items-center gap-2">
-                <History size={16} className="text-muted-foreground" />
-                <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('home.previousMatches')}</h2>
-              </div>
-              <div className="space-y-2">
-                {matches.map(match => {
-                  const sc = matchScore(match);
-                  const totalPoints = match.completedSets.reduce((sum, s) => sum + s.points.length, 0) + match.points.length;
-                  return (
-                    <div key={match.id} className="bg-card rounded-xl p-4 border border-border/60 card-hover shadow-sm animate-fade-in-up">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 text-sm font-bold">
-                            <span className="text-base">🏐</span>
-                            <span className="text-team-blue">{match.teamNames.blue}</span>
-                            <span className="text-muted-foreground text-xs">vs</span>
-                            <span className="text-team-red">{match.teamNames.red}</span>
-                            {(match as any).metadata?.isPerformanceMode && (
-                              <span className="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary/15 text-primary border border-primary/20">⚡ PERF</span>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">{formatDate(match.updatedAt)}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-extrabold text-foreground tabular-nums font-display">{sc.blue} - {sc.red}</p>
-                          <p className="text-[11px] text-muted-foreground">
-                            {match.finished
-                              ? (sc.blue > sc.red ? `🏆 ${match.teamNames.blue}` : sc.red > sc.blue ? `🏆 ${match.teamNames.red}` : t('home.equality'))
-                              : `Set ${match.currentSetNumber} ${t('home.setInProgress')}`} · {totalPoints} pts
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        {match.finished ? (
-                          <>
-                            <button
-                              onClick={() => handleResume(match.id)}
-                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/15 text-primary font-semibold text-xs border border-primary/20 hover:bg-primary/25 transition-all"
-                            >
-                              <BarChart2 size={14} /> {t('common.view', 'Voir')}
-                            </button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <button className="px-3 py-2 rounded-lg bg-secondary/80 text-secondary-foreground hover:bg-secondary transition-all outline-none">
-                                  <MoreVertical size={16} />
-                                </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-56 rounded-xl border-border bg-card shadow-lg">
-                                <DropdownMenuItem onClick={() => { setActiveMatchId(match.id); navigate(`/match/${match.id}?tab=stats`); }} className="cursor-pointer py-2.5">
-                                  <BarChart2 className="mr-2 h-4 w-4 text-muted-foreground" />
-                                  <span className="font-medium text-xs">{t('home.viewStats', 'Statistiques détaillées')}</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => exportMatchToExcel(match.completedSets, match.points, match.currentSetNumber, match.teamNames, match.players || [])} className="cursor-pointer py-2.5">
-                                  <FileSpreadsheet className="mr-2 h-4 w-4 text-muted-foreground" />
-                                  <span className="font-medium text-xs">{t('heatmap.excelXlsx', 'Excel (.xlsx)')}</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setSharingMatch(match)} className="cursor-pointer py-2.5">
-                                  <Share2 className="mr-2 h-4 w-4 text-muted-foreground" />
-                                  <span className="font-medium text-xs">{t('home.shareMatch', 'Partager le match')}</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="bg-border/50" />
-                                <DropdownMenuItem onClick={() => setDeletingId(match.id)} className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive py-2.5">
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  <span className="font-semibold text-xs">{t('common.delete')}</span>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => handleResume(match.id)}
-                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/15 text-primary font-semibold text-xs border border-primary/20 hover:bg-primary/25 transition-all"
-                            >
-                              <Play size={14} /> {t('common.resume')}
-                            </button>
-                            <button
-                              onClick={() => setFinishingId(match.id)}
-                              className="px-3 py-2 rounded-lg bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all"
-                              title={t('home.finishMatch')}
-                            >
-                              <CheckCircle2 size={14} />
-                            </button>
-                            <button
-                              onClick={() => setDeletingId(match.id)}
-                              className="px-3 py-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </>
+            <div className="rounded-[14px] border border-border bg-card p-5">
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">{t('home.previousMatches')}</h2>
+              {matches.map(match => {
+                const sc = matchScore(match);
+                const isLive = !match.finished;
+                const blueWins = sc.blue > sc.red;
+                const redWins = sc.red > sc.blue;
+                return (
+                  <div
+                    key={match.id}
+                    className="group border-b border-border py-4 last:border-b-0 flex items-center gap-3 cursor-pointer"
+                    onClick={() => handleResume(match.id)}
+                  >
+                    {/* Left: teams + metadata */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium text-foreground truncate">{match.teamNames.blue}</span>
+                        <span className="text-[11px] text-border">vs</span>
+                        <span className="text-sm font-medium text-foreground truncate">{match.teamNames.red}</span>
+                        {(match as any).metadata?.isPerformanceMode && (
+                          <span className="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary/15 text-primary border border-primary/20">PERF</span>
+                        )}
+                        {isLive && (
+                          <span className="ml-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-accent/10 border border-accent/20 text-accent text-[9px] uppercase font-semibold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-live-pulse" />
+                            Live
+                          </span>
                         )}
                       </div>
+                      <p className="text-[11px] text-border mt-0.5">
+                        {t('common.volleyball', 'Volleyball')} · {formatDate(match.updatedAt)}
+                      </p>
                     </div>
-                  );
-                })}
-              </div>
-            </>
+
+                    {/* Center: score */}
+                    <div className="flex items-baseline gap-1.5 tabular-nums text-lg shrink-0">
+                      <span className={isLive ? 'text-accent font-bold' : blueWins ? 'text-foreground font-bold' : 'text-muted-foreground font-bold'}>
+                        {sc.blue}
+                      </span>
+                      <span className="text-border text-sm">-</span>
+                      <span className={isLive ? 'text-accent font-bold' : redWins ? 'text-foreground font-bold' : 'text-muted-foreground font-bold'}>
+                        {sc.red}
+                      </span>
+                    </div>
+
+                    {/* Right: actions + chevron */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {match.finished ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              className="p-1.5 rounded-lg text-border hover:text-foreground hover:bg-secondary transition-all outline-none"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical size={16} />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56 rounded-xl border-border bg-card shadow-lg">
+                            <DropdownMenuItem onClick={() => { setActiveMatchId(match.id); navigate(`/match/${match.id}?tab=stats`); }} className="cursor-pointer py-2.5">
+                              <BarChart2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium text-xs">{t('home.viewStats', 'Statistiques détaillées')}</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => exportMatchToExcel(match.completedSets, match.points, match.currentSetNumber, match.teamNames, match.players || [])} className="cursor-pointer py-2.5">
+                              <FileSpreadsheet className="mr-2 h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium text-xs">{t('heatmap.excelXlsx', 'Excel (.xlsx)')}</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSharingMatch(match)} className="cursor-pointer py-2.5">
+                              <Share2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium text-xs">{t('home.shareMatch', 'Partager le match')}</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-border/50" />
+                            <DropdownMenuItem onClick={() => setDeletingId(match.id)} className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive py-2.5">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span className="font-semibold text-xs">{t('common.delete')}</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setFinishingId(match.id); }}
+                            className="p-1.5 rounded-lg text-border hover:text-foreground hover:bg-secondary transition-all"
+                            title={t('home.finishMatch')}
+                          >
+                            <CheckCircle2 size={14} />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setDeletingId(match.id); }}
+                            className="p-1.5 rounded-lg text-border hover:text-destructive hover:bg-destructive/10 transition-all"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </>
+                      )}
+                      <span className="text-border group-hover:text-foreground transition-colors">
+                        <ChevronRight size={16} />
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       </main>
