@@ -1,10 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { LogIn } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
+import { UserMenu } from "./UserMenu";
+import { AuthDialog } from "./AuthDialog";
 import { BottomNav } from "./BottomNav";
 
 export function AppShell() {
+  const { t } = useTranslation();
   const [showNewMatch, setShowNewMatch] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => setUser(session?.user ?? null),
+    );
+    supabase.auth.getSession().then(({ data: { session } }) =>
+      setUser(session?.user ?? null),
+    );
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
@@ -16,7 +35,17 @@ export function AppShell() {
           </span>
         </div>
         <div className="flex items-center gap-3">
-          {/* TODO: Move user avatar/auth from Home.tsx in Task 8d */}
+          {user ? (
+            <UserMenu user={user} />
+          ) : (
+            <button
+              onClick={() => setShowAuth(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-foreground text-xs font-medium hover:bg-secondary transition-all"
+            >
+              <LogIn size={14} />
+              {t("common.login")}
+            </button>
+          )}
         </div>
       </header>
 
@@ -25,6 +54,8 @@ export function AppShell() {
       </main>
 
       <BottomNav onNewMatch={() => setShowNewMatch(true)} />
+
+      <AuthDialog open={showAuth} onOpenChange={setShowAuth} />
     </div>
   );
 }

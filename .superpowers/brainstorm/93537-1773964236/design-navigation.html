@@ -1,0 +1,188 @@
+<h2>Design détaillé — Navigation & Layout global</h2>
+<p class="subtitle">Section 4/4 — Shell de l'app, header, transitions</p>
+
+<div style="max-width:800px;margin:0 auto;">
+
+  <!-- HEADER -->
+  <div style="margin-bottom:48px;">
+    <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;font-weight:600;">Header</div>
+
+    <div style="background:#09090b;border:1px solid #18181b;border-radius:14px;overflow:hidden;font-family:system-ui;">
+      <!-- Header bar -->
+      <div style="padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #18181b;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <!-- Mini logo -->
+          <div style="width:28px;height:28px;border-radius:7px;background:#09090b;border:1px solid #27272a;display:flex;align-items:center;justify-content:center;position:relative;">
+            <svg width="16" height="16" viewBox="0 0 44 44" fill="none">
+              <circle cx="22" cy="22" r="18" stroke="#fafafa" stroke-width="2.5"/>
+              <path d="M10 10 Q22 22, 22 40" stroke="#fafafa" stroke-width="1.5" fill="none"/>
+              <path d="M34 10 Q22 22, 22 40" stroke="#fafafa" stroke-width="1.5" fill="none"/>
+              <path d="M4 22 Q22 14, 40 22" stroke="#fafafa" stroke-width="1.5" fill="none"/>
+            </svg>
+            <div style="position:absolute;top:3px;right:3px;width:3px;height:3px;border-radius:50%;background:#eab308;"></div>
+          </div>
+          <span style="color:#fafafa;font-size:15px;font-weight:600;letter-spacing:-0.02em;">my<span style="color:#eab308;">volley</span></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#3f3f46;font-size:14px;">?</div>
+          <div style="width:32px;height:32px;border-radius:50%;background:#18181b;border:1px solid #27272a;display:flex;align-items:center;justify-content:center;color:#71717a;font-size:11px;font-weight:600;">AM</div>
+        </div>
+      </div>
+
+      <!-- Page content hint -->
+      <div style="padding:24px 20px;min-height:120px;">
+        <div style="color:#52525b;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:16px;">Matchs récents</div>
+        <div style="padding:14px 0;border-bottom:1px solid #18181b;display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:#d4d4d8;font-size:13px;">Capbreton vs Hossegor</span>
+          <span style="color:#fafafa;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;">3–1</span>
+        </div>
+        <div style="padding:14px 0;display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:#d4d4d8;font-size:13px;">Bayonne vs Biarritz</span>
+          <span style="color:#fafafa;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;">2–3</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#111113;border:1px solid #1f1f23;border-radius:10px;padding:12px 16px;margin-top:12px;">
+      <div style="color:#71717a;font-size:11px;line-height:1.6;">
+        <strong style="color:#a1a1aa;">Principe :</strong> Header compact et fixe. Logo mini + wordmark à gauche. Help + avatar à droite. Pas de backdrop-blur — bordure simple en bas. Le header ne prend pas plus de 56px de hauteur.
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div style="margin-bottom:48px;">
+    <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;font-weight:600;">Navigation bottom (mobile)</div>
+
+    <div style="background:#09090b;border:1px solid #18181b;border-radius:14px;overflow:hidden;font-family:system-ui;position:relative;height:420px;">
+      <!-- Content hint -->
+      <div style="padding:20px;opacity:0.3;">
+        <div style="height:200px;display:flex;align-items:center;justify-content:center;color:#27272a;font-size:13px;">Contenu de la page</div>
+      </div>
+
+      <!-- Bottom nav bar -->
+      <div style="position:absolute;bottom:0;left:0;right:0;border-top:1px solid #18181b;background:#09090b;padding:8px 0 20px;">
+        <div style="display:flex;justify-content:space-around;align-items:center;">
+          <!-- Home - active -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 12px;">
+            <div style="color:#fafafa;font-size:18px;">⌂</div>
+            <div style="color:#fafafa;font-size:9px;font-weight:600;letter-spacing:0.02em;">Matchs</div>
+          </div>
+          <!-- Tournaments -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 12px;">
+            <div style="color:#3f3f46;font-size:18px;">🏆</div>
+            <div style="color:#3f3f46;font-size:9px;font-weight:500;">Tournois</div>
+          </div>
+          <!-- New match CTA -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 12px;">
+            <div style="width:44px;height:44px;border-radius:12px;background:#fafafa;display:flex;align-items:center;justify-content:center;margin-top:-20px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+              <span style="color:#09090b;font-size:22px;font-weight:300;">+</span>
+            </div>
+          </div>
+          <!-- Map -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 12px;">
+            <div style="color:#3f3f46;font-size:18px;">📍</div>
+            <div style="color:#3f3f46;font-size:9px;font-weight:500;">Carte</div>
+          </div>
+          <!-- Settings -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 12px;">
+            <div style="color:#3f3f46;font-size:18px;">⚙</div>
+            <div style="color:#3f3f46;font-size:9px;font-weight:500;">Réglages</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#111113;border:1px solid #1f1f23;border-radius:10px;padding:12px 16px;margin-top:12px;">
+      <div style="color:#71717a;font-size:11px;line-height:1.6;">
+        <strong style="color:#a1a1aa;">Nouveau :</strong> Bottom tab bar au lieu de tout centraliser sur Home. 5 items : Matchs, Tournois, [+] Nouveau match, Carte, Réglages. Le [+] est surélevé, blanc, c'est le CTA principal. Item actif = blanc, inactifs = zinc-800. Safe area respectée en bas.
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE TRANSITIONS -->
+  <div style="margin-bottom:48px;">
+    <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;font-weight:600;">Transitions entre pages</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+      <!-- Step 1 -->
+      <div style="background:#09090b;border:1px solid #18181b;border-radius:12px;padding:16px;text-align:center;">
+        <div style="height:100px;background:#111113;border-radius:8px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+          <div style="opacity:1;color:#52525b;font-size:11px;">Page A</div>
+        </div>
+        <div style="color:#52525b;font-size:10px;">État initial</div>
+      </div>
+
+      <!-- Step 2 -->
+      <div style="background:#09090b;border:1px solid #18181b;border-radius:12px;padding:16px;text-align:center;">
+        <div style="height:100px;background:#111113;border-radius:8px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+          <div style="opacity:0.3;transform:translateY(-4px);color:#52525b;font-size:11px;">Page A</div>
+          <div style="position:absolute;opacity:0.5;transform:translateY(8px);color:#a1a1aa;font-size:11px;">Page B</div>
+        </div>
+        <div style="color:#52525b;font-size:10px;">Crossfade (120ms)</div>
+      </div>
+
+      <!-- Step 3 -->
+      <div style="background:#09090b;border:1px solid #18181b;border-radius:12px;padding:16px;text-align:center;">
+        <div style="height:100px;background:#111113;border-radius:8px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+          <div style="opacity:1;color:#a1a1aa;font-size:11px;">Page B</div>
+        </div>
+        <div style="color:#52525b;font-size:10px;">État final</div>
+      </div>
+    </div>
+
+    <div style="background:#111113;border:1px solid #1f1f23;border-radius:10px;padding:12px 16px;margin-top:12px;">
+      <div style="color:#71717a;font-size:11px;line-height:1.6;">
+        <strong style="color:#a1a1aa;">Principe :</strong> Crossfade + slide-up subtil (8px). 120ms, ease-out. La page sortante fade out en montant légèrement, la nouvelle fade in depuis en dessous. Pas de slide horizontal — ça fait "natif" sur mobile sans être lourd.
+      </div>
+    </div>
+  </div>
+
+  <!-- LIGHT MODE TOGGLE -->
+  <div style="margin-bottom:32px;">
+    <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;font-weight:600;">Light mode (Settings)</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <!-- Dark -->
+      <div style="background:#09090b;border:1px solid #18181b;border-radius:14px;overflow:hidden;font-family:system-ui;">
+        <div style="padding:16px 20px;border-bottom:1px solid #18181b;">
+          <div style="padding:14px 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#d4d4d8;font-size:13px;">Capbreton vs Hossegor</span>
+            <span style="color:#fafafa;font-size:14px;font-weight:700;">3–1</span>
+          </div>
+          <div style="padding:14px 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#d4d4d8;font-size:13px;">Bayonne vs Biarritz</span>
+            <span style="color:#fafafa;font-size:14px;font-weight:700;">2–3</span>
+          </div>
+        </div>
+        <div style="padding:10px;text-align:center;color:#3f3f46;font-size:10px;">Mode sombre (défaut)</div>
+      </div>
+
+      <!-- Light -->
+      <div style="background:#fafafa;border:1px solid #e4e4e7;border-radius:14px;overflow:hidden;font-family:system-ui;">
+        <div style="padding:16px 20px;border-bottom:1px solid #e4e4e7;">
+          <div style="padding:14px 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#3f3f46;font-size:13px;">Capbreton vs Hossegor</span>
+            <span style="color:#18181b;font-size:14px;font-weight:700;">3–1</span>
+          </div>
+          <div style="padding:14px 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#3f3f46;font-size:13px;">Bayonne vs Biarritz</span>
+            <span style="color:#18181b;font-size:14px;font-weight:700;">2–3</span>
+          </div>
+        </div>
+        <div style="padding:10px;text-align:center;color:#a1a1aa;font-size:10px;">Mode clair</div>
+      </div>
+    </div>
+
+    <div style="background:#111113;border:1px solid #1f1f23;border-radius:10px;padding:12px 16px;margin-top:12px;">
+      <div style="color:#71717a;font-size:11px;line-height:1.6;">
+        <strong style="color:#a1a1aa;">Principe :</strong> Le light mode est un pur inversé — #fafafa bg, #18181b texte, bordures #e4e4e7. Même structure, mêmes composants. L'accent doré devient #ca8a04 (plus sombre pour le contraste). Transition theme = 200ms sur background-color et color.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center;margin-top:32px;color:#52525b;font-size:12px;">
+  Section 4/4 — C'est complet ! Si tout est bon, je rédige le spec document.
+</div>

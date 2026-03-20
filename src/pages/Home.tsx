@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { getDemoMatch, DEMO_MATCH_ID } from '@/lib/demoMatch';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, LogIn, HelpCircle, Loader2, X, MessageSquare, ImagePlus, Share2, Copy, Mail, MoreVertical, FileSpreadsheet, BarChart2, Users, Settings2, Activity, Trophy, MapPin, Download, LinkIcon, Sparkles, SlidersHorizontal } from 'lucide-react';
-import logoCapbreton from '@/assets/logo-capbreton.jpeg';
+import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, Loader2, X, MessageSquare, Share2, Copy, Mail, MoreVertical, FileSpreadsheet, BarChart2, Users, Settings2, Activity, Trophy, MapPin, Download, LinkIcon, Sparkles, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -14,7 +13,6 @@ import { MatchSummary, SetData, Team, SportType } from '@/types/sports';
 import { toast } from 'sonner';
 import { PwaInstallBanner } from '@/components/PwaInstallBanner';
 import { AuthDialog } from '@/components/AuthDialog';
-import { UserMenu } from '@/components/UserMenu';
 import { SavedPlayersManager } from '@/components/SavedPlayersManager';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 
@@ -76,7 +74,6 @@ export default function Home() {
 
   const [finishingId, setFinishingId] = useState<string | null>(null);
   const [showSavedPlayers, setShowSavedPlayers] = useState(false);
-  const [customLogo, setCustomLogo] = useState<string | null>(null);
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showShareInvite, setShowShareInvite] = useState(false);
@@ -252,11 +249,6 @@ export default function Home() {
     localStorage.setItem('welcomeSeen', 'true');
     setShowWelcome(false);
   };
-
-  useEffect(() => {
-    const saved = userStorage.getItem('customLogo');
-    if (saved) setCustomLogo(saved);
-  }, []);
 
   const loadMatches = useCallback(async (currentUser: User | null, showSpinner = false) => {
     if (showSpinner) setLoadingMatches(true);
@@ -541,49 +533,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-dvh bg-background bg-mesh flex flex-col">
-      <header className="sticky top-0 z-40 glass px-4 py-6 pt-[max(1.5rem,env(safe-area-inset-top))] border-b border-border/50 flex flex-col items-center gap-3 relative">
-        <div className="absolute left-4" style={{ top: 'max(1rem, env(safe-area-inset-top))' }}>
-          <Link
-            to="/help"
-            className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors inline-flex"
-            title={t('help.title')}
-          >
-            <HelpCircle size={18} />
-          </Link>
-        </div>
-        <div className="absolute right-4" style={{ top: 'max(1rem, env(safe-area-inset-top))' }}>
-          {user ? (
-            <UserMenu user={user} onOpenSavedPlayers={() => setShowSavedPlayers(true)} />
-          ) : (
-            <button
-              onClick={() => setShowAuth(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-foreground text-xs font-medium hover:bg-secondary transition-all"
-            >
-              <LogIn size={14} />
-              {t('common.login')}
-            </button>
-          )}
-        </div>
-        {customLogo ? (
-          <img src={customLogo} alt="Logo" className="w-16 h-16 rounded-full object-cover" />
-        ) : (
-          user ? (
-            <Link to="/settings#logo" className="w-16 h-16 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-secondary/50 hover:bg-secondary hover:border-primary/50 transition-all group" title={t('home.customizeLogo')}>
-              <ImagePlus size={20} className="text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
-            </Link>
-          ) : (
-            <button onClick={() => setShowAuth(true)} className="w-16 h-16 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-secondary/50 hover:bg-secondary hover:border-primary/50 transition-all group" title={t('home.customizeLogo')}>
-              <ImagePlus size={20} className="text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
-            </button>
-          )
-        )}
-        <div>
-          <h1 className="text-2xl font-extrabold text-foreground tracking-tight text-center font-display">{t('home.title')}</h1>
-          <p className="text-sm text-muted-foreground text-center mt-1 font-body">{t('home.subtitle')}</p>
-        </div>
-      </header>
-
+    <>
       <Dialog open={showWelcome} onOpenChange={(open) => { if (!open) handleWelcomeDismiss(); }}>
         <DialogContent className="max-w-xs rounded-2xl">
           <DialogHeader>
@@ -1218,6 +1168,6 @@ export default function Home() {
           {t('home.story')}
         </Link>
       </footer>
-    </div>
+    </>
   );
 }
