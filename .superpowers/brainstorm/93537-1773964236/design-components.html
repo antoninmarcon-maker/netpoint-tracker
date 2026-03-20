@@ -1,0 +1,252 @@
+<h2>Design détaillé — Composants UI</h2>
+<p class="subtitle">Section 2/4 — Cards, boutons, listes, animations</p>
+
+<div style="max-width:800px;margin:0 auto;">
+
+  <!-- MATCH LIST -->
+  <div style="margin-bottom:48px;">
+    <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;font-weight:600;">Liste de matchs (Home)</div>
+    <div style="background:#09090b;border:1px solid #18181b;border-radius:14px;padding:20px;font-family:system-ui;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div style="color:#52525b;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">Matchs récents</div>
+        <div style="color:#52525b;font-size:11px;">3 matchs</div>
+      </div>
+
+      <!-- Match item 1 - with subtle hover hint -->
+      <div style="padding:16px 0;border-bottom:1px solid #18181b;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="color:#fafafa;font-size:14px;font-weight:500;margin-bottom:4px;">Capbreton vs Hossegor</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="color:#3f3f46;font-size:11px;">Volleyball</span>
+            <span style="color:#27272a;">·</span>
+            <span style="color:#3f3f46;font-size:11px;">19 mars 2026</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-variant-numeric:tabular-nums;">
+            <span style="color:#fafafa;font-size:18px;font-weight:700;">3</span>
+            <span style="color:#27272a;font-size:14px;margin:0 2px;">–</span>
+            <span style="color:#52525b;font-size:18px;font-weight:700;">1</span>
+          </div>
+          <span style="color:#27272a;font-size:16px;transition:color 0.2s;">›</span>
+        </div>
+      </div>
+
+      <!-- Match item 2 -->
+      <div style="padding:16px 0;border-bottom:1px solid #18181b;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="color:#fafafa;font-size:14px;font-weight:500;margin-bottom:4px;">Bayonne vs Biarritz</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="color:#3f3f46;font-size:11px;">Basketball</span>
+            <span style="color:#27272a;">·</span>
+            <span style="color:#3f3f46;font-size:11px;">18 mars 2026</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-variant-numeric:tabular-nums;">
+            <span style="color:#52525b;font-size:18px;font-weight:700;">68</span>
+            <span style="color:#27272a;font-size:14px;margin:0 2px;">–</span>
+            <span style="color:#fafafa;font-size:18px;font-weight:700;">72</span>
+          </div>
+          <span style="color:#27272a;font-size:16px;">›</span>
+        </div>
+      </div>
+
+      <!-- Match item 3 - live -->
+      <div style="padding:16px 0;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="color:#fafafa;font-size:14px;font-weight:500;">Dax vs Mont-de-Marsan</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.2);color:#eab308;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">
+              <span style="width:5px;height:5px;border-radius:50%;background:#eab308;"></span>
+              Live
+            </span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="color:#3f3f46;font-size:11px;">Padel</span>
+            <span style="color:#27272a;">·</span>
+            <span style="color:#3f3f46;font-size:11px;">Set 2</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-variant-numeric:tabular-nums;">
+            <span style="color:#eab308;font-size:18px;font-weight:700;">1</span>
+            <span style="color:#27272a;font-size:14px;margin:0 2px;">–</span>
+            <span style="color:#eab308;font-size:18px;font-weight:700;">0</span>
+          </div>
+          <span style="color:#eab308;font-size:16px;">›</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#111113;border:1px solid #1f1f23;border-radius:10px;padding:12px 16px;margin-top:12px;">
+      <div style="color:#71717a;font-size:11px;line-height:1.6;">
+        <strong style="color:#a1a1aa;">Principe :</strong> Plus de Card wrapping — des listes flat avec séparateurs fins. Le score gagne est en blanc, le perdant en gris. Les matchs live utilisent l'accent doré. Hover → le chevron passe en blanc.
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA BUTTON -->
+  <div style="margin-bottom:48px;">
+    <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;font-weight:600;">Boutons</div>
+    <div style="display:flex;flex-direction:column;gap:12px;align-items:stretch;max-width:360px;">
+
+      <!-- Primary CTA -->
+      <div style="background:#fafafa;color:#09090b;padding:14px 24px;border-radius:12px;font-size:14px;font-weight:600;text-align:center;cursor:pointer;letter-spacing:-0.01em;transition:all 0.15s;">
+        Nouveau match
+      </div>
+
+      <!-- Secondary -->
+      <div style="background:transparent;color:#a1a1aa;padding:14px 24px;border-radius:12px;font-size:14px;font-weight:500;text-align:center;cursor:pointer;border:1px solid #27272a;letter-spacing:-0.01em;">
+        Match démo
+      </div>
+
+      <!-- Accent -->
+      <div style="background:rgba(234,179,8,0.1);color:#eab308;padding:14px 24px;border-radius:12px;font-size:14px;font-weight:600;text-align:center;cursor:pointer;border:1px solid rgba(234,179,8,0.2);letter-spacing:-0.01em;">
+        Rejoindre le tournoi
+      </div>
+
+      <!-- Ghost -->
+      <div style="background:transparent;color:#52525b;padding:14px 24px;border-radius:12px;font-size:14px;font-weight:500;text-align:center;cursor:pointer;letter-spacing:-0.01em;">
+        Annuler
+      </div>
+    </div>
+
+    <div style="background:#111113;border:1px solid #1f1f23;border-radius:10px;padding:12px 16px;margin-top:12px;">
+      <div style="color:#71717a;font-size:11px;line-height:1.6;">
+        <strong style="color:#a1a1aa;">Principe :</strong> CTA primaire = blanc sur noir (inversé). Secondaire = bordure zinc. Accent = doré translucide pour les actions spéciales. Ghost = texte seul pour annuler. Pas de gradients.
+      </div>
+    </div>
+  </div>
+
+  <!-- TOURNAMENT CARD -->
+  <div style="margin-bottom:48px;">
+    <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;font-weight:600;">Tournoi (liste flat)</div>
+    <div style="background:#09090b;border:1px solid #18181b;border-radius:14px;padding:20px;font-family:system-ui;">
+
+      <div style="padding:14px 0;border-bottom:1px solid #18181b;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="color:#fafafa;font-size:14px;font-weight:500;">Tournoi de Printemps</span>
+            <span style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.15);color:#22c55e;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Ouvert</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="color:#3f3f46;font-size:11px;">Capbreton</span>
+            <span style="color:#27272a;">·</span>
+            <span style="color:#3f3f46;font-size:11px;">22 mars 2026</span>
+            <span style="color:#27272a;">·</span>
+            <span style="color:#3f3f46;font-size:11px;">8 équipes</span>
+          </div>
+        </div>
+        <span style="color:#27272a;font-size:16px;">›</span>
+      </div>
+
+      <div style="padding:14px 0;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="color:#fafafa;font-size:14px;font-weight:500;">Coupe d'Hiver</span>
+            <span style="background:rgba(161,161,170,0.1);border:1px solid rgba(161,161,170,0.1);color:#71717a;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Terminé</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="color:#3f3f46;font-size:11px;">Bayonne</span>
+            <span style="color:#27272a;">·</span>
+            <span style="color:#3f3f46;font-size:11px;">15 déc 2025</span>
+            <span style="color:#27272a;">·</span>
+            <span style="color:#3f3f46;font-size:11px;">12 équipes</span>
+          </div>
+        </div>
+        <span style="color:#27272a;font-size:16px;">›</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div style="margin-bottom:48px;">
+    <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;font-weight:600;">Settings (sections groupées)</div>
+    <div style="background:#09090b;border:1px solid #18181b;border-radius:14px;overflow:hidden;font-family:system-ui;">
+
+      <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #18181b;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="color:#52525b;font-size:15px;">🌐</span>
+          <span style="color:#d4d4d8;font-size:13px;font-weight:500;">Langue</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="color:#52525b;font-size:13px;">Français</span>
+          <span style="color:#27272a;font-size:14px;">›</span>
+        </div>
+      </div>
+
+      <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #18181b;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="color:#52525b;font-size:15px;">🌙</span>
+          <span style="color:#d4d4d8;font-size:13px;font-weight:500;">Thème</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="color:#52525b;font-size:13px;">Sombre</span>
+          <span style="color:#27272a;font-size:14px;">›</span>
+        </div>
+      </div>
+
+      <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #18181b;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="color:#52525b;font-size:15px;">🔔</span>
+          <span style="color:#d4d4d8;font-size:13px;font-weight:500;">Notifications</span>
+        </div>
+        <div style="width:36px;height:20px;border-radius:10px;background:#eab308;position:relative;">
+          <div style="width:16px;height:16px;border-radius:50%;background:#fafafa;position:absolute;top:2px;right:2px;"></div>
+        </div>
+      </div>
+
+      <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="color:#52525b;font-size:15px;">👤</span>
+          <span style="color:#d4d4d8;font-size:13px;font-weight:500;">Profil</span>
+        </div>
+        <span style="color:#27272a;font-size:14px;">›</span>
+      </div>
+
+    </div>
+
+    <div style="background:#111113;border:1px solid #1f1f23;border-radius:10px;padding:12px 16px;margin-top:12px;">
+      <div style="color:#71717a;font-size:11px;line-height:1.6;">
+        <strong style="color:#a1a1aa;">Principe :</strong> Sections groupées iOS-style — plus de Cards individuelles. Toggle accent doré. Tout est dans un seul conteneur avec séparateurs. Plus compact, plus pro.
+      </div>
+    </div>
+  </div>
+
+  <!-- ANIMATIONS -->
+  <div style="margin-bottom:32px;">
+    <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;font-weight:600;">Animations enrichies</div>
+    <div style="background:#111113;border:1px solid #1f1f23;border-radius:14px;padding:20px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+        <div style="padding:14px;background:#09090b;border:1px solid #18181b;border-radius:10px;">
+          <div style="color:#a1a1aa;font-size:12px;font-weight:600;margin-bottom:8px;">Page transitions</div>
+          <div style="color:#52525b;font-size:11px;line-height:1.5;">Fade + slide-up subtil (150ms) entre les pages. Pas de flash blanc.</div>
+        </div>
+
+        <div style="padding:14px;background:#09090b;border:1px solid #18181b;border-radius:10px;">
+          <div style="color:#a1a1aa;font-size:12px;font-weight:600;margin-bottom:8px;">Score pop</div>
+          <div style="color:#52525b;font-size:11px;line-height:1.5;">Scale 1→1.15→1 avec spring (300ms). Le chiffre pulse en doré pendant 400ms après un point.</div>
+        </div>
+
+        <div style="padding:14px;background:#09090b;border:1px solid #18181b;border-radius:10px;">
+          <div style="color:#a1a1aa;font-size:12px;font-weight:600;margin-bottom:8px;">List stagger</div>
+          <div style="color:#52525b;font-size:11px;line-height:1.5;">Chaque item apparaît avec 50ms de délai. Fade-in + translate-y 8px. Léger et fluide.</div>
+        </div>
+
+        <div style="padding:14px;background:#09090b;border:1px solid #18181b;border-radius:10px;">
+          <div style="color:#a1a1aa;font-size:12px;font-weight:600;margin-bottom:8px;">Hover/Press</div>
+          <div style="color:#52525b;font-size:11px;line-height:1.5;">Hover → bordure brightens (zinc-700). Press → scale 0.98 (80ms). Micro-feedback constant.</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center;margin-top:32px;color:#52525b;font-size:12px;">
+  Section 2/4 — Composants UI. Ça te va ? On passe à la carte map ?
+</div>

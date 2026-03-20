@@ -1,0 +1,241 @@
+<h2>Design détaillé — Carte communautaire</h2>
+<p class="subtitle">Section 3/4 — La carte des terrains (Spots)</p>
+
+<div style="max-width:800px;margin:0 auto;">
+
+  <!-- MAP MOCKUP -->
+  <div style="margin-bottom:48px;">
+    <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;font-weight:600;">Carte monochrome</div>
+
+    <div style="background:#09090b;border:1px solid #18181b;border-radius:14px;overflow:hidden;position:relative;aspect-ratio:9/16;max-height:600px;">
+
+      <!-- Map background - monochrome dark tiles -->
+      <div style="position:absolute;inset:0;background:#111113;">
+        <!-- Simulated map grid -->
+        <svg width="100%" height="100%" style="opacity:0.15;">
+          <defs>
+            <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#3f3f46" stroke-width="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)"/>
+          <!-- Simulated roads -->
+          <line x1="0" y1="180" x2="100%" y2="200" stroke="#27272a" stroke-width="3"/>
+          <line x1="120" y1="0" x2="140" y2="100%" stroke="#27272a" stroke-width="2"/>
+          <line x1="280" y1="0" x2="300" y2="100%" stroke="#27272a" stroke-width="2.5"/>
+          <line x1="0" y1="350" x2="100%" y2="340" stroke="#27272a" stroke-width="2"/>
+          <line x1="200" y1="100" x2="350" y2="280" stroke="#27272a" stroke-width="1.5"/>
+          <!-- Water area -->
+          <rect x="0" y="420" width="180" height="200" fill="#0d1117" opacity="0.6" rx="4"/>
+        </svg>
+      </div>
+
+      <!-- Map markers -->
+      <!-- Volleyball spot -->
+      <div style="position:absolute;top:25%;left:35%;display:flex;flex-direction:column;align-items:center;">
+        <div style="width:36px;height:36px;border-radius:50%;background:#fafafa;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid #09090b;">🏐</div>
+        <div style="width:8px;height:8px;background:#fafafa;transform:rotate(45deg);margin-top:-5px;border-right:2px solid #09090b;border-bottom:2px solid #09090b;"></div>
+      </div>
+
+      <!-- Basketball spot -->
+      <div style="position:absolute;top:45%;left:60%;display:flex;flex-direction:column;align-items:center;">
+        <div style="width:36px;height:36px;border-radius:50%;background:#fafafa;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid #09090b;">🏀</div>
+        <div style="width:8px;height:8px;background:#fafafa;transform:rotate(45deg);margin-top:-5px;border-right:2px solid #09090b;border-bottom:2px solid #09090b;"></div>
+      </div>
+
+      <!-- Tennis spot -->
+      <div style="position:absolute;top:35%;left:70%;display:flex;flex-direction:column;align-items:center;">
+        <div style="width:36px;height:36px;border-radius:50%;background:#fafafa;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid #09090b;">🎾</div>
+        <div style="width:8px;height:8px;background:#fafafa;transform:rotate(45deg);margin-top:-5px;border-right:2px solid #09090b;border-bottom:2px solid #09090b;"></div>
+      </div>
+
+      <!-- Cluster -->
+      <div style="position:absolute;top:60%;left:25%;display:flex;flex-direction:column;align-items:center;">
+        <div style="width:42px;height:42px;border-radius:50%;background:#fafafa;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#09090b;box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid #09090b;">5</div>
+      </div>
+
+      <!-- User location -->
+      <div style="position:absolute;top:50%;left:45%;">
+        <div style="width:14px;height:14px;border-radius:50%;background:#eab308;border:3px solid #09090b;box-shadow:0 0 0 6px rgba(234,179,8,0.15);"></div>
+      </div>
+
+      <!-- Top bar -->
+      <div style="position:absolute;top:0;left:0;right:0;padding:12px 16px;display:flex;gap:10px;align-items:center;z-index:2;">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(9,9,11,0.85);backdrop-filter:blur(12px);border:1px solid #27272a;display:flex;align-items:center;justify-content:center;color:#a1a1aa;font-size:14px;">←</div>
+        <div style="flex:1;background:rgba(9,9,11,0.85);backdrop-filter:blur(12px);border:1px solid #27272a;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;">
+          <span style="color:#3f3f46;font-size:13px;">🔍</span>
+          <span style="color:#3f3f46;font-size:13px;">Rechercher un terrain...</span>
+        </div>
+      </div>
+
+      <!-- Bottom dock -->
+      <div style="position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:2;">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(9,9,11,0.85);backdrop-filter:blur(12px);border:1px solid #27272a;display:flex;align-items:center;justify-content:center;color:#a1a1aa;font-size:16px;">◎</div>
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(9,9,11,0.85);backdrop-filter:blur(12px);border:1px solid #27272a;display:flex;align-items:center;justify-content:center;color:#a1a1aa;font-size:16px;">☰</div>
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(234,179,8,0.15);backdrop-filter:blur(12px);border:1px solid rgba(234,179,8,0.25);display:flex;align-items:center;justify-content:center;color:#eab308;font-size:18px;font-weight:300;">+</div>
+      </div>
+
+      <!-- Selected spot bottom sheet (peeking) -->
+      <div style="position:absolute;bottom:80px;left:12px;right:12px;background:rgba(9,9,11,0.92);backdrop-filter:blur(16px);border:1px solid #27272a;border-radius:14px;padding:16px;z-index:1;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="color:#fafafa;font-size:14px;font-weight:600;margin-bottom:4px;">Beach Volley Capbreton</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="color:#3f3f46;font-size:11px;">🏐 Volleyball</span>
+              <span style="color:#27272a;">·</span>
+              <span style="color:#3f3f46;font-size:11px;">350m</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:4px;">
+            <span style="color:#eab308;font-size:11px;">★★★★</span><span style="color:#27272a;font-size:11px;">★</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:12px;">
+          <span style="background:#18181b;color:#71717a;font-size:10px;padding:4px 8px;border-radius:6px;font-weight:500;">Filet</span>
+          <span style="background:#18181b;color:#71717a;font-size:10px;padding:4px 8px;border-radius:6px;font-weight:500;">Sable</span>
+          <span style="background:#18181b;color:#71717a;font-size:10px;padding:4px 8px;border-radius:6px;font-weight:500;">Gratuit</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#111113;border:1px solid #1f1f23;border-radius:10px;padding:12px 16px;margin-top:12px;">
+      <div style="color:#71717a;font-size:11px;line-height:1.6;">
+        <strong style="color:#a1a1aa;">Tiles :</strong> CARTO Dark Matter (gratuit) — fond gris-noir, routes en zinc foncé. Monochrome par nature. L'utilisateur est un point doré avec halo pulsant. Les markers sont des cercles blancs avec emoji sport. Les clusters sont des cercles blancs avec count.
+      </div>
+    </div>
+  </div>
+
+  <!-- SPOT SIDEBAR -->
+  <div style="margin-bottom:48px;">
+    <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;font-weight:600;">Fiche terrain (sidebar)</div>
+
+    <div style="background:#09090b;border:1px solid #18181b;border-radius:14px;overflow:hidden;max-width:360px;font-family:system-ui;">
+
+      <!-- Photo placeholder -->
+      <div style="height:140px;background:#111113;display:flex;align-items:center;justify-content:center;position:relative;">
+        <span style="color:#27272a;font-size:32px;">📷</span>
+        <div style="position:absolute;bottom:8px;right:8px;display:flex;gap:4px;">
+          <div style="width:6px;height:6px;border-radius:50%;background:#fafafa;"></div>
+          <div style="width:6px;height:6px;border-radius:50%;background:#3f3f46;"></div>
+          <div style="width:6px;height:6px;border-radius:50%;background:#3f3f46;"></div>
+        </div>
+      </div>
+
+      <div style="padding:20px;">
+        <!-- Header -->
+        <div style="margin-bottom:16px;">
+          <div style="color:#fafafa;font-size:16px;font-weight:600;margin-bottom:4px;">Beach Volley Capbreton</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="color:#eab308;font-size:12px;">★★★★</span><span style="color:#27272a;font-size:12px;">★</span>
+            <span style="color:#3f3f46;font-size:11px;">· 4.2 (18 avis)</span>
+          </div>
+        </div>
+
+        <!-- Details -->
+        <div style="display:flex;flex-direction:column;gap:0;">
+          <div style="padding:12px 0;border-bottom:1px solid #18181b;display:flex;justify-content:space-between;">
+            <span style="color:#52525b;font-size:12px;">Type</span>
+            <span style="color:#d4d4d8;font-size:12px;">Beach Volleyball</span>
+          </div>
+          <div style="padding:12px 0;border-bottom:1px solid #18181b;display:flex;justify-content:space-between;">
+            <span style="color:#52525b;font-size:12px;">Surface</span>
+            <span style="color:#d4d4d8;font-size:12px;">Sable</span>
+          </div>
+          <div style="padding:12px 0;border-bottom:1px solid #18181b;display:flex;justify-content:space-between;">
+            <span style="color:#52525b;font-size:12px;">Accès</span>
+            <span style="color:#d4d4d8;font-size:12px;">Gratuit</span>
+          </div>
+          <div style="padding:12px 0;display:flex;justify-content:space-between;">
+            <span style="color:#52525b;font-size:12px;">Équipement</span>
+            <div style="display:flex;gap:4px;">
+              <span style="background:#18181b;color:#71717a;font-size:10px;padding:3px 7px;border-radius:5px;">Filet</span>
+              <span style="background:#18181b;color:#71717a;font-size:10px;padding:3px 7px;border-radius:5px;">Lignes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comments preview -->
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #18181b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <span style="color:#52525b;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Avis</span>
+            <span style="color:#3f3f46;font-size:11px;">18 avis ›</span>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid #18181b;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <span style="color:#a1a1aa;font-size:11px;font-weight:500;">Julien M.</span>
+              <span style="color:#eab308;font-size:10px;">★★★★★</span>
+            </div>
+            <div style="color:#52525b;font-size:11px;line-height:1.4;">Super terrain, bien entretenu. Filet toujours en place.</div>
+          </div>
+        </div>
+
+        <!-- Action -->
+        <div style="margin-top:16px;">
+          <div style="background:#fafafa;color:#09090b;padding:12px;border-radius:10px;font-size:13px;font-weight:600;text-align:center;">
+            Y aller
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#111113;border:1px solid #1f1f23;border-radius:10px;padding:12px 16px;margin-top:12px;">
+      <div style="color:#71717a;font-size:11px;line-height:1.6;">
+        <strong style="color:#a1a1aa;">Principe :</strong> Même pattern flat list pour les détails. Photos en carrousel horizontal en haut. Badges équipement en zinc. Étoiles dorées pour les notes. Bottom sheet translucide avec blur sur la carte (backdrop-filter).
+      </div>
+    </div>
+  </div>
+
+  <!-- LIST VIEW -->
+  <div style="margin-bottom:32px;">
+    <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;font-weight:600;">Vue liste (toggle)</div>
+
+    <div style="background:#09090b;border:1px solid #18181b;border-radius:14px;padding:20px;font-family:system-ui;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="color:#52525b;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">Terrains proches</div>
+        <div style="display:flex;gap:4px;">
+          <span style="background:#18181b;color:#71717a;font-size:10px;padding:4px 8px;border-radius:6px;">Distance</span>
+          <span style="background:transparent;color:#3f3f46;font-size:10px;padding:4px 8px;border-radius:6px;">Type</span>
+          <span style="background:transparent;color:#3f3f46;font-size:10px;padding:4px 8px;border-radius:6px;">Nom</span>
+        </div>
+      </div>
+
+      <div style="padding:14px 0;border-bottom:1px solid #18181b;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:16px;">🏐</span>
+          <div>
+            <div style="color:#fafafa;font-size:13px;font-weight:500;">Beach Volley Capbreton</div>
+            <div style="color:#3f3f46;font-size:11px;">350m · Sable · Gratuit</div>
+          </div>
+        </div>
+        <span style="color:#eab308;font-size:10px;">★ 4.2</span>
+      </div>
+
+      <div style="padding:14px 0;border-bottom:1px solid #18181b;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:16px;">🏀</span>
+          <div>
+            <div style="color:#fafafa;font-size:13px;font-weight:500;">City Park Courts</div>
+            <div style="color:#3f3f46;font-size:11px;">1.2km · Béton · Gratuit</div>
+          </div>
+        </div>
+        <span style="color:#eab308;font-size:10px;">★ 3.8</span>
+      </div>
+
+      <div style="padding:14px 0;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:16px;">🎾</span>
+          <div>
+            <div style="color:#fafafa;font-size:13px;font-weight:500;">Tennis Club Hossegor</div>
+            <div style="color:#3f3f46;font-size:11px;">2.8km · Terre battue · 12€/h</div>
+          </div>
+        </div>
+        <span style="color:#eab308;font-size:10px;">★ 4.5</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center;margin-top:32px;color:#52525b;font-size:12px;">
+  Section 3/4 — Carte map. Ça colle ? Dernière section : navigation & layout global.
+</div>
