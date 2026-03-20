@@ -210,7 +210,7 @@ export default function Players() {
         <button onClick={() => navigate(-1)} className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft size={18} />
         </button>
-        <Users size={18} className="text-primary" />
+        <Users size={18} className="text-muted-foreground" />
         <h1 className="text-lg font-bold text-foreground">{t('players.title')}</h1>
       </header>
 
@@ -224,7 +224,7 @@ export default function Players() {
 
           {jerseyEnabled && (
             <Alert className="border-primary/20 bg-primary/5">
-              <Info size={16} className="text-primary" />
+              <Info size={16} className="text-muted-foreground" />
               <AlertTitle className="text-sm font-bold">{t('players.jerseyNumbersInfoTitle')}</AlertTitle>
               <AlertDescription className="text-xs text-muted-foreground">
                 {t('players.jerseyNumbersInfoDesc')}

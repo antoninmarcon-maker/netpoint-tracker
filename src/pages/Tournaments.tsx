@@ -105,7 +105,7 @@ export default function Tournaments() {
     if (!user && !loading) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-6">
-                <Trophy size={48} className="text-primary" />
+                <Trophy size={48} className="text-muted-foreground" />
                 <h1 className="text-2xl font-black text-foreground">{t('tournaments.title')}</h1>
                 <p className="text-muted-foreground text-sm text-center">{t('tournaments.loginToManage')}</p>
                 <button
@@ -140,7 +140,7 @@ export default function Tournaments() {
                 ) : tournaments.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
                         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Trophy size={28} className="text-primary" />
+                            <Trophy size={28} className="text-muted-foreground" />
                         </div>
                         <p className="text-base font-semibold text-foreground">{t('tournaments.noTournaments')}</p>
                         <p className="text-sm text-muted-foreground">{t('tournaments.createFirst')}</p>
@@ -192,7 +192,7 @@ export default function Tournaments() {
                 <DialogContent className="max-w-sm rounded-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-center font-black flex items-center justify-center gap-2">
-                            <Trophy size={18} className="text-primary" /> {t('tournaments.newTournament')}
+                            <Trophy size={18} className="text-muted-foreground" /> {t('tournaments.newTournament')}
                         </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 pt-2">

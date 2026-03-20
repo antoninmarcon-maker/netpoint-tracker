@@ -85,7 +85,7 @@ export default function MapSearchControl({ isAddingMode, onLocationSelected }: M
               className="w-full text-left px-4 py-3 border-b border-border/30 last:border-0 hover:bg-secondary/60 transition-colors flex items-start gap-3 active:bg-secondary"
               onClick={() => handleSelectResult(res)}
             >
-              <MapPin size={14} className="mt-0.5 shrink-0 text-primary" />
+              <MapPin size={14} className="mt-0.5 shrink-0 text-muted-foreground" />
               <span className="text-[13px] text-foreground/80 line-clamp-2 leading-snug">
                 {res.display_name}
               </span>

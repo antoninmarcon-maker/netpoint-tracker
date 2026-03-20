@@ -100,7 +100,7 @@ export default function TournamentJoin() {
 
     if (!user) return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-6 text-center">
-            <Trophy size={40} className="text-primary" />
+            <Trophy size={40} className="text-muted-foreground" />
             <h1 className="text-xl font-black text-foreground">{tournament.name}</h1>
             <p className="text-sm text-muted-foreground">{t('tournaments.loginToJoin')}</p>
             <button onClick={() => navigate('/')} className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm">{t('common.login')}</button>
@@ -152,7 +152,7 @@ export default function TournamentJoin() {
                             <div className="space-y-3">
                                 <p className="text-sm font-semibold text-muted-foreground text-center">{t('tournaments.howToParticipate')}</p>
                                 <button onClick={() => setMode('create')} className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-primary/30 bg-primary/5 hover:border-primary/60 transition-colors text-left">
-                                    <UserPlus size={20} className="text-primary shrink-0" />
+                                    <UserPlus size={20} className="text-muted-foreground shrink-0" />
                                     <div>
                                         <p className="font-bold text-foreground text-sm">{t('tournaments.createTeam')}</p>
                                         <p className="text-xs text-muted-foreground">{t('tournaments.youWillBeCaptain')}</p>

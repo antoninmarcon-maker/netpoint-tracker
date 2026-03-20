@@ -4,7 +4,7 @@ export default function Privacy() {
   return (
     <div className="overflow-auto p-5 max-w-lg mx-auto w-full space-y-8">
       <section className="flex items-center gap-3">
-        <Shield size={32} className="text-primary shrink-0" />
+        <Shield size={32} className="text-muted-foreground shrink-0" />
         <div>
           <h2 className="text-2xl font-black text-foreground tracking-tight">Privacy Policy</h2>
           <p className="text-xs text-muted-foreground">Last updated: March 20, 2026</p>

@@ -49,16 +49,16 @@ export function UserMenu({ user, onOpenSavedPlayers }: UserMenuProps) {
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground text-center">{user.email}</p>
             <a href="mailto:contact@my-volley.com" className="w-full flex items-center gap-2.5 py-3 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-all">
-              <MessageSquare size={16} className="text-primary" /> {t('userMenu.leaveFeedback')}
+              <MessageSquare size={16} className="text-muted-foreground" /> {t('userMenu.leaveFeedback')}
             </a>
             <button onClick={() => { setShowMenu(false); navigate('/players'); }} className="w-full flex items-center gap-2.5 py-3 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-all">
-              <Users size={16} className="text-primary" /> {t('userMenu.savedPlayers')}
+              <Users size={16} className="text-muted-foreground" /> {t('userMenu.savedPlayers')}
             </button>
             <button onClick={() => { setShowMenu(false); navigate('/tournaments'); }} className="w-full flex items-center gap-2.5 py-3 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-all">
-              <Trophy size={16} className="text-primary" /> {t('userMenu.tournaments')}
+              <Trophy size={16} className="text-muted-foreground" /> {t('userMenu.tournaments')}
             </button>
             <button onClick={() => { setShowMenu(false); navigate('/actions'); }} className="w-full flex items-center gap-2.5 py-3 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-all">
-              <Zap size={16} className="text-primary" /> {t('userMenu.customActions')}
+              <Zap size={16} className="text-muted-foreground" /> {t('userMenu.customActions')}
             </button>
             <button onClick={() => { setShowMenu(false); navigate('/settings'); }} className="w-full flex items-center gap-2.5 py-3 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-all">
               <Settings size={16} className="text-muted-foreground" /> {t('userMenu.accountSettings')}

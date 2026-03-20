@@ -99,7 +99,7 @@ export default function TournamentSpectator() {
             <header className="px-4 pt-[max(0.75rem,env(safe-area-inset-top))] py-4 border-b border-border">
                 <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                        <Trophy size={18} className="text-primary" />
+                        <Trophy size={18} className="text-muted-foreground" />
                         <h1 className="font-black text-foreground text-base">{tournament.name}</h1>
                     </div>
                     <span className="flex items-center gap-1 text-[10px] font-bold uppercase bg-muted text-muted-foreground px-2 py-0.5 rounded-full">

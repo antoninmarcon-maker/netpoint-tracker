@@ -43,7 +43,7 @@ function Instructions({ onClose }: { onClose?: () => void }) {
         </button>
       )}
       <div className="flex items-center gap-2">
-        <Info size={16} className="text-primary" />
+        <Info size={16} className="text-muted-foreground" />
         <h3 className="text-sm font-bold text-foreground">{t('home.howItWorks')}</h3>
       </div>
       <div className="text-sm text-muted-foreground space-y-2">
@@ -106,7 +106,7 @@ export default function Home() {
   const whatsNewCards = useMemo(() => [
     {
       id: 'spot-filters',
-      icon: <SlidersHorizontal size={32} className="text-primary mb-2" />,
+      icon: <SlidersHorizontal size={32} className="text-muted-foreground mb-2" />,
       images: [],
       title: t('home.whatsNewSpotFilters'),
       desc: t('home.whatsNewSpotFiltersDesc'),
@@ -115,7 +115,7 @@ export default function Home() {
     },
     {
       id: 'ai-analysis',
-      icon: <Sparkles size={32} className="text-primary mb-2" />,
+      icon: <Sparkles size={32} className="text-muted-foreground mb-2" />,
       images: [],
       title: t('home.whatsNewAiAnalysis'),
       desc: t('home.whatsNewAiAnalysisDesc'),
@@ -131,7 +131,7 @@ export default function Home() {
     },
     {
       id: 'spot-explorer',
-      icon: <MapPin size={32} className="text-primary mb-2" />,
+      icon: <MapPin size={32} className="text-muted-foreground mb-2" />,
       images: [],
       title: t('home.whatsNewSpots'),
       desc: t('home.whatsNewSpotsDesc'),
@@ -140,7 +140,7 @@ export default function Home() {
     },
     {
       id: 'tournaments',
-      icon: <Trophy size={32} className="text-primary mb-2" />,
+      icon: <Trophy size={32} className="text-muted-foreground mb-2" />,
       images: ["/assets/whatsnew/tournoi1.PNG", "/assets/whatsnew/tournoi2.PNG", "/assets/whatsnew/tournoi3.PNG"],
       title: t('home.whatsNewTournaments'),
       desc: t('home.whatsNewTournamentsDesc'),
@@ -149,7 +149,7 @@ export default function Home() {
     },
     {
       id: 'perf',
-      icon: <Activity size={32} className="text-primary mb-2" />,
+      icon: <Activity size={32} className="text-muted-foreground mb-2" />,
       images: ["/assets/whatsnew/Mode perf.jpeg"],
       title: t('home.whatsNewPerfMode'),
       desc: t('home.whatsNewPerfModeDesc'),
@@ -162,7 +162,7 @@ export default function Home() {
     },
     {
       id: 'actions',
-      icon: <Settings2 size={32} className="text-primary mb-2" />,
+      icon: <Settings2 size={32} className="text-muted-foreground mb-2" />,
       images: ["/assets/whatsnew/actions persos.jpeg"],
       title: t('home.whatsNewCustomActions'),
       desc: t('home.whatsNewCustomActionsDesc'),
@@ -171,7 +171,7 @@ export default function Home() {
     },
     {
       id: 'players',
-      icon: <Users size={32} className="text-primary mb-2" />,
+      icon: <Users size={32} className="text-muted-foreground mb-2" />,
       images: ["/assets/whatsnew/joueurs1.jpeg", "/assets/whatsnew/joueurs2.jpeg"],
       title: t('home.whatsNewSavedPlayers'),
       desc: t('home.whatsNewSavedPlayersDesc'),
