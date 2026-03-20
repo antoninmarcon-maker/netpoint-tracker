@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
+import { AppShell } from "./components/AppShell";
 
 // Lazy-loaded routes to reduce initial bundle size
 const Index = lazy(() => import("./pages/Index"));
@@ -36,21 +37,26 @@ const AppInner = () => {
       <BrowserRouter>
         <Suspense fallback={<div className="min-h-screen bg-background" />}>
           <Routes>
-            <Route path="/" element={<Home />} />
+            {/* Routes WITH AppShell (header + bottom nav) */}
+            <Route element={<AppShell />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/tournaments" element={<Tournaments />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/players" element={<Players />} />
+              <Route path="/actions" element={<ActionsConfig />} />
+              <Route path="/help" element={<Help />} />
+              <Route path="/credits" element={<Credits />} />
+              <Route path="/privacy" element={<Privacy />} />
+            </Route>
+
+            {/* Full-screen routes WITHOUT AppShell */}
             <Route path="/match/:matchId" element={<Index />} />
+            <Route path="/spots" element={<Spots />} />
             <Route path="/shared/:token" element={<SharedMatch />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/help" element={<Help />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/credits" element={<Credits />} />
-            <Route path="/actions" element={<ActionsConfig />} />
-            <Route path="/players" element={<Players />} />
-            <Route path="/tournaments" element={<Tournaments />} />
             <Route path="/tournaments/:id" element={<TournamentDashboard />} />
             <Route path="/tournaments/:id/join" element={<TournamentJoin />} />
             <Route path="/tournaments/:id/spectate" element={<TournamentSpectator />} />
-            <Route path="/spots" element={<Spots />} />
-            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
