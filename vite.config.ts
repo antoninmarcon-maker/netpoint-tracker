@@ -24,7 +24,7 @@ export default defineConfig({
       srcDir: "src",
       filename: "sw.ts",
       registerType: "autoUpdate",
-      includeAssets: ["favicon.png", "placeholder.svg"],
+      includeAssets: ["favicon.svg", "placeholder.svg"],
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/],
       },

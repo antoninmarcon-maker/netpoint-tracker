@@ -28,6 +28,9 @@ dist-ssr
 .env.*
 !.env.example
 
+# Superpowers brainstorm artifacts
+.superpowers/
+
 # Claude settings (contains allowed command history with tokens)
 .claude/settings.json
 
