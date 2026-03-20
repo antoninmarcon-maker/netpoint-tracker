@@ -34,7 +34,7 @@ interface SpotMapProps {
 
 const defaultCenter: [number, number] = [46.603354, 1.888334];
 
-function buildMarkerSvg(_color: string, icon: string, isPending: boolean): string {
+function buildMarkerSvg(icon: string, isPending: boolean): string {
   const borderColor = isPending ? '#facc15' : '#09090b';
   const borderWidth = isPending ? 3 : 2;
   return `
@@ -58,10 +58,9 @@ function getCachedMarkerIcon(type: string, isPending: boolean): L.DivIcon {
   if (!icon) {
     const config = SPOT_TYPE_CONFIG[type];
     const emoji = config?.emoji || '📍';
-    const color = config?.hex || '#6b7280';
     icon = L.divIcon({
       className: '',
-      html: buildMarkerSvg(color, emoji, isPending),
+      html: buildMarkerSvg(emoji, isPending),
       iconSize: [36, 36],
       iconAnchor: [18, 18],
       popupAnchor: [0, -20],
@@ -181,9 +180,8 @@ export default function SpotMap({
 
   const filteredSpots = useMemo(() => filterSpots(spots, filters, userPosition), [spots, filters, userPosition]);
 
-  const createClusterCustomIcon = (cluster: any) => {
+  const createClusterCustomIcon = useCallback((cluster: any) => {
     const count = cluster.getChildCount();
-    const size = count > 100 ? 52 : count > 50 ? 46 : 40;
     const fontSize = count > 100 ? 14 : 12;
 
     return L.divIcon({
@@ -202,7 +200,7 @@ export default function SpotMap({
       iconSize: [42, 42],
       iconAnchor: [21, 21],
     });
-  };
+  }, []);
 
   return (
     <div className="w-full h-full relative">
