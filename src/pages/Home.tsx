@@ -1167,6 +1167,12 @@ export default function Home() {
           <Info size={16} />
           {t('home.story')}
         </Link>
+        <Link
+          to="/privacy"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+        >
+          Privacy
+        </Link>
       </footer>
     </>
   );
