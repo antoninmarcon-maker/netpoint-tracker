@@ -34,16 +34,16 @@ interface SpotMapProps {
 
 const defaultCenter: [number, number] = [46.603354, 1.888334];
 
-function buildMarkerSvg(color: string, icon: string, isPending: boolean): string {
-  const borderColor = isPending ? '#facc15' : 'white';
+function buildMarkerSvg(_color: string, icon: string, isPending: boolean): string {
+  const borderColor = isPending ? '#facc15' : '#09090b';
   const borderWidth = isPending ? 3 : 2;
   return `
     <div style="
       width: 36px; height: 36px;
       border-radius: 50%;
-      background: ${color};
+      background: #fafafa;
       border: ${borderWidth}px solid ${borderColor};
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.5);
       display: flex; align-items: center; justify-content: center;
       font-size: 16px; line-height: 1;
       transition: transform 0.15s ease;
@@ -76,9 +76,9 @@ const userLocationIcon = L.divIcon({
   html: `<div style="
     width: 14px; height: 14px;
     border-radius: 50%;
-    background: #3b82f6;
-    border: 3px solid white;
-    box-shadow: 0 0 0 2px rgba(59,130,246,0.3), 0 2px 8px rgba(0,0,0,0.2);
+    background: #eab308;
+    border: 3px solid #09090b;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   "></div>`,
   iconSize: [14, 14],
   iconAnchor: [7, 7],
@@ -189,18 +189,18 @@ export default function SpotMap({
     return L.divIcon({
       className: '',
       html: `<div style="
-        width: ${size}px; height: ${size}px;
+        width: 42px; height: 42px;
         border-radius: 50%;
-        background: hsl(215, 100%, 50%);
-        color: white;
+        background: #fafafa;
+        color: #09090b;
         display: flex; align-items: center; justify-content: center;
         font-weight: 700; font-size: ${fontSize}px;
         font-family: 'DM Sans', sans-serif;
-        border: 2.5px solid rgba(255,255,255,0.6);
-        box-shadow: 0 2px 12px rgba(0,100,255,0.3), 0 0 0 4px rgba(0,100,255,0.1);
+        border: 2px solid #09090b;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.5);
       ">${count}</div>`,
-      iconSize: [size, size],
-      iconAnchor: [size / 2, size / 2],
+      iconSize: [42, 42],
+      iconAnchor: [21, 21],
     });
   };
 
