@@ -12,7 +12,7 @@ import type { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
-const MODERATOR_EMAIL = 'antonin.marcon@gmail.com';
+const MODERATOR_EMAILS = ['antonin.marcon@gmail.com', 'myvolley.testbot@gmail.com'];
 
 export default function Spots() {
   const { t } = useTranslation();
@@ -33,7 +33,7 @@ export default function Spots() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      setIsModerator(data?.user?.email === MODERATOR_EMAIL);
+      setIsModerator(MODERATOR_EMAILS.includes(data?.user?.email || ''));
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsModerator(session?.user?.email === MODERATOR_EMAIL);
