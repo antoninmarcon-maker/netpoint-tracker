@@ -30,6 +30,7 @@ const RallyActionSchema = z.object({
   startY: z.number().optional(),
   endX: z.number().optional(),
   endY: z.number().optional(),
+  rating: z.enum(['negative', 'neutral', 'positive']).optional(),
 });
 
 const PointSchema = z.object({
@@ -43,6 +44,10 @@ const PointSchema = z.object({
   playerId: z.string().optional(),
   pointValue: z.number().optional(),
   rallyActions: z.array(RallyActionSchema).optional(),
+  rating: z.enum(['negative', 'neutral', 'positive']).optional(),
+  customActionLabel: z.string().optional(),
+  sigil: z.string().optional(),
+  showOnCourt: z.boolean().optional(),
 });
 
 const SetDataSchema = z.object({

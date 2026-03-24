@@ -9,3 +9,4 @@
 [2026-03-19] | Theme flash caused by applying dark class in React instead of before first paint | Always apply theme in a blocking `<script>` in `<head>` before CSS loads
 [2026-03-24] | Bug analysis in todo.md was wrong — `hasRating: false` vs `undefined` misdiagnosed as "ratings never requested" when matchRules OR logic saved it | Always trace the FULL code path before documenting root cause; check OR/fallback conditions
 [2026-03-24] | Custom action properties (hasRating) lost in getVisibleActions mapping — worked by accident via fallback | When mapping object types, include ALL relevant fields; don't rely on downstream fallbacks
+[2026-03-24] | Zod schemas stripped `rating` field from Points/RallyActions — Zod strips unknown fields by default with `.object()` | When adding a field to a TypeScript interface, ALWAYS update the corresponding Zod schema; audit all schemas when adding persistent fields
