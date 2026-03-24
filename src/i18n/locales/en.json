@@ -705,7 +705,18 @@
     "suggestionSubmitted": "Suggestion submitted successfully!",
     "moderationError": "Moderation error",
     "spotApproved": "Court approved",
-    "spotRejected": "Court rejected"
+    "spotRejected": "Court rejected",
+    "suggestEdit": "Edit",
+    "reportTitle": "Report this court",
+    "reportGone": "No longer exists",
+    "reportDuplicate": "Duplicate",
+    "reportWrongLocation": "Wrong location",
+    "reportWrongInfo": "Incorrect info",
+    "reportOther": "Other",
+    "reportPlaceholder": "Details (optional)...",
+    "reportSend": "Report",
+    "reportSubmitted": "Report submitted, thank you!",
+    "reportReasonRequired": "Please choose a reason."
   },
   "months": {
     "january": "January",

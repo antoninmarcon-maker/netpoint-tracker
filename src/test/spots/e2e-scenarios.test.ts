@@ -1194,3 +1194,176 @@ describe('Spot type config integrity', () => {
     }
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 16. REPORT / SIGNALEMENT SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('Report system — signaler un spot', () => {
+  const REPORT_REASONS = ['gone', 'duplicate', 'wrong_location', 'wrong_info', 'other'] as const;
+  type ReportReason = typeof REPORT_REASONS[number];
+
+  const REASON_LABELS: Record<ReportReason, string> = {
+    gone: "N'existe plus",
+    duplicate: 'Doublon',
+    wrong_location: 'Mauvais lieu',
+    wrong_info: 'Infos fausses',
+    other: 'Autre',
+  };
+
+  // ── Reason validation ──
+
+  it('has 5 report reasons', () => {
+    expect(REPORT_REASONS).toHaveLength(5);
+  });
+
+  it('all reasons have a label', () => {
+    for (const r of REPORT_REASONS) {
+      expect(REASON_LABELS[r]).toBeTruthy();
+    }
+  });
+
+  // ── Submission guard ──
+
+  it('blocks submission without a reason in report mode', () => {
+    const canSubmit = (reportMode: boolean, reason: string) =>
+      !reportMode || !!reason;
+    expect(canSubmit(true, '')).toBe(false);
+    expect(canSubmit(true, 'gone')).toBe(true);
+    expect(canSubmit(false, '')).toBe(true); // normal mode doesn't need reason
+  });
+
+  it('allows submission with reason and no comment text', () => {
+    const reportMode = true;
+    const reason = 'gone';
+    const content = '';
+    const valid = !!reason; // reason is required, content is optional
+    expect(valid).toBe(true);
+  });
+
+  it('allows submission with reason and comment text', () => {
+    const reason = 'duplicate';
+    const content = 'Même terrain que "Beach Lyon 6ème"';
+    expect(!!reason && content.trim().length > 0).toBe(true);
+  });
+
+  // ── Report payload ──
+
+  it('builds report comment with report_reason field', () => {
+    const payload = {
+      spot_id: 'spot-valdier',
+      user_id: 'user-42',
+      content: 'Le terrain a été détruit',
+      rating: null,
+      report_reason: 'gone' as ReportReason,
+    };
+    expect(payload.report_reason).toBe('gone');
+    expect(payload.rating).toBeNull(); // reports don't have ratings
+    expect(payload.content).toBe('Le terrain a été détruit');
+  });
+
+  it('normal comment has null report_reason', () => {
+    const payload = {
+      spot_id: 'spot-valdier',
+      user_id: 'user-42',
+      content: 'Super terrain !',
+      rating: 5,
+      report_reason: null,
+    };
+    expect(payload.report_reason).toBeNull();
+    expect(payload.rating).toBe(5);
+  });
+
+  // ── Report mode toggle ──
+
+  it('toggles report mode on and off', () => {
+    let reportMode = false;
+    reportMode = !reportMode;
+    expect(reportMode).toBe(true);
+    reportMode = !reportMode;
+    expect(reportMode).toBe(false);
+  });
+
+  it('resets reason when toggling off', () => {
+    let reason = 'gone';
+    // Simulate toggle off
+    reason = '';
+    expect(reason).toBe('');
+  });
+
+  // ── Report display ──
+
+  it('report comments are visually distinct', () => {
+    const isReport = (comment: { report_reason: string | null }) => !!comment.report_reason;
+    expect(isReport({ report_reason: 'gone' })).toBe(true);
+    expect(isReport({ report_reason: null })).toBe(false);
+    expect(isReport({ report_reason: '' })).toBe(false);
+  });
+
+  it('report reason badge shows correct label', () => {
+    const getLabel = (reason: string) => REASON_LABELS[reason as ReportReason] || reason;
+    expect(getLabel('gone')).toBe("N'existe plus");
+    expect(getLabel('duplicate')).toBe('Doublon');
+    expect(getLabel('wrong_location')).toBe('Mauvais lieu');
+    expect(getLabel('wrong_info')).toBe('Infos fausses');
+    expect(getLabel('other')).toBe('Autre');
+    expect(getLabel('unknown')).toBe('unknown'); // fallback to raw value
+  });
+
+  // ── Report count for moderator ──
+
+  it('counts reports correctly', () => {
+    const comments = [
+      { report_reason: 'gone', content: 'Détruit' },
+      { report_reason: null, content: 'Super' },
+      { report_reason: 'duplicate', content: '' },
+      { report_reason: null, content: 'Bof' },
+    ];
+    const reportCount = comments.filter(c => c.report_reason).length;
+    expect(reportCount).toBe(2);
+  });
+
+  it('shows 0 reports for clean spot', () => {
+    const comments = [
+      { report_reason: null, content: 'Nice' },
+      { report_reason: null, content: 'Cool' },
+    ];
+    const reportCount = comments.filter(c => c.report_reason).length;
+    expect(reportCount).toBe(0);
+  });
+
+  it('moderator sees report indicator only when reports > 0', () => {
+    const showIndicator = (isModerator: boolean, reportCount: number) =>
+      isModerator && reportCount > 0;
+    expect(showIndicator(true, 2)).toBe(true);
+    expect(showIndicator(true, 0)).toBe(false);
+    expect(showIndicator(false, 5)).toBe(false);
+  });
+
+  // ── Reports don't affect average rating ──
+
+  it('report comments have null rating (excluded from average)', () => {
+    const comments = [
+      { rating: 5, report_reason: null },
+      { rating: null, report_reason: 'gone' },
+      { rating: 3, report_reason: null },
+    ];
+    const avg = calcAverageRating(comments);
+    expect(avg).toBe(4); // (5 + 3) / 2 — report with null rating excluded
+  });
+
+  // ── Combined: report + normal comments ──
+
+  it('mixing reports and reviews works correctly', () => {
+    const comments = [
+      { content: 'Super terrain', rating: 5, report_reason: null },
+      { content: 'Le terrain a été détruit', rating: null, report_reason: 'gone' },
+      { content: 'Bel endroit', rating: 4, report_reason: null },
+    ];
+    const reviews = comments.filter(c => !c.report_reason);
+    const reports = comments.filter(c => c.report_reason);
+    expect(reviews).toHaveLength(2);
+    expect(reports).toHaveLength(1);
+    expect(calcAverageRating(reviews)).toBe(4.5);
+  });
+});

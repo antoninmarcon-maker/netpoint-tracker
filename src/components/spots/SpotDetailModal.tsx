@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { X, MapPin, Calendar, Info, MessageSquare, Loader2, Star, Upload, Edit3, ExternalLink, Sparkles, Navigation, Zap, Phone, Globe, Leaf, Heart } from 'lucide-react';
+import { X, MapPin, Calendar, Info, MessageSquare, Loader2, Star, Upload, Edit3, ExternalLink, Sparkles, Navigation, Zap, Phone, Globe, Leaf, Heart, Flag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +29,8 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
   const [postingComment, setPostingComment] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [generatingSummary, setGeneratingSummary] = useState(false);
+  const [reportMode, setReportMode] = useState(false);
+  const [reportReason, setReportReason] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef<number | null>(null);
@@ -108,7 +110,9 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
 
   const handlePostComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!spotId || (!newComment.trim() && newRating === 0 && newPhotos.length === 0)) return;
+    if (!spotId) return;
+    if (reportMode && !reportReason) { toast.error(t('spots.reportReasonRequired', 'Veuillez choisir une raison.')); return; }
+    if (!reportMode && !newComment.trim() && newRating === 0 && newPhotos.length === 0) return;
     if (!checkAndIncrementRateLimit()) return;
     setPostingComment(true);
     try {
@@ -120,11 +124,13 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
 
       await (supabase as any).from('spot_comments').insert([{
         spot_id: spotId, user_id: userId, content: newComment.trim(),
-        rating: newRating > 0 ? newRating : null, photos: uploadedUrls.length > 0 ? uploadedUrls : null,
+        rating: reportMode ? null : (newRating > 0 ? newRating : null),
+        photos: uploadedUrls.length > 0 ? uploadedUrls : null,
+        report_reason: reportMode ? reportReason : null,
       }]);
-      setNewComment(''); setNewRating(0); setNewPhotos([]);
+      setNewComment(''); setNewRating(0); setNewPhotos([]); setReportMode(false); setReportReason('');
       loadSpotDetails(spotId);
-      toast.success(t('spots.commentPosted'));
+      toast.success(reportMode ? t('spots.reportSubmitted', 'Signalement envoyé') : t('spots.commentPosted'));
     } catch (err) { console.error(err); toast.error(t('spots.commentError')); }
     finally { setPostingComment(false); }
   };
@@ -353,10 +359,27 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                   </div>
                 )}
 
-                {/* Edit action */}
-                <Button onClick={() => onEdit(spot)} variant="outline" className="w-full text-xs h-10 rounded-[10px]">
-                  <Edit3 size={14} className="mr-1.5" /> Suggérer une modification
-                </Button>
+                {/* Actions row */}
+                <div className="flex gap-2">
+                  <Button onClick={() => onEdit(spot)} variant="outline" className="flex-1 text-xs h-10 rounded-[10px]">
+                    <Edit3 size={14} className="mr-1.5" /> {t('spots.suggestEdit', 'Modifier')}
+                  </Button>
+                  <Button
+                    onClick={() => { setReportMode(r => !r); setReportReason(''); }}
+                    variant="outline"
+                    className={`text-xs h-10 rounded-[10px] px-3 ${reportMode ? 'border-red-500/50 text-red-500' : ''}`}
+                  >
+                    <Flag size={14} />
+                  </Button>
+                </div>
+
+                {/* Report count for moderator */}
+                {isModerator && comments.filter((c: any) => c.report_reason).length > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-red-500/8 border border-red-500/15 rounded-xl text-xs text-red-400">
+                    <Flag size={12} />
+                    {comments.filter((c: any) => c.report_reason).length} signalement{comments.filter((c: any) => c.report_reason).length > 1 ? 's' : ''}
+                  </div>
+                )}
 
                 {/* Moderator actions */}
                 {isModerator && spot.status !== 'validated' && (
@@ -384,16 +407,45 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                     <MessageSquare size={14} /> Commentaires ({comments.length})
                   </h3>
 
-                  <form onSubmit={handlePostComment} className="space-y-3 bg-secondary/15 p-3.5 rounded-xl border border-border/40">
-                    <div className="flex items-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <button key={star} type="button" onClick={() => setNewRating(star)} className="p-0.5 active:scale-110 transition-transform">
-                          <Star size={20} className={star <= newRating ? "text-accent fill-accent" : "text-border"} />
-                        </button>
-                      ))}
-                    </div>
+                  <form onSubmit={handlePostComment} className={`space-y-3 p-3.5 rounded-xl border ${reportMode ? 'bg-red-500/5 border-red-500/20' : 'bg-secondary/15 border-border/40'}`}>
+                    {reportMode ? (
+                      <>
+                        <div className="flex items-center gap-2 text-red-400 text-xs font-semibold">
+                          <Flag size={12} /> {t('spots.reportTitle', 'Signaler ce terrain')}
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            { key: 'gone', label: t('spots.reportGone', "N'existe plus") },
+                            { key: 'duplicate', label: t('spots.reportDuplicate', 'Doublon') },
+                            { key: 'wrong_location', label: t('spots.reportWrongLocation', 'Mauvais emplacement') },
+                            { key: 'wrong_info', label: t('spots.reportWrongInfo', 'Infos incorrectes') },
+                            { key: 'other', label: t('spots.reportOther', 'Autre') },
+                          ].map(r => (
+                            <button
+                              key={r.key} type="button"
+                              onClick={() => setReportReason(r.key)}
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-all active:scale-95 ${
+                                reportReason === r.key
+                                  ? 'bg-red-500 text-white border-red-500'
+                                  : 'bg-background/80 text-foreground/70 border-border/50'
+                              }`}
+                            >
+                              {r.label}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button key={star} type="button" onClick={() => setNewRating(star)} className="p-0.5 active:scale-110 transition-transform">
+                            <Star size={20} className={star <= newRating ? "text-accent fill-accent" : "text-border"} />
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <Input
-                      placeholder="Votre avis..."
+                      placeholder={reportMode ? t('spots.reportPlaceholder', 'Détails (optionnel)...') : 'Votre avis...'}
                       value={newComment}
                       onChange={e => setNewComment(e.target.value)}
                       className="bg-background text-sm rounded-lg h-10"
@@ -411,18 +463,29 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                           <Upload size={11} className="mr-1" /> Photos ({newPhotos.length}/5)
                         </Button>
                       </div>
-                      <Button type="submit" size="sm" disabled={postingComment || (!newComment.trim() && newRating === 0 && newPhotos.length === 0)} className="rounded-lg h-8 text-xs">
-                        Envoyer
+                      <Button
+                        type="submit" size="sm"
+                        disabled={postingComment || (reportMode ? !reportReason : (!newComment.trim() && newRating === 0 && newPhotos.length === 0))}
+                        className={`rounded-lg h-8 text-xs ${reportMode ? 'bg-red-600 hover:bg-red-700 text-white' : ''}`}
+                      >
+                        {reportMode ? t('spots.reportSend', 'Signaler') : 'Envoyer'}
                       </Button>
                     </div>
                   </form>
 
                   {comments.map((c: any, i: number) => (
-                    <div key={i} className="bg-secondary/15 p-3.5 rounded-xl border border-border/30">
+                    <div key={i} className={`p-3.5 rounded-xl border ${c.report_reason ? 'bg-red-500/5 border-red-500/20' : 'bg-secondary/15 border-border/30'}`}>
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="font-semibold text-xs text-foreground">{c.authorName}</span>
                         <div className="flex items-center gap-2">
-                          {c.rating && (
+                          {c.report_reason && (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded-full">
+                              <Flag size={8} /> {
+                                { gone: "N'existe plus", duplicate: 'Doublon', wrong_location: 'Mauvais lieu', wrong_info: 'Infos fausses', other: 'Autre' }[c.report_reason as string] || c.report_reason
+                              }
+                            </span>
+                          )}
+                          {c.rating && !c.report_reason && (
                             <div className="flex items-center text-yellow-500">
                               <Star size={10} fill="currentColor" className="mr-0.5" />
                               <span className="text-[10px] font-bold">{c.rating}</span>

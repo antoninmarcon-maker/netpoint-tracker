@@ -29,19 +29,20 @@
 
 ---
 
-## Bug 3 : Notations absentes des statistiques
-**Fichier** : `src/components/ScoreBoard.tsx:125`
-**Cause** : `hasRating` default à `false` dans `handleActionSelect`. Même avec `enableRatings: true` global, la notation n'est jamais demandée sauf si l'action a explicitement `hasRating: true` dans sa config.
-**Fix** : Dans ScoreBoard.tsx `handleActionSelect`, changer le default de `hasRating` : si `metadata?.enableRatings` est true, default à `true` au lieu de `false`.
+## Bug 3 : Notations — affichage incomplet dans les stats ✅ FIXÉ
+**Analyse** : La notation EST demandée correctement (matchRules.ts utilise `globalRatingsEnabled || perActionRating`). Le vrai problème était côté affichage :
+1. `ratingKey` des custom scored/fault actions utilisait le key générique (`other_offensive`) au lieu du label → ratings agrégées et invisibles
+2. Les lignes custom stats n'avaient pas de `InlineRatingDots`
+3. Les totaux team-level (`ratingsPositive/Neutral/Negative`) étaient calculés mais jamais rendus
+4. Les rating dots étaient affichées pour les fautes (toujours vides car faults ne sont jamais notées)
+5. `getVisibleActions` ne passait pas `hasRating` pour les custom actions
 
-### Protocole de test
-- [ ] Créer un match avec "Notations" activé dans les réglages
-- [ ] Marquer un point (attaque, ace, etc.)
-- [ ] Vérifier que le sélecteur de notation (positive/neutre/négative) apparaît
-- [ ] Aller dans l'onglet Stats
-- [ ] Activer le toggle "Notations"
-- [ ] Vérifier que les pastilles colorées apparaissent dans les stats joueur
-- [ ] Vérifier qu'avec "Notations" désactivé dans les réglages, aucune notation n'est demandée
+**Fix appliqué** :
+- `HeatmapView.tsx:231` : `ratingKey = customActionLabel || action` (au lieu de seulement `action` pour scored/fault)
+- `HeatmapView.tsx:685` : ajout `InlineRatingDots` aux lignes custom stats
+- `HeatmapView.tsx:697` : ajout résumé global des ratings par équipe
+- `HeatmapView.tsx:661` : suppression rating dots des lignes de fautes
+- `actionsConfig.ts:236` : ajout `hasRating` dans le mapping des custom actions
 
 ---
 

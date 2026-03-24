@@ -233,6 +233,7 @@ export function getVisibleActions(
       ...(c.showOnCourt != null ? { showOnCourt: c.showOnCourt } : {}),
       ...(c.assignToPlayer != null ? { assignToPlayer: c.assignToPlayer } : {}),
       ...(c.hasDirection ? { hasDirection: true } : {}),
+      ...(c.hasRating ? { hasRating: true } : {}),
     }));
   return [...visible, ...customs];
 }

@@ -7,3 +7,5 @@
 [2026-03-19] | Heatmap normalization looked like a sidesSwapped bug but was actually correct | Verify assumptions by reading the full data flow before filing a bug
 [2026-03-19] | analyze-match Edge Function seemed to have auth bypass but actually takes client data, not DB IDs | Check if function queries DB before flagging auth issues
 [2026-03-19] | Theme flash caused by applying dark class in React instead of before first paint | Always apply theme in a blocking `<script>` in `<head>` before CSS loads
+[2026-03-24] | Bug analysis in todo.md was wrong — `hasRating: false` vs `undefined` misdiagnosed as "ratings never requested" when matchRules OR logic saved it | Always trace the FULL code path before documenting root cause; check OR/fallback conditions
+[2026-03-24] | Custom action properties (hasRating) lost in getVisibleActions mapping — worked by accident via fallback | When mapping object types, include ALL relevant fields; don't rely on downstream fallbacks

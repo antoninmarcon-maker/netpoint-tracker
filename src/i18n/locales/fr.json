@@ -705,7 +705,18 @@
     "suggestionSubmitted": "Modification suggérée avec succès !",
     "moderationError": "Erreur lors de la modération",
     "spotApproved": "Terrain validé",
-    "spotRejected": "Terrain rejeté"
+    "spotRejected": "Terrain rejeté",
+    "suggestEdit": "Modifier",
+    "reportTitle": "Signaler ce terrain",
+    "reportGone": "N'existe plus",
+    "reportDuplicate": "Doublon",
+    "reportWrongLocation": "Mauvais emplacement",
+    "reportWrongInfo": "Infos incorrectes",
+    "reportOther": "Autre",
+    "reportPlaceholder": "Détails (optionnel)...",
+    "reportSend": "Signaler",
+    "reportSubmitted": "Signalement envoyé, merci !",
+    "reportReasonRequired": "Veuillez choisir une raison."
   },
   "months": {
     "january": "Janvier",

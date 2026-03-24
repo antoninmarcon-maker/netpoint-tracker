@@ -228,7 +228,7 @@ function computeStats(pts: Point[], visibleKeys: Set<string>, visibleLabels: Set
           else if (a.rating === 'neutral') ratingsNeutral++;
           else if (a.rating === 'negative') ratingsNegative++;
 
-          const ratingKey = (a.type === 'neutral') ? (a.customActionLabel || a.action) : a.action;
+          const ratingKey = a.customActionLabel || a.action;
           if (!actionRatings[ratingKey]) actionRatings[ratingKey] = { positive: 0, neutral: 0, negative: 0, total: 0 };
           actionRatings[ratingKey][a.rating]++;
           actionRatings[ratingKey].total++;
@@ -656,9 +656,8 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
                   [t('heatmap.blockOuts'), ds[team].blockOuts, 'block_out'],
                 ].map(([label, val, key]) => (
                   <div key={label as string} className="flex items-center justify-between pl-2">
-                    <span className="text-muted-foreground text-[11px] flex items-center gap-1">
+                    <span className="text-muted-foreground text-[11px]">
                       {label}
-                      {showRatings && ds[team].actionRatings[key as string] && <InlineRatingDots r={ds[team].actionRatings[key as string]} />}
                     </span>
                     <span className="font-bold text-foreground text-[11px]">{val as number}</span>
                   </div>
@@ -683,8 +682,11 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
                       <span className="text-muted-foreground font-semibold text-[11px]">✨ Personnalisés</span>
                     </div>
                     {Object.entries(ds[team].customStats).map(([label, val]) => (
-                      <div key={label} className="flex justify-between pl-2">
-                        <span className="text-muted-foreground text-[11px]">{label}</span>
+                      <div key={label} className="flex items-center justify-between pl-2">
+                        <span className="text-muted-foreground text-[11px] flex items-center gap-1">
+                          {label}
+                          {showRatings && ds[team].actionRatings[label] && <InlineRatingDots r={ds[team].actionRatings[label]} />}
+                        </span>
                         <span className="font-bold text-foreground text-[11px]">{val}</span>
                       </div>
                     ))}
@@ -695,6 +697,17 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
                   <span className="text-muted-foreground text-xs">{t('common.total')}</span>
                   <span className="font-bold text-foreground text-xs">{ds[team].scored + ds[team].faults + ds[team].neutral}</span>
                 </div>
+
+                {showRatings && (ds[team].ratingsPositive > 0 || ds[team].ratingsNeutral > 0 || ds[team].ratingsNegative > 0) && (
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-muted-foreground text-[11px]">{t('heatmap.ratings', 'Notations')}</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      {ds[team].ratingsPositive > 0 && <span className="inline-flex items-center gap-0.5"><span className="w-2 h-2 rounded-full bg-green-500" /><span className="text-[11px] font-bold text-green-500">{ds[team].ratingsPositive}</span></span>}
+                      {ds[team].ratingsNeutral > 0 && <span className="inline-flex items-center gap-0.5"><span className="w-2 h-2 rounded-full bg-orange-500" /><span className="text-[11px] font-bold text-orange-500">{ds[team].ratingsNeutral}</span></span>}
+                      {ds[team].ratingsNegative > 0 && <span className="inline-flex items-center gap-0.5"><span className="w-2 h-2 rounded-full bg-destructive" /><span className="text-[11px] font-bold text-destructive">{ds[team].ratingsNegative}</span></span>}
+                    </span>
+                  </div>
+                )}
 
               </div>
             </div>
