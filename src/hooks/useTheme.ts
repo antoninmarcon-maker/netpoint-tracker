@@ -20,6 +20,9 @@ export function useTheme() {
   useEffect(() => {
     applyTheme(theme);
     userStorage.setItem('theme', theme);
+    // Also write to the raw key so the blocking <script> in index.html
+    // can read it before React mounts (prevents flash of wrong theme)
+    localStorage.setItem('theme', theme);
   }, [theme]);
 
   useEffect(() => {
