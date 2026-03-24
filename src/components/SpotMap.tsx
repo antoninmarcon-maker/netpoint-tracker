@@ -1,5 +1,5 @@
 // @ts-nocheck — react-leaflet types mismatch with current version
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { supabase } from '@/integrations/supabase/client';
@@ -149,6 +149,33 @@ function AddMarkerController({ isActive, location, onChange }: {
   return null;
 }
 
+interface MapBounds { south: number; north: number; west: number; east: number; zoom: number }
+
+function BoundsWatcher({ onChange }: { onChange: (b: MapBounds) => void }) {
+  const map = useMap();
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const emit = useCallback(() => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      const b = map.getBounds();
+      onChange({
+        south: b.getSouth(), north: b.getNorth(),
+        west: b.getWest(), east: b.getEast(),
+        zoom: map.getZoom(),
+      });
+    }, 300);
+  }, [map, onChange]);
+
+  useEffect(() => {
+    emit(); // initial bounds
+    map.on('moveend', emit);
+    return () => { map.off('moveend', emit); if (timer.current) clearTimeout(timer.current); };
+  }, [map, emit]);
+
+  return null;
+}
+
 export default function SpotMap({
   selectedSpotId, onSelectSpot, isAddingMode, newSpotLocation, onNewSpotLocationChange,
   filters, onFiltersChange, isModerator, onUserPositionChange, recenterTrigger = 0,
@@ -156,12 +183,16 @@ export default function SpotMap({
   const { t } = useTranslation();
   const [spots, setSpots] = useState<Tables<'spots_with_coords'>[]>([]);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
+  const [bounds, setBounds] = useState<MapBounds | null>(null);
+  const ZOOM_THRESHOLD = 8; // filter by bounds when zoomed in enough
+
+  const handleBoundsChange = useCallback((b: MapBounds) => setBounds(b), []);
 
   useEffect(() => {
+    if (!bounds) return;
     const load = async () => {
-      let query = supabase
-        .from('spots_with_coords')
-        .select('id, name, type, source, lat, lng, status, equip_sol, equip_eclairage, equip_acces_libre, equip_pmr, equip_saisonnier');
+      const cols = 'id, name, type, source, lat, lng, status, equip_sol, equip_eclairage, equip_acces_libre, equip_pmr, equip_saisonnier';
+      let query = supabase.from('spots_with_coords').select(cols);
 
       if (filters.showPending) {
         query = query.eq('status', 'waiting_for_validation');
@@ -169,12 +200,21 @@ export default function SpotMap({
         query = query.eq('status', 'validated');
       }
 
+      // When zoomed in, filter by visible bounds to bypass 1000-row limit
+      if (bounds.zoom >= ZOOM_THRESHOLD) {
+        query = query
+          .gte('lat', bounds.south)
+          .lte('lat', bounds.north)
+          .gte('lng', bounds.west)
+          .lte('lng', bounds.east);
+      }
+
       const { data, error } = await query;
       if (error) console.error('[SpotMap] loadSpots error:', error);
       if (!error && data) setSpots(data);
     };
     load();
-  }, [filters.showPending]);
+  }, [filters.showPending, bounds]);
 
   const handleUserPosition = useCallback((pos: [number, number]) => {
     setUserPosition(pos);
@@ -230,6 +270,7 @@ export default function SpotMap({
           isModerator={isModerator}
         />
 
+        <BoundsWatcher onChange={handleBoundsChange} />
         <UserLocationMarker onPosition={handleUserPosition} />
         <RecenterController trigger={recenterTrigger} />
         <AddMarkerController isActive={isAddingMode} location={newSpotLocation} onChange={onNewSpotLocationChange} />
