@@ -36,7 +36,7 @@ export default function Spots() {
       setIsModerator(MODERATOR_EMAILS.includes(data?.user?.email || ''));
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsModerator(session?.user?.email === MODERATOR_EMAIL);
+      setIsModerator(MODERATOR_EMAILS.includes(session?.user?.email || ''));
     });
     return () => subscription.unsubscribe();
   }, []);
