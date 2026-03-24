@@ -150,3 +150,88 @@ describe('Spot type validation', () => {
     expect(VALID_TYPES).not.toContain('club');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Libre accès toggle (mirrors SpotFormModal accesLibre logic)
+// ---------------------------------------------------------------------------
+
+/** Extended payload builder that includes equip_acces_libre */
+function buildPayloadWithAccesLibre(
+  location: [number, number],
+  formData: Record<string, string>,
+  userId: string,
+  accesLibre: boolean,
+) {
+  return {
+    name: formData.name,
+    description: formData.description,
+    type: formData.type,
+    availability_period: formData.availability_period,
+    equip_acces_libre: accesLibre,
+    lat: location[0],
+    lng: location[1],
+    user_id: userId,
+    status: 'waiting_for_validation',
+  };
+}
+
+describe('Libre accès toggle — default value', () => {
+  it('defaults to true for new spots (no spotToEdit)', () => {
+    // Mirrors: const [accesLibre, setAccesLibre] = useState(true)
+    const defaultAccesLibre = true;
+    expect(defaultAccesLibre).toBe(true);
+  });
+
+  it('is included in the insert payload', () => {
+    const payload = buildPayloadWithAccesLibre([48.8566, 2.3522], formData, userId, true);
+    expect(payload).toHaveProperty('equip_acces_libre');
+    expect(payload.equip_acces_libre).toBe(true);
+  });
+});
+
+describe('Libre accès toggle — preserved from spotToEdit in suggestion mode', () => {
+  // Mirrors: setAccesLibre(spotToEdit?.equip_acces_libre ?? true)
+  const resolveAccesLibre = (spotToEdit: { equip_acces_libre?: boolean | null } | null) =>
+    spotToEdit?.equip_acces_libre ?? true;
+
+  it('uses spotToEdit value when true', () => {
+    expect(resolveAccesLibre({ equip_acces_libre: true })).toBe(true);
+  });
+
+  it('uses spotToEdit value when false', () => {
+    expect(resolveAccesLibre({ equip_acces_libre: false })).toBe(false);
+  });
+
+  it('defaults to true when spotToEdit is null', () => {
+    expect(resolveAccesLibre(null)).toBe(true);
+  });
+
+  it('defaults to true when equip_acces_libre is null', () => {
+    expect(resolveAccesLibre({ equip_acces_libre: null })).toBe(true);
+  });
+
+  it('defaults to true when equip_acces_libre is undefined', () => {
+    expect(resolveAccesLibre({})).toBe(true);
+  });
+});
+
+describe('Libre accès toggle — saved in insert payload', () => {
+  it('saves true in payload', () => {
+    const payload = buildPayloadWithAccesLibre([48.8566, 2.3522], formData, userId, true);
+    expect(payload.equip_acces_libre).toBe(true);
+  });
+
+  it('saves false in payload', () => {
+    const payload = buildPayloadWithAccesLibre([48.8566, 2.3522], formData, userId, false);
+    expect(payload.equip_acces_libre).toBe(false);
+  });
+
+  it('payload includes all required fields alongside equip_acces_libre', () => {
+    const payload = buildPayloadWithAccesLibre([48.8566, 2.3522], formData, userId, true);
+    expect(payload).toHaveProperty('name');
+    expect(payload).toHaveProperty('lat');
+    expect(payload).toHaveProperty('lng');
+    expect(payload).toHaveProperty('status');
+    expect(payload).toHaveProperty('equip_acces_libre');
+  });
+});

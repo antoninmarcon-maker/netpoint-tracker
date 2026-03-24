@@ -93,7 +93,7 @@ export default function Spots() {
         <div className="flex items-center gap-2 px-3 py-2 pointer-events-auto">
           <button
             onClick={() => navigate('/')}
-            className="w-10 h-10 rounded-2xl bg-[rgba(9,9,11,0.85)] backdrop-blur-xl border border-border/50 shadow-lg flex items-center justify-center text-foreground hover:bg-[rgba(9,9,11,0.95)] transition-colors active:scale-95 flex-none"
+            className="w-10 h-10 rounded-2xl glass-btn border border-border/50 shadow-lg flex items-center justify-center text-foreground transition-colors active:scale-95 flex-none"
           >
             <ArrowLeft size={18} />
           </button>
@@ -116,7 +116,7 @@ export default function Spots() {
           {/* Recenter */}
           <button
             onClick={() => setRecenterTrigger(t => t + 1)}
-            className="w-12 h-12 rounded-2xl bg-[rgba(9,9,11,0.85)] backdrop-blur-xl border border-border/50 shadow-lg flex items-center justify-center text-foreground hover:bg-[rgba(9,9,11,0.95)] transition-all active:scale-95"
+            className="w-12 h-12 rounded-2xl glass-btn border border-border/50 shadow-lg flex items-center justify-center text-foreground transition-all active:scale-95"
             title="Ma position"
           >
             <Locate size={18} />
@@ -128,7 +128,7 @@ export default function Spots() {
             className={`h-12 rounded-2xl border shadow-lg flex items-center gap-2 px-5 font-semibold text-sm transition-all active:scale-95 ${
               showList
                 ? 'bg-foreground text-background border-foreground'
-                : 'bg-[rgba(9,9,11,0.85)] backdrop-blur-xl text-foreground border-border/50 hover:bg-[rgba(9,9,11,0.95)]'
+                : 'glass-btn text-foreground border-border/50'
             }`}
           >
             {showList ? <><MapIcon size={16} /> Carte</> : <><List size={16} /> Liste</>}

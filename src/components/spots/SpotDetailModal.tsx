@@ -186,7 +186,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
         className={`fixed inset-x-0 bottom-0 z-50 max-h-[90vh] transition-transform duration-300 ease-out ${spotId ? 'translate-y-0' : 'translate-y-full'}`}
         style={dragOffset > 0 ? { transform: `translateY(${dragOffset}px)`, transition: 'none' } : undefined}
       >
-        <div className="bg-[rgba(9,9,11,0.92)] backdrop-blur-2xl rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="glass-overlay rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border-t border-border/40">
           {/* Drag handle + close button */}
           <div className="flex items-center justify-between px-4 pt-3 pb-1 flex-none">
             <div className="w-9" />

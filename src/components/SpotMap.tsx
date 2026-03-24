@@ -1,5 +1,5 @@
 // @ts-nocheck — react-leaflet types mismatch with current version
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +18,18 @@ import { SPOT_TYPE_CONFIG } from '@/lib/spotTypes';
 import type { Tables } from '@/integrations/supabase/types';
 
 L.Icon.Default.mergeOptions({ iconRetinaUrl, iconUrl, shadowUrl });
+
+const TILE_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
+function useIsDark() {
+  const subscribe = useCallback((cb: () => void) => {
+    const obs = new MutationObserver(cb);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
+  return useSyncExternalStore(subscribe, () => document.documentElement.classList.contains('dark'));
+}
 
 interface SpotMapProps {
   selectedSpotId: string | null;
@@ -181,6 +193,7 @@ export default function SpotMap({
   filters, onFiltersChange, isModerator, onUserPositionChange, recenterTrigger = 0,
 }: SpotMapProps) {
   const { t } = useTranslation();
+  const isDark = useIsDark();
   const [spots, setSpots] = useState<Tables<'spots_with_coords'>[]>([]);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
   const [bounds, setBounds] = useState<MapBounds | null>(null);
@@ -226,24 +239,27 @@ export default function SpotMap({
   const createClusterCustomIcon = useCallback((cluster: any) => {
     const count = cluster.getChildCount();
     const fontSize = count > 100 ? 14 : 12;
+    const bg = isDark ? '#fafafa' : '#09090b';
+    const fg = isDark ? '#09090b' : '#fafafa';
+    const border = isDark ? '#09090b' : '#d4d4d8';
 
     return L.divIcon({
       className: '',
       html: `<div style="
         width: 42px; height: 42px;
         border-radius: 50%;
-        background: #fafafa;
-        color: #09090b;
+        background: ${bg};
+        color: ${fg};
         display: flex; align-items: center; justify-content: center;
         font-weight: 700; font-size: ${fontSize}px;
         font-family: 'DM Sans', sans-serif;
-        border: 2px solid #09090b;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+        border: 2px solid ${border};
+        box-shadow: 0 2px 12px rgba(0,0,0,0.25);
       ">${count}</div>`,
       iconSize: [42, 42],
       iconAnchor: [21, 21],
     });
-  }, []);
+  }, [isDark]);
 
   return (
     <div className="w-full h-full relative">
@@ -255,8 +271,9 @@ export default function SpotMap({
         attributionControl={false}
       >
         <TileLayer
+          key={isDark ? 'dark' : 'light'}
           attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url={isDark ? TILE_DARK : TILE_LIGHT}
         />
 
         {/* Search bar — sits in the top bar area alongside back button */}

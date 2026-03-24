@@ -57,7 +57,7 @@ export default function SpotListView({ spots, selectedSpotId, onSelectSpot, user
   ];
 
   return (
-    <div className="flex flex-col h-full bg-[rgba(9,9,11,0.92)] backdrop-blur-2xl md:border-l border-border/40 rounded-t-3xl md:rounded-none shadow-2xl md:shadow-none">
+    <div className="flex flex-col h-full glass-overlay md:border-l border-border/40 rounded-t-3xl md:rounded-none shadow-2xl md:shadow-none border-t border-border/40 md:border-t-0">
       {/* Drag handle — mobile only */}
       <div className="flex justify-center pt-2.5 pb-1 md:hidden">
         <div className="w-10 h-1 rounded-full bg-border" />
