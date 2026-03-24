@@ -111,7 +111,7 @@ serve(async (req) => {
           contents: [
             { role: "user", parts: [{ text: `Voici les statistiques du match à analyser :\n\n${matchStats}` }] },
           ],
-          generationConfig: { maxOutputTokens: 1024 },
+          generationConfig: { maxOutputTokens: 8192 },
         }),
       }
     );
