@@ -43,10 +43,17 @@ const updateSW = registerSW({
     if (registration) {
       // Check immediately on page load
       registration.update();
-      // Then check every 60 seconds
+
+      // Check every 60s while tab is visible
       setInterval(() => {
-        registration.update();
+        if (!document.hidden) registration.update();
       }, 60 * 1000);
+
+      // Check when app comes back to foreground (critical for mobile PWAs
+      // where the process is suspended in background)
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) registration.update();
+      });
     }
   },
 });
