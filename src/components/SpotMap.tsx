@@ -167,6 +167,9 @@ export default function SpotMap({
     }
 
     const { data, error } = await query;
+    if (error) console.error('[SpotMap] loadSpots error:', error);
+    const pending = (data || []).filter((s: any) => s.status === 'waiting_for_validation');
+    console.log(`[SpotMap] loadSpots: showPending=${filters.showPending}, total=${data?.length}, pending=${pending.length}`);
     if (!error && data) setSpots(data);
   }, [filters.showPending]);
 
