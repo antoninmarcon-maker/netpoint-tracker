@@ -70,8 +70,8 @@ serve(async (req) => {
       });
     }
 
-    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
     const body = await req.json();
     const { matchStats, sport } = body;
@@ -101,22 +101,20 @@ serve(async (req) => {
 
     const systemPrompt = getSystemPrompt(sport || 'volleyball');
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages: [
-          { role: "user", content: `Voici les statistiques du match à analyser :\n\n${matchStats}` },
-        ],
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [
+            { role: "user", parts: [{ text: `Voici les statistiques du match à analyser :\n\n${matchStats}` }] },
+          ],
+          generationConfig: { maxOutputTokens: 1024 },
+        }),
+      }
+    );
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -126,7 +124,7 @@ serve(async (req) => {
         });
       }
       const t = await response.text();
-      console.error("Anthropic API error:", response.status, t);
+      console.error("Gemini API error:", response.status, t);
       return new Response(JSON.stringify({ error: "Erreur du service d'analyse" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -134,7 +132,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const analysis = data.content?.[0]?.text || "Analyse non disponible.";
+    const analysis = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analyse non disponible.";
 
     return new Response(JSON.stringify({ analysis }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

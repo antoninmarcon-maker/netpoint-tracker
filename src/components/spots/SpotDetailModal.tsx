@@ -30,6 +30,29 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
   const [isFavorite, setIsFavorite] = useState(false);
   const [generatingSummary, setGeneratingSummary] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const dragStartY = useRef<number | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
+
+  // Swipe-down to close
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const el = sheetRef.current;
+    if (el && el.scrollTop <= 0) {
+      dragStartY.current = e.touches[0].clientY;
+    }
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (dragStartY.current === null) return;
+    const dy = e.touches[0].clientY - dragStartY.current;
+    if (dy > 0) setDragOffset(dy);
+  };
+  const handleTouchEnd = () => {
+    if (dragOffset > 120) {
+      onClose();
+    }
+    setDragOffset(0);
+    dragStartY.current = null;
+  };
 
   useEffect(() => {
     if (spotId) {
@@ -143,11 +166,21 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
       />
 
       {/* Bottom sheet */}
-      <div className={`fixed inset-x-0 bottom-0 z-50 max-h-[90vh] transition-transform duration-300 ease-out ${spotId ? 'translate-y-0' : 'translate-y-full'}`}>
+      <div
+        className={`fixed inset-x-0 bottom-0 z-50 max-h-[90vh] transition-transform duration-300 ease-out ${spotId ? 'translate-y-0' : 'translate-y-full'}`}
+        style={dragOffset > 0 ? { transform: `translateY(${dragOffset}px)`, transition: 'none' } : undefined}
+      >
         <div className="bg-[rgba(9,9,11,0.92)] backdrop-blur-2xl rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-          {/* Drag handle */}
-          <div className="flex justify-center pt-3 pb-1 flex-none">
+          {/* Drag handle + close button */}
+          <div className="flex items-center justify-between px-4 pt-3 pb-1 flex-none">
+            <div className="w-9" />
             <div className="w-10 h-1 rounded-full bg-border" />
+            <button
+              onClick={onClose}
+              className="w-9 h-9 rounded-full bg-secondary/60 flex items-center justify-center hover:bg-secondary transition-colors active:scale-95"
+            >
+              <X size={16} className="text-muted-foreground" />
+            </button>
           </div>
 
           {loading ? (
@@ -155,7 +188,13 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
               <Loader2 className="animate-spin text-primary" size={24} />
             </div>
           ) : spot ? (
-            <div className="overflow-y-auto flex-1 overscroll-contain">
+            <div
+              ref={sheetRef}
+              className="overflow-y-auto flex-1 overscroll-contain"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               {/* Photo carousel */}
               {photos.length > 0 ? (
                 <div className="flex overflow-x-auto snap-x hide-scrollbar">
@@ -403,13 +442,8 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                   )}
                 </div>
 
-                {/* Close button at the very bottom for mobile */}
-                <button
-                  onClick={onClose}
-                  className="w-full py-3 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Fermer
-                </button>
+                {/* Bottom safe padding for mobile */}
+                <div className="h-[env(safe-area-inset-bottom)]" />
               </div>
             </div>
           ) : (

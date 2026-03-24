@@ -57,8 +57,8 @@ Deno.serve(async (req) => {
       })
     }
 
-    const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY')
-    if (!anthropicApiKey) {
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
+    if (!geminiApiKey) {
       return new Response(JSON.stringify({ error: 'AI not configured' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -107,27 +107,25 @@ Deno.serve(async (req) => {
 
     const sanitizedName = spot.name.replace(/["'`\\]/g, "").slice(0, 100);
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": anthropicApiKey,
-        "anthropic-version": "2023-06-01",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 512,
-        system: `Tu es un assistant qui résume les avis de joueurs sur un terrain de volleyball/beach-volley appelé ${sanitizedName}. Crée un résumé court (3 phrases max) et utile en français. Mentionne la qualité du terrain, l'ambiance et les points positifs/négatifs. Sois factuel et direct.`,
-        messages: [
-          { role: "user", content: `Voici les ${comments.length} avis des joueurs :\n${commentsList}` },
-        ],
-      }),
-    })
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: `Tu es un assistant qui résume les avis de joueurs sur un terrain de volleyball/beach-volley appelé ${sanitizedName}. Crée un résumé court (3 phrases max) et utile en français. Mentionne la qualité du terrain, l'ambiance et les points positifs/négatifs. Sois factuel et direct.` }] },
+          contents: [
+            { role: "user", parts: [{ text: `Voici les ${comments.length} avis des joueurs :\n${commentsList}` }] },
+          ],
+          generationConfig: { maxOutputTokens: 512 },
+        }),
+      }
+    )
 
     if (!response.ok) {
       const status = response.status
       const text = await response.text()
-      console.error("Anthropic API error:", status, text)
+      console.error("Gemini API error:", status, text)
 
       if (status === 429) {
         return new Response(JSON.stringify({ error: 'rate_limit', message: 'Trop de requêtes, réessayez plus tard.' }), {
@@ -141,7 +139,7 @@ Deno.serve(async (req) => {
     }
 
     const data = await response.json()
-    const summary = data.content?.[0]?.text || null
+    const summary = data.candidates?.[0]?.content?.parts?.[0]?.text || null
 
     if (!summary) {
       return new Response(JSON.stringify({ error: 'empty_response' }), {

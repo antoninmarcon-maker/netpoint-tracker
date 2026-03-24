@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
-async function getAiSummary(reviews: any[], anthropicApiKey: string) {
+async function getAiSummary(reviews: any[], geminiApiKey: string) {
   if (!reviews || reviews.length === 0) return null;
 
   const reviewsText = reviews
@@ -17,29 +17,27 @@ async function getAiSummary(reviews: any[], anthropicApiKey: string) {
   if (!reviewsText) return null;
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": anthropicApiKey,
-        "anthropic-version": "2023-06-01",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 256,
-        system: "Tu es un assistant qui résume des avis sur des terrains de volley/beach-volley. Crée un résumé court (2 phrases max) et attrayant en français basé sur les avis fournis. Ne mentionne pas que c'est un résumé IA dans le texte lui-même. Sois factuel sur les installations.",
-        messages: [
-          { role: "user", content: `Voici les avis :\n${reviewsText}` },
-        ],
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: "Tu es un assistant qui résume des avis sur des terrains de volley/beach-volley. Crée un résumé court (2 phrases max) et attrayant en français basé sur les avis fournis. Ne mentionne pas que c'est un résumé IA dans le texte lui-même. Sois factuel sur les installations." }] },
+          contents: [
+            { role: "user", parts: [{ text: `Voici les avis :\n${reviewsText}` }] },
+          ],
+          generationConfig: { maxOutputTokens: 256 },
+        }),
+      }
+    );
 
     if (!response.ok) {
-      console.error("Anthropic API error:", response.status, await response.text());
+      console.error("Gemini API error:", response.status, await response.text());
       return null;
     }
     const data = await response.json();
-    return data.content?.[0]?.text || null;
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
   } catch (err) {
     console.error("AI aggregation error:", err);
     return null;
@@ -50,7 +48,7 @@ async function runImportSpots(query: string = 'terrain de beach volley France') 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   const googleApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY')
-  const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY')
+  const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
 
   if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase config")
   if (!googleApiKey) throw new Error("Missing GOOGLE_PLACES_API_KEY")
@@ -122,8 +120,8 @@ async function runImportSpots(query: string = 'terrain de beach volley France') 
 
     // AI Summary
     let description = `Importé automatiquement de Google Places. Adresse : ${address}`;
-    if (anthropicApiKey && place.reviews?.length > 0) {
-      const summary = await getAiSummary(place.reviews, anthropicApiKey);
+    if (geminiApiKey && place.reviews?.length > 0) {
+      const summary = await getAiSummary(place.reviews, geminiApiKey);
       if (summary) description = summary;
     }
 
