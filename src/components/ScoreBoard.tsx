@@ -122,7 +122,7 @@ export function ScoreBoard({
       sigil,
       showOnCourt,
       hasDirection: hasDirection ?? false,
-      hasRating: hasRating ?? false,
+      hasRating: hasRating ?? (metadata?.enableRatings !== false),
     });
     setMenuTeam(null);
   };

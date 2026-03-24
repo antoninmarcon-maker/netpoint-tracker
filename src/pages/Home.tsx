@@ -275,6 +275,20 @@ export default function Home() {
     }
   }, []);
 
+  // Reload matches when returning to the page (covers tab switch + SPA navigation)
+  useEffect(() => {
+    const reload = () => loadMatches(user);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') reload();
+    };
+    window.addEventListener('focus', reload);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('focus', reload);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [user, loadMatches]);
+
   useEffect(() => {
     let isMounted = true;
 

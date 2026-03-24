@@ -106,7 +106,12 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
     try {
       const matchStats = buildMatchStatsText(points, completedSets, currentSetPoints, teamNames, players);
       const { data, error } = await supabase.functions.invoke('analyze-match', { body: { matchStats, sport } });
-      if (error) throw error;
+      if (error) {
+        // When the edge function returns non-2xx, the JSON body with the
+        // real error message is in `data`, not in `error.message`.
+        const serverMsg = data?.error;
+        throw new Error(serverMsg || error.message || t('analysis.analysisError'));
+      }
       if (data?.error) throw new Error(data.error);
       setAnalysis(data.analysis);
       // Cache analysis in match data

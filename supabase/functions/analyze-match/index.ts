@@ -140,8 +140,10 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("analyze-match error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    console.error("analyze-match error:", e instanceof Error ? e.message : e);
+    console.error("analyze-match stack:", e instanceof Error ? e.stack : "no stack");
+    // Never expose internal error details to the client
+    return new Response(JSON.stringify({ error: "Erreur interne du service d'analyse. Veuillez réessayer." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

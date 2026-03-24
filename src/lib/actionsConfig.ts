@@ -93,7 +93,8 @@ function getDefaultConfig(): ActionsConfig {
       'out': { hasDirection: true },
       'net_fault': { hasDirection: true },
       'service_miss': { hasDirection: true },
-      'block_out': { hasDirection: true }
+      'block_out': { hasDirection: true },
+      'timeout': { assignToPlayer: false }
     }
   };
 }

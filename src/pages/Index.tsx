@@ -326,7 +326,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-40 bg-background px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] border-b border-border flex items-center justify-between">
+      <div className="sticky top-0 z-40 bg-background pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <header className="px-4 py-3 border-b border-border flex items-center justify-between">
         <button onClick={() => navigate('/')} className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft size={18} />
         </button>
@@ -338,7 +339,7 @@ const Index = () => {
         ) : <div className="w-[30px]" />}
       </header>
 
-      <nav className="sticky top-[49px] z-40 bg-background flex border-b border-border">
+      <nav className="flex border-b border-border">
         <button onClick={() => setTab('match')} className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-all ${tab === 'match' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}`}>
           <Activity size={16} /> {isFinished ? 'Replay' : t('common.match')}
         </button>
@@ -346,6 +347,7 @@ const Index = () => {
           <BarChart3 size={16} /> {t('common.stats')}
         </button>
       </nav>
+      </div>
 
       <main className="flex-1 overflow-auto p-4 max-w-2xl mx-auto w-full">
         {tab === 'match' ? (
