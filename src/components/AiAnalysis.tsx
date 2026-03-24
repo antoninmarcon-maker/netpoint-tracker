@@ -7,7 +7,8 @@ import { Point, SetData, Player, SportType, OFFENSIVE_ACTIONS, FAULT_ACTIONS } f
 import ReactMarkdown from 'react-markdown';
 import { useTranslation } from 'react-i18next';
 import { updateTutorialStep } from '@/lib/pushNotifications';
-import { getMatch, saveMatch } from '@/lib/matchStorage';
+import { getMatch, saveMatch, getAllMatches } from '@/lib/matchStorage';
+import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
 
 interface AiAnalysisProps {
   points: Point[];
@@ -85,6 +86,22 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // One-time migration: clear old Anthropic analyses so users get fresh Gemini ones
+  useEffect(() => {
+    if (localStorage.getItem('ai_analysis_migrated_gemini')) return;
+    const matches = getAllMatches();
+    let cleared = false;
+    for (const m of matches) {
+      if (m.aiAnalysis) {
+        m.aiAnalysis = undefined;
+        saveMatch(m);
+        cleared = true;
+      }
+    }
+    localStorage.setItem('ai_analysis_migrated_gemini', '1');
+    if (cleared) setAnalysis(null);
+  }, []);
+
   // Load cached analysis from match data
   useEffect(() => {
     if (!matchId) return;
@@ -102,6 +119,7 @@ export function AiAnalysis({ points, completedSets, currentSetPoints, teamNames,
   const launchAnalysis = () => { setShowWarning(false); setShowDialog(true); if (!analysis) fetchAnalysis(); };
 
   const fetchAnalysis = async () => {
+    if (!checkAndIncrementRateLimit()) return;
     setLoading(true);
     try {
       const matchStats = buildMatchStatsText(points, completedSets, currentSetPoints, teamNames, players);

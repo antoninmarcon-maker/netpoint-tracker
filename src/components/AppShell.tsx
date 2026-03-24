@@ -27,27 +27,29 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background px-4 pt-[env(safe-area-inset-top)]">
-        <div className="flex items-center gap-2.5">
-          <img src="/favicon.svg" alt="" className="h-7 w-7" />
-          <span className="text-[15px] font-bold tracking-[-0.03em] text-foreground">
-            my<span className="text-accent">volley</span>
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          {user ? (
-            <UserMenu user={user} />
-          ) : (
-            <button
-              onClick={() => setShowAuth(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-foreground text-xs font-medium hover:bg-secondary transition-all"
-            >
-              <LogIn size={14} />
-              {t("common.login")}
-            </button>
-          )}
-        </div>
-      </header>
+      <div className="sticky top-0 z-40 bg-background pt-[env(safe-area-inset-top)]">
+        <header className="flex h-14 items-center justify-between border-b border-border px-4">
+          <div className="flex items-center gap-2.5">
+            <img src="/favicon.svg" alt="" className="h-7 w-7" />
+            <span className="text-[15px] font-bold tracking-[-0.03em] text-foreground">
+              my<span className="text-accent">volley</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            {user ? (
+              <UserMenu user={user} />
+            ) : (
+              <button
+                onClick={() => setShowAuth(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-foreground text-xs font-medium hover:bg-secondary transition-all"
+              >
+                <LogIn size={14} />
+                {t("common.login")}
+              </button>
+            )}
+          </div>
+        </header>
+      </div>
 
       <main key={location.pathname} className="flex-1 pb-16 page-enter">
         <Outlet context={{ showNewMatch, setShowNewMatch }} />
