@@ -95,7 +95,6 @@ export default function Spots() {
       {/* Full-bleed map */}
       <div className="absolute inset-0 z-0">
         <SpotMap
-          key={refreshKey}
           selectedSpotId={selectedSpotId}
           onSelectSpot={setSelectedSpotId}
           isAddingMode={isAddingMode}
@@ -106,6 +105,7 @@ export default function Spots() {
           isModerator={isModerator}
           onUserPositionChange={setUserPosition}
           recenterTrigger={recenterTrigger}
+          refreshTrigger={refreshKey}
         />
       </div>
 

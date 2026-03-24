@@ -42,6 +42,7 @@ interface SpotMapProps {
   isModerator?: boolean;
   onUserPositionChange?: (pos: [number, number]) => void;
   recenterTrigger?: number;
+  refreshTrigger?: number;
 }
 
 const defaultCenter: [number, number] = [46.603354, 1.888334];
@@ -176,7 +177,7 @@ function BoundsWatcher({ onChange }: { onChange: (b: MapBounds) => void }) {
         west: b.getWest(), east: b.getEast(),
         zoom: map.getZoom(),
       });
-    }, 300);
+    }, 500);
   }, [map, onChange]);
 
   useEffect(() => {
@@ -191,27 +192,44 @@ function BoundsWatcher({ onChange }: { onChange: (b: MapBounds) => void }) {
 export default function SpotMap({
   selectedSpotId, onSelectSpot, isAddingMode, newSpotLocation, onNewSpotLocationChange,
   filters, onFiltersChange, isModerator, onUserPositionChange, recenterTrigger = 0,
+  refreshTrigger = 0,
 }: SpotMapProps) {
   const { t } = useTranslation();
   const isDark = useIsDark();
   const [spots, setSpots] = useState<Tables<'spots_with_coords'>[]>([]);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
-  const [bounds, setBounds] = useState<MapBounds | null>(null);
-  const ZOOM_THRESHOLD = 8; // filter by bounds when zoomed in enough
+  const boundsRef = useRef<MapBounds | null>(null);
+  const [boundsVersion, setBoundsVersion] = useState(0);
+  const ZOOM_THRESHOLD = 8;
+  const prevZoomBand = useRef<'global' | 'local'>('global');
 
-  const handleBoundsChange = useCallback((b: MapBounds) => setBounds(b), []);
+  const handleBoundsChange = useCallback((b: MapBounds) => {
+    const prev = boundsRef.current;
+    boundsRef.current = b;
+    const band = b.zoom >= ZOOM_THRESHOLD ? 'local' : 'global';
+    const prevBand = prevZoomBand.current;
+    prevZoomBand.current = band;
+
+    // Only re-query when: crossing the zoom threshold, or panning while zoomed in
+    if (band !== prevBand || band === 'local' || !prev) {
+      setBoundsVersion(v => v + 1);
+    }
+  }, []);
 
   useEffect(() => {
+    const bounds = boundsRef.current;
     if (!bounds) return;
+    let cancelled = false;
+
     const load = async () => {
       const cols = 'id, name, type, source, lat, lng, status, equip_sol, equip_eclairage, equip_acces_libre, equip_pmr, equip_saisonnier';
 
       if (filters.showPending) {
-        // Fetch pending spots + validated spots that have reports
         const [pendingRes, reportedIdsRes] = await Promise.all([
           supabase.from('spots_with_coords').select(cols).eq('status', 'waiting_for_validation'),
           supabase.from('spot_comments').select('spot_id').not('report_reason', 'is', null),
         ]);
+        if (cancelled) return;
 
         let allSpots = pendingRes.data || [];
         const reportedIds = [...new Set((reportedIdsRes.data || []).map((r: any) => r.spot_id))];
@@ -220,13 +238,13 @@ export default function SpotMap({
 
         if (missingIds.length > 0) {
           const { data: reportedSpots } = await supabase.from('spots_with_coords').select(cols).in('id', missingIds);
+          if (cancelled) return;
           if (reportedSpots) allSpots = [...allSpots, ...reportedSpots];
         }
         setSpots(allSpots);
       } else {
         let query = supabase.from('spots_with_coords').select(cols).eq('status', 'validated');
 
-        // When zoomed in, filter by visible bounds to bypass 1000-row limit
         if (bounds.zoom >= ZOOM_THRESHOLD) {
           query = query
             .gte('lat', bounds.south)
@@ -236,12 +254,14 @@ export default function SpotMap({
         }
 
         const { data, error } = await query;
+        if (cancelled) return;
         if (error) console.error('[SpotMap] loadSpots error:', error);
         if (!error && data) setSpots(data);
       }
     };
     load();
-  }, [filters.showPending, bounds]);
+    return () => { cancelled = true; };
+  }, [filters.showPending, boundsVersion, refreshTrigger]);
 
   const handleUserPosition = useCallback((pos: [number, number]) => {
     setUserPosition(pos);
