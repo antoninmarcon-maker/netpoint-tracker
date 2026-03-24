@@ -26,37 +26,6 @@ const filters = (): SpotFiltersState => JSON.parse(JSON.stringify(DEFAULT_FILTER
 // 1. Null lat/lng safety (bug fix verification)
 // ---------------------------------------------------------------------------
 describe('Null lat/lng handling', () => {
-  it('filterSpots excludes spots with null lat when radius filter is active', () => {
-    const spot = { ...baseSpot, lat: null as any, lng: 2.3522 };
-    const f = filters();
-    f.radiusKm = 50;
-    const userPos: [number, number] = [48.8566, 2.3522];
-    expect(filterSpots([spot], f, userPos)).toHaveLength(0);
-  });
-
-  it('filterSpots excludes spots with null lng when radius filter is active', () => {
-    const spot = { ...baseSpot, lat: 48.8566, lng: null as any };
-    const f = filters();
-    f.radiusKm = 50;
-    const userPos: [number, number] = [48.8566, 2.3522];
-    expect(filterSpots([spot], f, userPos)).toHaveLength(0);
-  });
-
-  it('filterSpots excludes spots with both lat and lng null when radius active', () => {
-    const spot = { ...baseSpot, lat: null as any, lng: null as any };
-    const f = filters();
-    f.radiusKm = 50;
-    const userPos: [number, number] = [48.8566, 2.3522];
-    expect(filterSpots([spot], f, userPos)).toHaveLength(0);
-  });
-
-  it('filterSpots keeps spots with null lat/lng when NO radius filter', () => {
-    const spot = { ...baseSpot, lat: null as any, lng: null as any };
-    const f = filters();
-    f.radiusKm = null;
-    expect(filterSpots([spot], f, null)).toHaveLength(1);
-  });
-
   it('getDistance returns 0 for identical coords (not NaN)', () => {
     const d = getDistance(48.8566, 2.3522, 48.8566, 2.3522);
     expect(d).toBe(0);
@@ -403,15 +372,6 @@ describe('filterSpots — pending mode isolation', () => {
     expect(filterSpots([spot], f, null)).toHaveLength(1);
   });
 
-  it('ignores radius when pending', () => {
-    const f = filters();
-    f.showPending = true;
-    f.radiusKm = 10;
-    const userPos: [number, number] = [43.2965, 5.3698]; // Marseille
-    const spot = { ...baseSpot, status: 'waiting_for_validation' }; // Paris
-    expect(filterSpots([spot], f, userPos)).toHaveLength(1);
-  });
-
   it('does NOT show validated spots when pending', () => {
     const f = filters();
     f.showPending = true;
@@ -658,10 +618,8 @@ describe('Filter state — defaults are not mutated', () => {
     const f = filters();
     f.showClubs = true;
     f.subFilters.acces_libre = false;
-    f.radiusKm = 25;
     expect(DEFAULT_FILTERS.showClubs).toBe(false);
     expect(DEFAULT_FILTERS.subFilters.acces_libre).toBe(true);
-    expect(DEFAULT_FILTERS.radiusKm).toBeNull();
   });
 });
 

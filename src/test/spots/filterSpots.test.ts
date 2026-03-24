@@ -38,10 +38,6 @@ describe('Default filter state', () => {
     expect(DEFAULT_FILTERS.showPending).toBe(false);
   });
 
-  it('has no radius filter by default', () => {
-    expect(DEFAULT_FILTERS.radiusKm).toBeNull();
-  });
-
   it('shows all exterior sub-types by default', () => {
     expect(DEFAULT_SUB_FILTERS.ext_beach).toBe(true);
     expect(DEFAULT_SUB_FILTERS.ext_herbe).toBe(true);
@@ -228,38 +224,6 @@ describe('filterSpots — pending', () => {
     const f = filters();
     f.showPending = true;
     expect(filterSpots([spot], f, null)).toHaveLength(1);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Radius filter
-// ---------------------------------------------------------------------------
-describe('filterSpots — radius', () => {
-  it('excludes spots outside range', () => {
-    const userPos: [number, number] = [43.2965, 5.3698]; // Marseille
-    const f = filters();
-    f.radiusKm = 50;
-    expect(filterSpots([baseSpot], f, userPos)).toHaveLength(0); // Paris ≈775km
-  });
-
-  it('includes spots within range', () => {
-    const userPos: [number, number] = [48.8566, 2.3522]; // Same as spot
-    const f = filters();
-    f.radiusKm = 50;
-    expect(filterSpots([baseSpot], f, userPos)).toHaveLength(1);
-  });
-
-  it('ignores radius when radiusKm is null', () => {
-    const userPos: [number, number] = [43.2965, 5.3698]; // Marseille
-    const f = filters();
-    f.radiusKm = null;
-    expect(filterSpots([baseSpot], f, userPos)).toHaveLength(1);
-  });
-
-  it('ignores radius when userPosition is null', () => {
-    const f = filters();
-    f.radiusKm = 50;
-    expect(filterSpots([baseSpot], f, null)).toHaveLength(1);
   });
 });
 

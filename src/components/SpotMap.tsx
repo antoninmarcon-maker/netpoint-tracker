@@ -224,7 +224,6 @@ export default function SpotMap({
           filters={filters}
           onChange={onFiltersChange}
           count={filteredSpots.length}
-          userPosition={userPosition}
           isModerator={isModerator}
         />
 

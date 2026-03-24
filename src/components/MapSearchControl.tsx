@@ -53,7 +53,7 @@ export default function MapSearchControl({ isAddingMode, onLocationSelected }: M
 
   return (
     <div
-      className="absolute left-[3.25rem] right-3 z-[400] pointer-events-auto"
+      className="absolute left-[3.75rem] right-3 z-[400] pointer-events-auto"
       style={{ top: 'max(0.625rem, env(safe-area-inset-top))' }}
     >
       <form

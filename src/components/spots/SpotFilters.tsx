@@ -31,7 +31,6 @@ export interface SpotFiltersState {
   showExterieur: boolean;
   showClubs: boolean;
   subFilters: SubFilters;
-  radiusKm: number | null;
   showPending: boolean;
 }
 
@@ -39,7 +38,6 @@ export const DEFAULT_FILTERS: SpotFiltersState = {
   showExterieur: true,
   showClubs: false,
   subFilters: DEFAULT_SUB_FILTERS,
-  radiusKm: null,
   showPending: false,
 };
 
@@ -101,11 +99,10 @@ interface SpotFiltersProps {
   filters: SpotFiltersState;
   onChange: (f: SpotFiltersState) => void;
   count: number;
-  userPosition: [number, number] | null;
   isModerator?: boolean;
 }
 
-export default function SpotFilters({ filters, onChange, count, userPosition, isModerator }: SpotFiltersProps) {
+export default function SpotFilters({ filters, onChange, count, isModerator }: SpotFiltersProps) {
   const [showSubPanel, setShowSubPanel] = useState(false);
 
   const set = <K extends keyof SpotFiltersState>(key: K, value: SpotFiltersState[K]) =>
@@ -113,8 +110,6 @@ export default function SpotFilters({ filters, onChange, count, userPosition, is
 
   const setSub = <K extends keyof SubFilters>(key: K, value: SubFilters[K]) =>
     onChange({ ...filters, subFilters: { ...filters.subFilters, [key]: value } });
-
-  const radiusOptions = [10, 25, 50] as const;
 
   const hasActiveSubFilters = !filters.subFilters.ext_beach || !filters.subFilters.ext_herbe ||
     !filters.subFilters.ext_dur || filters.subFilters.beach_eclairage || filters.subFilters.beach_pmr ||
@@ -147,23 +142,6 @@ export default function SpotFilters({ filters, onChange, count, userPosition, is
           <Chip active={filters.subFilters.acces_libre} onClick={() => setSub('acces_libre', !filters.subFilters.acces_libre)} variant="small">
             🔓 Libre accès
           </Chip>
-        )}
-
-        {/* Proximity radius */}
-        {userPosition && (
-          <>
-            <div className="w-px h-5 bg-border/40 flex-none mx-0.5" />
-            {radiusOptions.map(r => (
-              <Chip
-                key={r}
-                active={filters.radiusKm === r}
-                onClick={() => set('radiusKm', filters.radiusKm === r ? null : r)}
-                variant="small"
-              >
-                {r} km
-              </Chip>
-            ))}
-          </>
         )}
 
         {isModerator && (

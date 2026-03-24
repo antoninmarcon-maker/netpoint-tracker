@@ -53,13 +53,6 @@ export function filterSpots(spots: Spot[], filters: SpotFiltersState, userPositi
       }
     }
 
-    // Radius filter
-    if (filters.radiusKm && userPosition) {
-      if (spot.lat == null || spot.lng == null) return false;
-      const dist = getDistance(userPosition[0], userPosition[1], spot.lat, spot.lng);
-      if (dist > filters.radiusKm) return false;
-    }
-
     return true;
   });
 }
