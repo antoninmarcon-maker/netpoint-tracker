@@ -22,7 +22,7 @@ function getCorsHeaders(req: Request) {
 function getSystemPrompt(sport: string): string {
   const base = `Tu es un analyste sportif expert. Tu produis des analyses de performance concises et tactiques en français.
 
-Format obligatoire (250 mots max) :
+Format obligatoire (entre 150 et 300 mots, MINIMUM 600 caractères, MAXIMUM 1500 caractères) :
 1. **Résumé du score et dynamique** (~30 mots) : résumé du match et de sa dynamique.
 2. **Points forts / Joueurs clés** (~70 mots) : mets en avant les performances individuelles remarquables avec des chiffres.
 3. **Points faibles / Axes d'amélioration** (~70 mots) : identifie les faiblesses récurrentes et les zones à travailler.
@@ -102,7 +102,7 @@ serve(async (req) => {
     const systemPrompt = getSystemPrompt(sport || 'volleyball');
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -132,7 +132,12 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const analysis = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analyse non disponible.";
+    let analysis = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analyse non disponible.";
+
+    // Enforce min/max character bounds
+    if (analysis.length > 1500) {
+      analysis = analysis.slice(0, 1500).replace(/\s+\S*$/, '…');
+    }
 
     return new Response(JSON.stringify({ analysis }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

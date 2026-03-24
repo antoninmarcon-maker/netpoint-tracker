@@ -27,7 +27,7 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background px-4">
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background px-4 pt-[env(safe-area-inset-top)]">
         <div className="flex items-center gap-2.5">
           <img src="/favicon.svg" alt="" className="h-7 w-7" />
           <span className="text-[15px] font-bold tracking-[-0.03em] text-foreground">
