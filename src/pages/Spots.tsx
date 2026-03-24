@@ -79,11 +79,10 @@ export default function Spots() {
   };
 
   const handleDelete = async (spotId: string) => {
-    // Delete comments and photos first, then the spot
-    await supabase.from('spot_comments').delete().eq('spot_id', spotId);
-    await supabase.from('spot_photos').delete().eq('spot_id', spotId);
-    const { error } = await supabase.from('spots').delete().eq('id', spotId);
+    // FK ON DELETE CASCADE handles comments & photos automatically
+    const { error, count } = await supabase.from('spots').delete({ count: 'exact' }).eq('id', spotId);
     if (error) { toast.error(t('spots.deleteError', 'Erreur lors de la suppression')); return; }
+    if (count === 0) { toast.error('Suppression refusée — vérifiez vos permissions'); return; }
     toast.success(t('spots.spotDeleted', 'Terrain supprimé'));
     setSelectedSpotId(null);
     setRefreshKey(k => k + 1);

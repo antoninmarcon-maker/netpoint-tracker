@@ -372,16 +372,16 @@ describe('filterSpots — pending mode isolation', () => {
     expect(filterSpots([spot], f, null)).toHaveLength(1);
   });
 
-  it('does NOT show validated spots when pending', () => {
+  it('passes through all spots in pending mode (query pre-filters)', () => {
+    // Status filtering is now done at the Supabase query level, not in filterSpots.
+    // filterSpots in pending mode passes through everything the query returns.
     const f = filters();
     f.showPending = true;
-    expect(filterSpots([{ ...baseSpot, status: 'validated' }], f, null)).toHaveLength(0);
-  });
-
-  it('does NOT show rejected spots when pending', () => {
-    const f = filters();
-    f.showPending = true;
-    expect(filterSpots([{ ...baseSpot, status: 'rejected' }], f, null)).toHaveLength(0);
+    const spots = [
+      { ...baseSpot, status: 'validated' },
+      { ...baseSpot, id: 'other', status: 'waiting_for_validation' },
+    ];
+    expect(filterSpots(spots, f, null)).toHaveLength(2);
   });
 });
 

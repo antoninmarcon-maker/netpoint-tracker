@@ -308,7 +308,9 @@ describe('filterEdgeCases — green_sol naturel vs synthetique', () => {
 // 18. Pending mode ignores ALL other filters
 // ---------------------------------------------------------------------------
 describe('filterEdgeCases — pending mode', () => {
-  it('pending mode shows waiting spots regardless of type or equipment', () => {
+  it('pending mode passes all spots regardless of type, equipment, or status', () => {
+    // In pending mode, filterSpots bypasses all filters — the query layer
+    // is responsible for fetching the right set of spots.
     const f = filters();
     f.showPending = true;
     f.showExterieur = false;
@@ -320,11 +322,13 @@ describe('filterEdgeCases — pending mode', () => {
       { ...baseSpot, id: '3', type: 'outdoor_hard', status: 'validated' },
     ];
     const result = filterSpots(spots, f, null);
-    expect(result).toHaveLength(2);
-    expect(result.map(s => s.id).sort()).toEqual(['1', '2']);
+    expect(result).toHaveLength(3);
   });
 
-  it('pending mode excludes validated and rejected spots', () => {
+  it('pending mode passes through all spots (query pre-filters by status)', () => {
+    // Status filtering is now at the query level — filterSpots in pending mode
+    // passes through everything, since the query already fetches the right mix
+    // (pending + reported spots).
     const f = filters();
     f.showPending = true;
     const spots = [
@@ -333,7 +337,6 @@ describe('filterEdgeCases — pending mode', () => {
       { ...baseSpot, id: '3', status: 'waiting_for_validation' },
     ];
     const result = filterSpots(spots, f, null);
-    expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('3');
+    expect(result).toHaveLength(3);
   });
 });

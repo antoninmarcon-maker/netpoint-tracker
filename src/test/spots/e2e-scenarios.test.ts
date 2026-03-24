@@ -803,13 +803,14 @@ describe('Filters — Le Valdier visibility', () => {
     expect(filterSpots([spot()], f, null)).toHaveLength(1);
   });
 
-  it('pending mode overrides everything — shows only pending', () => {
+  it('pending mode passes through all spots (query pre-filters)', () => {
+    // Status filtering is now at the Supabase query level — filterSpots in
+    // pending mode passes everything the query returns (pending + reported).
     const f = filters();
     f.showPending = true;
     const pending = spot({ status: 'waiting_for_validation' });
     const validated = spot({ id: 'spot-2' });
-    expect(filterSpots([pending, validated], f, null)).toHaveLength(1);
-    expect(filterSpots([pending, validated], f, null)[0].id).toBe('spot-valdier');
+    expect(filterSpots([pending, validated], f, null)).toHaveLength(2);
   });
 
   it('rejected spots are never visible in normal mode', () => {

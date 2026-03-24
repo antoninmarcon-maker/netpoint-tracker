@@ -206,7 +206,10 @@ describe('filterSpots — equipment filters', () => {
 // Pending filter
 // ---------------------------------------------------------------------------
 describe('filterSpots — pending', () => {
-  it('shows only waiting_for_validation spots when showPending=true', () => {
+  it('passes through all spots when showPending=true (query pre-filters)', () => {
+    // Status filtering moved to the Supabase query level — filterSpots in
+    // pending mode passes everything through, since the query already fetches
+    // the right mix (pending + reported validated spots).
     const spots = [
       { ...baseSpot, status: 'validated' },
       { ...baseSpot, id: '2', status: 'waiting_for_validation' },
@@ -215,8 +218,7 @@ describe('filterSpots — pending', () => {
     const f = filters();
     f.showPending = true;
     const result = filterSpots(spots, f, null);
-    expect(result).toHaveLength(1);
-    expect(result[0].status).toBe('waiting_for_validation');
+    expect(result).toHaveLength(3);
   });
 
   it('ignores other filters when showPending=true', () => {
