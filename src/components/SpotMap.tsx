@@ -157,23 +157,22 @@ export default function SpotMap({
   const [spots, setSpots] = useState<Tables<'spots_with_coords'>[]>([]);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
-  const loadSpots = useCallback(async () => {
-    let query = supabase
-      .from('spots_with_coords')
-      .select('id, name, type, source, lat, lng, status, equip_sol, equip_eclairage, equip_acces_libre, equip_pmr, equip_saisonnier');
+  useEffect(() => {
+    const load = async () => {
+      let query = supabase
+        .from('spots_with_coords')
+        .select('id, name, type, source, lat, lng, status, equip_sol, equip_eclairage, equip_acces_libre, equip_pmr, equip_saisonnier');
 
-    if (!filters.showPending) {
-      query = query.eq('status', 'validated');
-    }
+      if (!filters.showPending) {
+        query = query.eq('status', 'validated');
+      }
 
-    const { data, error } = await query;
-    if (error) console.error('[SpotMap] loadSpots error:', error);
-    const pending = (data || []).filter((s: any) => s.status === 'waiting_for_validation');
-    console.log(`[SpotMap] loadSpots: showPending=${filters.showPending}, total=${data?.length}, pending=${pending.length}`);
-    if (!error && data) setSpots(data);
+      const { data, error } = await query;
+      if (error) console.error('[SpotMap] loadSpots error:', error);
+      if (!error && data) setSpots(data);
+    };
+    load();
   }, [filters.showPending]);
-
-  useEffect(() => { loadSpots(); }, [loadSpots]);
 
   const handleUserPosition = useCallback((pos: [number, number]) => {
     setUserPosition(pos);
