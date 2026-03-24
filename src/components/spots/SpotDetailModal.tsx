@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { X, MapPin, Calendar, Info, MessageSquare, Loader2, Star, Upload, Edit3, ExternalLink, Sparkles, Navigation, Zap, Phone, Globe, Leaf, Heart, Flag } from 'lucide-react';
+import { X, MapPin, Calendar, Info, MessageSquare, Loader2, Star, Upload, Edit3, ExternalLink, Sparkles, Navigation, Zap, Phone, Globe, Leaf, Heart, Flag, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,9 +15,10 @@ interface SpotDetailModalProps {
   onEdit: (spot: any) => void;
   isModerator?: boolean;
   onModerate?: (spotId: string, action: 'approve' | 'reject') => void;
+  onDelete?: (spotId: string) => void;
 }
 
-export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, onModerate }: SpotDetailModalProps) {
+export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, onModerate, onDelete }: SpotDetailModalProps) {
   const { t } = useTranslation();
   const [spot, setSpot] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -425,13 +426,24 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                 )}
 
                 {/* Moderator actions */}
-                {isModerator && spot.status !== 'validated' && (
+                {isModerator && (
                   <div className="flex gap-2 p-3 bg-yellow-500/8 border border-yellow-500/15 rounded-xl">
-                    <Button onClick={() => onModerate?.(spot.id, 'approve')} className="flex-1 text-xs h-9 bg-green-600 hover:bg-green-700 rounded-lg">
-                      Valider
-                    </Button>
-                    <Button onClick={() => onModerate?.(spot.id, 'reject')} variant="destructive" className="flex-1 text-xs h-9 rounded-lg">
-                      Rejeter
+                    {spot.status !== 'validated' && (
+                      <Button onClick={() => onModerate?.(spot.id, 'approve')} className="flex-1 text-xs h-9 bg-green-600 hover:bg-green-700 rounded-lg">
+                        Valider
+                      </Button>
+                    )}
+                    {spot.status !== 'validated' && (
+                      <Button onClick={() => onModerate?.(spot.id, 'reject')} variant="destructive" className="flex-1 text-xs h-9 rounded-lg">
+                        Rejeter
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => { if (confirm('Supprimer définitivement ce terrain ?')) onDelete?.(spot.id); }}
+                      variant="destructive"
+                      className="flex-1 text-xs h-9 rounded-lg gap-1.5"
+                    >
+                      <Trash2 size={13} /> Supprimer
                     </Button>
                   </div>
                 )}

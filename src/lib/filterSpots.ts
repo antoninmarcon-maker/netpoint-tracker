@@ -15,9 +15,9 @@ export function filterSpots(spots: Spot[], filters: SpotFiltersState, userPositi
   return spots.filter(spot => {
     const type = spot.type || 'outdoor_hard';
 
-    // Pending mode: show all waiting spots, bypass every other filter
+    // Pending/moderation mode: show all spots passed in (pending + reported), bypass every other filter
     if (filters.showPending) {
-      return spot.status === 'waiting_for_validation';
+      return true;
     }
 
     if (spot.status !== 'validated') return false;

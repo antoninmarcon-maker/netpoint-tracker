@@ -43,16 +43,30 @@ export default function Spots() {
 
   useEffect(() => {
     if (!showList) return;
-    let query = supabase.from('spots_with_coords')
-      .select('id, name, type, source, lat, lng, status, equip_sol, equip_eclairage, equip_acces_libre, equip_pmr, equip_saisonnier');
+    const cols = 'id, name, type, source, lat, lng, status, equip_sol, equip_eclairage, equip_acces_libre, equip_pmr, equip_saisonnier';
+
     if (filters.showPending) {
-      query = query.eq('status', 'waiting_for_validation');
+      // Fetch pending + reported spots
+      Promise.all([
+        supabase.from('spots_with_coords').select(cols).eq('status', 'waiting_for_validation'),
+        supabase.from('spot_comments').select('spot_id').not('report_reason', 'is', null),
+      ]).then(async ([pendingRes, reportedIdsRes]) => {
+        let allSpots = pendingRes.data || [];
+        const reportedIds = [...new Set((reportedIdsRes.data || []).map((r: any) => r.spot_id))];
+        const pendingIds = new Set(allSpots.map(s => s.id));
+        const missingIds = reportedIds.filter(id => !pendingIds.has(id));
+
+        if (missingIds.length > 0) {
+          const { data: reportedSpots } = await supabase.from('spots_with_coords').select(cols).in('id', missingIds);
+          if (reportedSpots) allSpots = [...allSpots, ...reportedSpots];
+        }
+        setSpotsForList(filterSpots(allSpots, filters, userPosition));
+      });
     } else {
-      query = query.eq('status', 'validated');
+      supabase.from('spots_with_coords').select(cols).eq('status', 'validated').then(({ data }) => {
+        if (data) setSpotsForList(filterSpots(data, filters, userPosition));
+      });
     }
-    query.then(({ data }) => {
-      if (data) setSpotsForList(filterSpots(data, filters, userPosition));
-    });
   }, [filters, userPosition, refreshKey, showList]);
 
   const handleModerate = async (spotId: string, action: 'approve' | 'reject') => {
@@ -60,6 +74,17 @@ export default function Spots() {
     const { error } = await supabase.from('spots').update({ status }).eq('id', spotId);
     if (error) { toast.error(t('spots.moderationError', 'Moderation error')); return; }
     toast.success(action === 'approve' ? t('spots.spotApproved', 'Court approved') : t('spots.spotRejected', 'Court rejected'));
+    setSelectedSpotId(null);
+    setRefreshKey(k => k + 1);
+  };
+
+  const handleDelete = async (spotId: string) => {
+    // Delete comments and photos first, then the spot
+    await supabase.from('spot_comments').delete().eq('spot_id', spotId);
+    await supabase.from('spot_photos').delete().eq('spot_id', spotId);
+    const { error } = await supabase.from('spots').delete().eq('id', spotId);
+    if (error) { toast.error(t('spots.deleteError', 'Erreur lors de la suppression')); return; }
+    toast.success(t('spots.spotDeleted', 'Terrain supprimé'));
     setSelectedSpotId(null);
     setRefreshKey(k => k + 1);
   };
@@ -179,6 +204,7 @@ export default function Spots() {
         onEdit={(spot) => { setEditSpot(spot); setIsSuggestion(true); }}
         isModerator={isModerator}
         onModerate={handleModerate}
+        onDelete={handleDelete}
       />
 
       {/* Add form modal */}

@@ -205,26 +205,40 @@ export default function SpotMap({
     if (!bounds) return;
     const load = async () => {
       const cols = 'id, name, type, source, lat, lng, status, equip_sol, equip_eclairage, equip_acces_libre, equip_pmr, equip_saisonnier';
-      let query = supabase.from('spots_with_coords').select(cols);
 
       if (filters.showPending) {
-        query = query.eq('status', 'waiting_for_validation');
+        // Fetch pending spots + validated spots that have reports
+        const [pendingRes, reportedIdsRes] = await Promise.all([
+          supabase.from('spots_with_coords').select(cols).eq('status', 'waiting_for_validation'),
+          supabase.from('spot_comments').select('spot_id').not('report_reason', 'is', null),
+        ]);
+
+        let allSpots = pendingRes.data || [];
+        const reportedIds = [...new Set((reportedIdsRes.data || []).map((r: any) => r.spot_id))];
+        const pendingIds = new Set(allSpots.map(s => s.id));
+        const missingIds = reportedIds.filter(id => !pendingIds.has(id));
+
+        if (missingIds.length > 0) {
+          const { data: reportedSpots } = await supabase.from('spots_with_coords').select(cols).in('id', missingIds);
+          if (reportedSpots) allSpots = [...allSpots, ...reportedSpots];
+        }
+        setSpots(allSpots);
       } else {
-        query = query.eq('status', 'validated');
-      }
+        let query = supabase.from('spots_with_coords').select(cols).eq('status', 'validated');
 
-      // When zoomed in, filter by visible bounds to bypass 1000-row limit
-      if (bounds.zoom >= ZOOM_THRESHOLD) {
-        query = query
-          .gte('lat', bounds.south)
-          .lte('lat', bounds.north)
-          .gte('lng', bounds.west)
-          .lte('lng', bounds.east);
-      }
+        // When zoomed in, filter by visible bounds to bypass 1000-row limit
+        if (bounds.zoom >= ZOOM_THRESHOLD) {
+          query = query
+            .gte('lat', bounds.south)
+            .lte('lat', bounds.north)
+            .gte('lng', bounds.west)
+            .lte('lng', bounds.east);
+        }
 
-      const { data, error } = await query;
-      if (error) console.error('[SpotMap] loadSpots error:', error);
-      if (!error && data) setSpots(data);
+        const { data, error } = await query;
+        if (error) console.error('[SpotMap] loadSpots error:', error);
+        if (!error && data) setSpots(data);
+      }
     };
     load();
   }, [filters.showPending, bounds]);
