@@ -157,18 +157,17 @@ export default function SpotMap({
   const [spots, setSpots] = useState<Tables<'spots_with_coords'>[]>([]);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
-  const loadSpots = useCallback(() => {
-    const query = supabase
+  const loadSpots = useCallback(async () => {
+    let query = supabase
       .from('spots_with_coords')
       .select('id, name, type, source, lat, lng, status, equip_sol, equip_eclairage, equip_acces_libre, equip_pmr, equip_saisonnier');
 
     if (!filters.showPending) {
-      query.eq('status', 'validated');
+      query = query.eq('status', 'validated');
     }
 
-    query.then(({ data, error }) => {
-      if (!error && data) setSpots(data);
-    });
+    const { data, error } = await query;
+    if (!error && data) setSpots(data);
   }, [filters.showPending]);
 
   useEffect(() => { loadSpots(); }, [loadSpots]);
