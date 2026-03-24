@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom';
-import { ArrowLeft, MessageSquare } from 'lucide-react';
+import { Mail, MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const helpSections: { titleKey: string; descKeys: string[] }[] = [
@@ -20,33 +19,44 @@ export default function Help() {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-40 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] border-b border-border flex items-center gap-3 bg-background">
-        <Link to="/" className="p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft size={18} />
-        </Link>
-        <h1 className="text-lg font-black text-foreground tracking-tight">{t('help.title')}</h1>
-      </header>
+    <div className="p-4 max-w-2xl mx-auto w-full space-y-8 pb-8">
+      <div>
+        <h1 className="text-2xl font-black text-foreground tracking-tight">{t('help.title')}</h1>
+      </div>
 
-      <main className="flex-1 overflow-auto p-4 max-w-2xl mx-auto w-full space-y-8">
-        {helpSections.map(({ titleKey, descKeys }) => (
-          <section key={titleKey}>
-            <h2 className="text-xl font-bold text-foreground mb-3">{t(titleKey)}</h2>
-            <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
-              {descKeys.map(key => <p key={key}>{t(key)}</p>)}
-            </div>
-          </section>
-        ))}
+      {/* Contact CTA */}
+      <section className="rounded-2xl border border-accent/30 bg-accent/5 p-5 space-y-3">
+        <h2 className="text-lg font-bold text-foreground">{t('help.contactTitle')}</h2>
+        <p className="text-sm text-muted-foreground">{t('help.contactDesc')}</p>
+        <a
+          href="mailto:contact@myvolley.app"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-accent-foreground font-semibold text-sm hover:brightness-110 transition-all"
+        >
+          <Mail size={16} />
+          {t('help.contactCta')}
+        </a>
+        <p className="text-xs text-muted-foreground/70">{t('help.contactHint')}</p>
+      </section>
 
-        <section className="pb-6">
-          <a
-            href="mailto:contact@myvolley.app"
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm"
-          >
-            <MessageSquare size={16} /> {t('help.leaveFeedback')}
-          </a>
+      {/* FAQ sections */}
+      {helpSections.map(({ titleKey, descKeys }) => (
+        <section key={titleKey}>
+          <h2 className="text-xl font-bold text-foreground mb-3">{t(titleKey)}</h2>
+          <div className="bg-card rounded-xl p-4 border border-border text-sm text-muted-foreground space-y-3">
+            {descKeys.map(key => <p key={key}>{t(key)}</p>)}
+          </div>
         </section>
-      </main>
+      ))}
+
+      {/* Bottom feedback CTA */}
+      <section className="pb-2">
+        <a
+          href="mailto:contact@myvolley.app"
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm"
+        >
+          <MessageSquare size={16} /> {t('help.leaveFeedback')}
+        </a>
+      </section>
     </div>
   );
 }

@@ -250,7 +250,11 @@
     "spotFiltersTitle": "🔍 Court Filters",
     "spotFiltersDesc": "On the court map, use filters to refine your search: surface type (sand, grass, hard court, indoor), available equipment (permanent net, night lighting, changing rooms, showers) and category. Find the perfect court in seconds.",
     "spotsTitle": "📍 Court Map",
-    "spotsDesc": "Discover the community map of volleyball courts. Search for a court near you, suggest a new one with photos and a detailed description, and leave reviews to help fellow players find the perfect spot."
+    "spotsDesc": "Discover the community map of volleyball courts. Search for a court near you, suggest a new one with photos and a detailed description, and leave reviews to help fellow players find the perfect spot.",
+    "contactTitle": "📬 Contact Us",
+    "contactDesc": "Have a question, a bug to report, or a feature idea? We'd love to hear from you.",
+    "contactCta": "Send us an email",
+    "contactHint": "We usually reply within 24 hours."
   },
   "userMenu": {
     "myAccount": "My account",

@@ -250,7 +250,11 @@
     "spotFiltersTitle": "🔍 Filtres de terrains",
     "spotFiltersDesc": "Sur la carte des terrains, utilisez les filtres pour affiner votre recherche : type de sol (sable, herbe, dur, salle), équipement disponible (filet permanent, éclairage nocturne, vestiaires, douches) et catégorie. Trouvez le terrain idéal en quelques secondes.",
     "spotsTitle": "📍 Carte des terrains",
-    "spotsDesc": "Découvrez la carte communautaire des terrains de volley. Recherchez un terrain près de chez vous, proposez-en un nouveau avec photos et description détaillée, et laissez des commentaires pour aider les autres joueurs à trouver le spot parfait."
+    "spotsDesc": "Découvrez la carte communautaire des terrains de volley. Recherchez un terrain près de chez vous, proposez-en un nouveau avec photos et description détaillée, et laissez des commentaires pour aider les autres joueurs à trouver le spot parfait.",
+    "contactTitle": "📬 Nous contacter",
+    "contactDesc": "Une question, un bug à signaler ou une idée de fonctionnalité ? On serait ravis de vous lire.",
+    "contactCta": "Envoyer un email",
+    "contactHint": "On répond généralement sous 24h."
   },
   "userMenu": {
     "myAccount": "Mon compte",

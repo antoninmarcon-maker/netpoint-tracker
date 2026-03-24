@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
-import { LogIn } from "lucide-react";
+import { Outlet, useLocation, Link } from "react-router-dom";
+import { LogIn, HelpCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
@@ -34,6 +34,13 @@ export function AppShell() {
             <span className="text-[15px] font-bold tracking-[-0.03em] text-foreground">
               my<span className="text-accent">volley</span>
             </span>
+            <Link
+              to="/help"
+              className="ml-0.5 p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              aria-label="Help"
+            >
+              <HelpCircle size={16} />
+            </Link>
           </div>
           <div className="flex items-center gap-3">
             {user ? (
