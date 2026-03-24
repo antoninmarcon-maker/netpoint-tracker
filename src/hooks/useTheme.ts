@@ -14,7 +14,7 @@ function applyTheme(theme: Theme) {
 
 export function useTheme() {
   const [theme, setThemeState] = useState<Theme>(() => {
-    return (userStorage.getItem('theme') as Theme) || 'dark';
+    return (userStorage.getItem('theme') as Theme) || 'system';
   });
 
   useEffect(() => {
