@@ -81,7 +81,17 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
       let profileMap: Record<string, string> = {};
       if (userIds.length > 0) {
         const { data: profiles } = await (supabase as any).from('profiles').select('user_id, display_name').in('user_id', userIds);
-        (profiles || []).forEach((p: any) => { profileMap[p.user_id] = p.display_name; });
+        (profiles || []).forEach((p: any) => {
+          profileMap[p.user_id] = p.display_name || null;
+        });
+        // Fallback: get emails from auth.users for profiles without display_name
+        const missingIds = userIds.filter(id => !profileMap[id]);
+        if (missingIds.length > 0) {
+          const { data: session } = await supabase.auth.getUser();
+          if (session?.user && missingIds.includes(session.user.id)) {
+            profileMap[session.user.id] = session.user.email?.split('@')[0] || null;
+          }
+        }
       }
       setComments((cData || []).map((c: any) => ({ ...c, authorName: profileMap[c.user_id] || 'Anonyme' })));
     } catch (err) {
@@ -306,6 +316,39 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                     </div>
                   );
                 })()}
+
+                {/* Social links */}
+                {(spot.social_instagram || spot.social_facebook || spot.social_whatsapp) && (
+                  <div className="flex flex-wrap gap-2">
+                    {spot.social_instagram && (
+                      <a
+                        href={spot.social_instagram.startsWith('http') ? spot.social_instagram : `https://instagram.com/${spot.social_instagram.replace('@', '')}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-xs font-medium text-foreground/80 hover:bg-secondary/80 transition-colors"
+                      >
+                        📸 Instagram
+                      </a>
+                    )}
+                    {spot.social_facebook && (
+                      <a
+                        href={spot.social_facebook.startsWith('http') ? spot.social_facebook : `https://facebook.com/${spot.social_facebook}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-xs font-medium text-foreground/80 hover:bg-secondary/80 transition-colors"
+                      >
+                        👤 Facebook
+                      </a>
+                    )}
+                    {spot.social_whatsapp && (
+                      <a
+                        href={spot.social_whatsapp.startsWith('http') ? spot.social_whatsapp : `https://wa.me/${spot.social_whatsapp.replace(/\D/g, '')}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-xs font-medium text-foreground/80 hover:bg-secondary/80 transition-colors"
+                      >
+                        💬 WhatsApp
+                      </a>
+                    )}
+                  </div>
+                )}
 
                 {/* Club contact */}
                 {spot.source === 'ffvb_club' && (

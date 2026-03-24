@@ -16,12 +16,26 @@ export function AppShell() {
   const location = useLocation();
 
   useEffect(() => {
+    const ensureProfile = async (u: User) => {
+      const { data } = await supabase.from('profiles').select('display_name').eq('user_id', u.id).maybeSingle();
+      if (!data || !data.display_name) {
+        const defaultName = u.user_metadata?.full_name || u.email?.split('@')[0] || 'Joueur';
+        await supabase.from('profiles').upsert(
+          { user_id: u.id, display_name: defaultName },
+          { onConflict: 'user_id' },
+        );
+      }
+    };
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => setUser(session?.user ?? null),
+      (_event, session) => {
+        setUser(session?.user ?? null);
+        if (session?.user) ensureProfile(session.user);
+      },
     );
-    supabase.auth.getSession().then(({ data: { session } }) =>
-      setUser(session?.user ?? null),
-    );
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) ensureProfile(session.user);
+    });
     return () => subscription.unsubscribe();
   }, []);
 

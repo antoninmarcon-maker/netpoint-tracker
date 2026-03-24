@@ -37,6 +37,10 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
   const [allYear, setAllYear] = useState(true);
   const [startMonth, setStartMonth] = useState('');
   const [endMonth, setEndMonth] = useState('');
+  const [accesLibre, setAccesLibre] = useState(true);
+  const [socialInstagram, setSocialInstagram] = useState('');
+  const [socialFacebook, setSocialFacebook] = useState('');
+  const [socialWhatsapp, setSocialWhatsapp] = useState('');
 
   // Create stable object URLs and revoke on change/unmount
   const photoUrls = useMemo(() => photos.map(f => URL.createObjectURL(f)), [photos]);
@@ -53,6 +57,10 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
     setPhotos([]);
     setSearchQuery('');
     setSearchResults([]);
+    setAccesLibre(spotToEdit?.equip_acces_libre ?? true);
+    setSocialInstagram(spotToEdit?.social_instagram || '');
+    setSocialFacebook(spotToEdit?.social_facebook || '');
+    setSocialWhatsapp(spotToEdit?.social_whatsapp || '');
 
     const period = spotToEdit?.availability_period;
     if (!period || period === "Toute l'année") {
@@ -100,6 +108,8 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
         // Create a suggestion entry (new spot marked as pending)
         const { data: newSpot } = await supabase.from('spots').insert([{
           name, description, type, availability_period: finalAvailability,
+          equip_acces_libre: accesLibre,
+          social_instagram: socialInstagram || null, social_facebook: socialFacebook || null, social_whatsapp: socialWhatsapp || null,
           lat: spotToEdit.lat, lng: spotToEdit.lng, user_id: userId,
           status: 'waiting_for_validation',
         }]).select('id').single();
@@ -108,6 +118,8 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
         if (!location) { toast.error(t('spots.chooseLocation', 'Please choose a location on the map.')); setLoading(false); return; }
         const { data: newSpot, error } = await supabase.from('spots').insert([{
           name, description, type, availability_period: finalAvailability,
+          equip_acces_libre: accesLibre,
+          social_instagram: socialInstagram || null, social_facebook: socialFacebook || null, social_whatsapp: socialWhatsapp || null,
           lat: location[0], lng: location[1], user_id: userId,
           status: 'waiting_for_validation',
         }]).select('id').single();
@@ -191,6 +203,10 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
 
           <div className="space-y-2.5 p-3 bg-secondary/20 border border-border rounded-xl">
             <div className="flex items-center justify-between">
+              <Label className="cursor-pointer">🔓 Libre accès</Label>
+              <Switch checked={accesLibre} onCheckedChange={setAccesLibre} />
+            </div>
+            <div className="flex items-center justify-between">
               <Label className="cursor-pointer">Disponible toute l'année</Label>
               <Switch checked={allYear} onCheckedChange={setAllYear} />
             </div>
@@ -213,6 +229,13 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
           <div className="space-y-1.5">
             <Label>Description</Label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Infos pratiques..." className="h-20 resize-none bg-secondary/50" />
+          </div>
+
+          <div className="space-y-2 p-3 bg-secondary/20 border border-border rounded-xl">
+            <Label className="text-xs text-muted-foreground">Réseaux sociaux (optionnel)</Label>
+            <Input value={socialInstagram} onChange={e => setSocialInstagram(e.target.value)} placeholder="Instagram (ex: @monterrain)" className="bg-secondary/50 text-sm h-9" />
+            <Input value={socialFacebook} onChange={e => setSocialFacebook(e.target.value)} placeholder="Facebook (lien ou nom de page)" className="bg-secondary/50 text-sm h-9" />
+            <Input value={socialWhatsapp} onChange={e => setSocialWhatsapp(e.target.value)} placeholder="WhatsApp (numéro ou lien groupe)" className="bg-secondary/50 text-sm h-9" />
           </div>
 
           <div className="space-y-2">
