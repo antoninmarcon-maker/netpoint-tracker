@@ -6,7 +6,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="My Volley" />
-    <meta name="theme-color" content="#09090b" />
+    <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <link rel="apple-touch-icon" href="/pwa-192x192.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -91,7 +92,7 @@
     <!-- Prevent theme flash: apply dark class before first paint -->
     <script>
       try {
-        var t = localStorage.getItem('theme') || 'dark';
+        var t = localStorage.getItem('theme') || 'system';
         if (t === 'system') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         if (t === 'dark') document.documentElement.classList.add('dark');
       } catch(e) {}

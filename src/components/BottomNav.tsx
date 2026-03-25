@@ -3,10 +3,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-const STORAGE_KEY = "bottomNav_clicked";
+const SESSION_COUNT_KEY = "bottomNav_sessionCount";
+const MAX_GUIDED_SESSIONS = 10;
 
 interface BottomNavProps {
   onNewMatch: () => void;
+  isGuest: boolean;
 }
 
 const tabs = [
@@ -17,15 +19,31 @@ const tabs = [
   { icon: Settings2, path: "/settings", labelKey: "nav.settings" },
 ];
 
-export function BottomNav({ onNewMatch }: BottomNavProps) {
+function shouldShowLabels(isGuest: boolean): boolean {
+  if (isGuest) return true;
+  const count = parseInt(localStorage.getItem(SESSION_COUNT_KEY) || "0", 10);
+  return count < MAX_GUIDED_SESSIONS;
+}
+
+function bumpSessionCount() {
+  const key = SESSION_COUNT_KEY;
+  const current = parseInt(localStorage.getItem(key) || "0", 10);
+  localStorage.setItem(key, String(current + 1));
+}
+
+export function BottomNav({ onNewMatch, isGuest }: BottomNavProps) {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const indicatorRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const [showLabels, setShowLabels] = useState(
-    () => localStorage.getItem(STORAGE_KEY) !== "1"
-  );
+  const [showLabels] = useState(() => shouldShowLabels(isGuest));
+  const [tappedIndex, setTappedIndex] = useState<number | null>(null);
+
+  // Bump session count once per mount (= once per app open)
+  useEffect(() => {
+    if (!isGuest) bumpSessionCount();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeIndex = tabs.findIndex(
     (t) => t.path && location.pathname === t.path
@@ -41,13 +59,13 @@ export function BottomNav({ onNewMatch }: BottomNavProps) {
     indicator.style.opacity = "1";
   }, [activeIndex]);
 
-  const handleClick = useCallback((tab: typeof tabs[number]) => {
-    if (showLabels) {
-      localStorage.setItem(STORAGE_KEY, "1");
-      setShowLabels(false);
-    }
+  const handleClick = useCallback((tab: typeof tabs[number], index: number) => {
+    // Trigger tap animation
+    setTappedIndex(index);
+    setTimeout(() => setTappedIndex(null), 300);
+
     tab.path ? navigate(tab.path) : onNewMatch();
-  }, [showLabels, navigate, onNewMatch]);
+  }, [navigate, onNewMatch]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
@@ -60,16 +78,23 @@ export function BottomNav({ onNewMatch }: BottomNavProps) {
         {tabs.map((tab, i) => {
           const Icon = tab.icon;
           const isActive = i === activeIndex;
+          const isTapped = i === tappedIndex;
           return (
             <button
               key={tab.labelKey}
               ref={(el) => { tabRefs.current[i] = el; }}
-              onClick={() => handleClick(tab)}
-              className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 transition-colors ${
-                isActive ? "text-foreground" : tab.path === null ? "text-muted-foreground" : "text-border"
+              onClick={() => handleClick(tab, i)}
+              className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 transition-all duration-200 ${
+                isActive ? "text-foreground" : "text-muted-foreground"
               }`}
+              style={{
+                transform: isTapped ? "scale(0.85)" : "scale(1)",
+                transition: isTapped
+                  ? "transform 100ms cubic-bezier(0.34,1.56,0.64,1)"
+                  : "transform 250ms cubic-bezier(0.34,1.56,0.64,1), color 200ms",
+              }}
             >
-              <Icon size={tab.labelKey === "nav.newMatch" ? 22 : 20} strokeWidth={1.5} />
+              <Icon size={tab.labelKey === "nav.newMatch" ? 22 : 20} strokeWidth={isActive ? 2 : 1.5} />
               {showLabels && (
                 <span className="text-[10px] leading-tight font-medium animate-in fade-in duration-300">
                   {t(tab.labelKey)}

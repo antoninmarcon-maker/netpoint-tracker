@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { useCloudSettingsHydration } from "@/hooks/useCloudSettingsHydration";
+import { useTheme } from "@/hooks/useTheme";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -31,6 +32,7 @@ const queryClient = new QueryClient();
 
 const AppInner = () => {
   useCloudSettingsHydration();
+  useTheme(); // Apply theme at root level so it reacts to system changes and PWA updates
   return (
     <>
       <Toaster />

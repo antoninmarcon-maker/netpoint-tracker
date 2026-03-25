@@ -76,7 +76,7 @@ export function AppShell() {
         <Outlet context={{ showNewMatch, setShowNewMatch }} />
       </main>
 
-      <BottomNav onNewMatch={() => setShowNewMatch(true)} />
+      <BottomNav onNewMatch={() => setShowNewMatch(true)} isGuest={!user} />
 
       <AuthDialog open={showAuth} onOpenChange={setShowAuth} />
     </div>

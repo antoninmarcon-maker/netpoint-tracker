@@ -6,20 +6,9 @@ import i18n from "./i18n";
 
 import { toast } from "sonner";
 
-// Store build version — used to detect stale caches
+// Track build version (cache lifecycle is managed by the service worker)
 const BUILD_VERSION = __BUILD_TIMESTAMP__;
-const STORED_VERSION_KEY = 'app-build-version';
-const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
-
-if (storedVersion && storedVersion !== BUILD_VERSION) {
-  // New version detected — clear old caches and force reload
-  localStorage.setItem(STORED_VERSION_KEY, BUILD_VERSION);
-  caches.keys().then((names) => Promise.all(names.map((n) => caches.delete(n)))).then(() => {
-    window.location.reload();
-  });
-} else {
-  localStorage.setItem(STORED_VERSION_KEY, BUILD_VERSION);
-}
+localStorage.setItem('app-build-version', BUILD_VERSION);
 
 // Force reload when a new service worker takes control
 let refreshing = false;
