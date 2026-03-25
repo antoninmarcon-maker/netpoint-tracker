@@ -153,7 +153,11 @@
     "requiresLogin": "Cette fonctionnalité nécessite un compte. Connectez-vous pour continuer.",
     "magicLink": "Se connecter sans mot de passe",
     "magicLinkSent": "Un lien de connexion a été envoyé à votre adresse email. Vérifiez votre boîte de réception.",
-    "magicLinkWelcome": "Vous êtes connecté ! Vous pouvez maintenant définir un mot de passe ci-dessous si vous le souhaitez."
+    "magicLinkWelcome": "Vous êtes connecté ! Vous pouvez maintenant définir un mot de passe ci-dessous si vous le souhaitez.",
+    "emailRequired": "Veuillez entrer votre adresse email.",
+    "passwordRequired": "Veuillez entrer votre mot de passe.",
+    "passwordMinHint": "Mot de passe (min. 6 car.)",
+    "checkEmailTitle": "Vérifiez votre boîte mail !"
   },
   "settings": {
     "title": "Paramètres",
@@ -481,6 +485,8 @@
     "placeholder": "Nouveau mot de passe (min 6 car.)",
     "update": "Mettre à jour",
     "minLength": "Le mot de passe doit contenir au moins 6 caractères.",
+    "mismatch": "Les mots de passe ne correspondent pas.",
+    "confirmPlaceholder": "Confirmer le mot de passe",
     "updated": "Mot de passe mis à jour avec succès !"
   },
   "notFound": {

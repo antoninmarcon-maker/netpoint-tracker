@@ -15,78 +15,77 @@ import {
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
+import { LOGO_URL, main, container, logo, h1, text, link, button, footer } from './styles.ts'
+
 interface SignupEmailProps {
   siteName: string
   siteUrl: string
   recipient: string
   confirmationUrl: string
+  lang?: 'fr' | 'en'
 }
 
-const LOGO_URL = 'https://ikjkkakphhpogjkrkazv.supabase.co/storage/v1/object/public/email-assets/logo-myvolley.png'
+const t = {
+  fr: {
+    preview: 'Confirmez votre email pour My Volley',
+    heading: 'Bienvenue sur My Volley ! 🏐',
+    body1: 'Merci de vous être inscrit sur',
+    body2: '— votre outil de scouting et statistiques volleyball.',
+    body3: 'Confirmez votre adresse email (',
+    body4: ') pour commencer à tracker vos matchs :',
+    cta: 'Confirmer mon email',
+    footer: "Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.",
+  },
+  en: {
+    preview: 'Confirm your email for My Volley',
+    heading: 'Welcome to My Volley! 🏐',
+    body1: 'Thank you for signing up on',
+    body2: '— your volleyball scouting & statistics tool.',
+    body3: 'Confirm your email address (',
+    body4: ') to start tracking your matches:',
+    cta: 'Confirm my email',
+    footer: "If you didn't create an account, you can safely ignore this email.",
+  },
+}
 
 export const SignupEmail = ({
   siteName,
   siteUrl,
   recipient,
   confirmationUrl,
-}: SignupEmailProps) => (
-  <Html lang="fr" dir="ltr">
-    <Head />
-    <Preview>Confirmez votre email pour My Volley</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Img src={LOGO_URL} width="48" height="48" alt="My Volley" style={logo} />
-        <Heading style={h1}>Bienvenue sur My Volley ! 🏐</Heading>
-        <Text style={text}>
-          Merci de vous être inscrit sur{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>My Volley</strong>
-          </Link>{' '}
-          — votre outil de scouting et statistiques volleyball.
-        </Text>
-        <Text style={text}>
-          Confirmez votre adresse email (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) pour commencer à tracker vos matchs :
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Confirmer mon email
-        </Button>
-        <Text style={footer}>
-          Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
-)
+  lang = 'fr',
+}: SignupEmailProps) => {
+  const l = t[lang] || t.fr
+  return (
+    <Html lang={lang} dir="ltr">
+      <Head />
+      <Preview>{l.preview}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Img src={LOGO_URL} width="48" height="48" alt="My Volley" style={logo} />
+          <Heading style={h1}>{l.heading}</Heading>
+          <Text style={text}>
+            {l.body1}{' '}
+            <Link href={siteUrl} style={link}>
+              <strong>My Volley</strong>
+            </Link>{' '}
+            {l.body2}
+          </Text>
+          <Text style={text}>
+            {l.body3}
+            <Link href={`mailto:${recipient}`} style={link}>
+              {recipient}
+            </Link>
+            {l.body4}
+          </Text>
+          <Button style={button} href={confirmationUrl}>
+            {l.cta}
+          </Button>
+          <Text style={footer}>{l.footer}</Text>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
 export default SignupEmail
-
-const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', Arial, sans-serif" }
-const container = { padding: '32px 24px', maxWidth: '480px', margin: '0 auto' }
-const logo = { margin: '0 0 24px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: 'hsl(222, 47%, 11%)',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: 'hsl(215, 16%, 47%)',
-  lineHeight: '1.6',
-  margin: '0 0 20px',
-}
-const link = { color: 'hsl(217, 91%, 60%)', textDecoration: 'underline' }
-const button = {
-  backgroundColor: 'hsl(217, 91%, 60%)',
-  color: '#ffffff',
-  fontSize: '14px',
-  fontWeight: 'bold' as const,
-  borderRadius: '12px',
-  padding: '12px 24px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: 'hsl(215, 16%, 47%)', margin: '30px 0 0' }

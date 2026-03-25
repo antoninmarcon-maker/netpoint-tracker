@@ -153,7 +153,11 @@
     "requiresLogin": "This feature requires an account. Log in to continue.",
     "magicLink": "Sign in without password",
     "magicLinkSent": "A login link has been sent to your email address. Check your inbox.",
-    "magicLinkWelcome": "You're logged in! You can now set a password below if you wish."
+    "magicLinkWelcome": "You're logged in! You can now set a password below if you wish.",
+    "emailRequired": "Please enter your email address.",
+    "passwordRequired": "Please enter your password.",
+    "passwordMinHint": "Password (min. 6 chars)",
+    "checkEmailTitle": "Check your inbox!"
   },
   "settings": {
     "title": "Settings",
@@ -481,6 +485,8 @@
     "placeholder": "New password (min 6 chars)",
     "update": "Update",
     "minLength": "Password must be at least 6 characters.",
+    "mismatch": "Passwords do not match.",
+    "confirmPlaceholder": "Confirm password",
     "updated": "Password updated successfully!"
   },
   "notFound": {
