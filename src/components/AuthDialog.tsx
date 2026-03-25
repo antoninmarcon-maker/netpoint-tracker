@@ -88,6 +88,9 @@ export function AuthDialog({ open, onOpenChange, onGuest, message }: AuthDialogP
     <Dialog open={open} onOpenChange={(v) => { if (!v) switchMode('login'); onOpenChange(v); }}>
       <DialogContent className="max-w-sm rounded-2xl" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
+          <div className="flex justify-center mb-1">
+            <img src="/favicon.svg" alt="My Volley" className="h-10 w-10" />
+          </div>
           <DialogTitle className="text-center text-lg font-bold">
             {mode === 'forgot' ? t('auth.forgotPassword') : mode === 'signup' || mode === 'signup-done' ? t('auth.signup') : t('auth.login')}
           </DialogTitle>
