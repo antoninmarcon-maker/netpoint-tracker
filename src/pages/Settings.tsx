@@ -10,11 +10,13 @@ import { useTheme } from '@/hooks/useTheme';
 import { isPushSupported, isIOSSafari, getNotificationPermission, subscribeToPush } from '@/lib/pushNotifications';
 import type { User } from '@supabase/supabase-js';
 import { userStorage } from '@/lib/userStorage';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  const { requireAuth } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,6 +46,7 @@ export default function Settings() {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
+        requireAuth(t('auth.requiresLogin'));
         navigate('/');
         return;
       }
@@ -376,8 +379,8 @@ export default function Settings() {
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
               <span className="text-[13px] font-medium text-foreground/80">{t('settings.support')}</span>
             </div>
-            <a href="mailto:contact@myvolley.app" className="w-full inline-flex items-center justify-center py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm">
-              contact@myvolley.app
+            <a href="mailto:contact@my-volley.com" className="w-full inline-flex items-center justify-center py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm">
+              contact@my-volley.com
             </a>
           </div>
 

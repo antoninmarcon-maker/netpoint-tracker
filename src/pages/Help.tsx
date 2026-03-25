@@ -29,7 +29,7 @@ export default function Help() {
         <h2 className="text-lg font-bold text-foreground">{t('help.contactTitle')}</h2>
         <p className="text-sm text-muted-foreground">{t('help.contactDesc')}</p>
         <a
-          href="mailto:contact@myvolley.app"
+          href="mailto:contact@my-volley.com"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-accent-foreground font-semibold text-sm hover:brightness-110 transition-all"
         >
           <Mail size={16} />
@@ -51,7 +51,7 @@ export default function Help() {
       {/* Bottom feedback CTA */}
       <section className="pb-2">
         <a
-          href="mailto:contact@myvolley.app"
+          href="mailto:contact@my-volley.com"
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm"
         >
           <MessageSquare size={16} /> {t('help.leaveFeedback')}
