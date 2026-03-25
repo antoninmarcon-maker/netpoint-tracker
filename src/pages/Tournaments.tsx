@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
+import { useAuth } from '@/contexts/AuthContext';
 
 const STATUS_COLORS: Record<string, string> = {
     draft: 'border-border bg-muted text-muted-foreground',
@@ -18,6 +19,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function Tournaments() {
     const { t, i18n } = useTranslation();
+    const { user: authUser, requireAuth } = useAuth();
 
     const getFormatLabel = (format: TournamentFormat) => {
         switch (format) {
@@ -102,17 +104,24 @@ export default function Tournaments() {
         }
     };
 
+    const handleCreateClick = () => {
+        if (!requireAuth(t('tournaments.loginToManage'))) return;
+        setShowCreate(true);
+    };
+
     if (!user && !loading) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-6">
-                <Trophy size={48} className="text-muted-foreground" />
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Trophy size={28} className="text-muted-foreground" />
+                </div>
                 <h1 className="text-2xl font-black text-foreground">{t('tournaments.title')}</h1>
-                <p className="text-muted-foreground text-sm text-center">{t('tournaments.loginToManage')}</p>
+                <p className="text-sm text-muted-foreground">{t('tournaments.noTournaments')}</p>
                 <button
-                    onClick={() => navigate('/')}
-                    className="mt-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm"
+                    onClick={handleCreateClick}
+                    className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm"
                 >
-                    {t('common.login')}
+                    {t('tournaments.createButton')}
                 </button>
             </div>
         );

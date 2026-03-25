@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
 import { MONTHS_SHORT, MONTHS_FULL, getTypeLabel, calcAverageRating } from '@/lib/spotTypes';
 import { uploadSpotPhoto } from '@/lib/uploadSpotPhoto';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SpotDetailModalProps {
   spotId: string | null;
@@ -20,6 +21,7 @@ interface SpotDetailModalProps {
 
 export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, onModerate, onDelete }: SpotDetailModalProps) {
   const { t } = useTranslation();
+  const { requireAuth } = useAuth();
   const [spot, setSpot] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [photos, setPhotos] = useState<any[]>([]);
@@ -129,7 +131,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
     try {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
-      if (!userId) { toast.error(t('spots.loginRequired')); return; }
+      if (!userId) { requireAuth(t('spots.loginRequired')); return; }
 
       const uploadedUrls = (await Promise.all(newPhotos.map(f => uploadSpotPhoto(spotId!, f, userId)))).filter(Boolean) as string[];
 

@@ -11,15 +11,14 @@ import { PlayerRoster } from '@/components/PlayerRoster';
 import { PlayerSelector } from '@/components/PlayerSelector';
 import { PlayByPlayNavigator } from '@/components/PlayByPlayNavigator';
 import { AiAnalysis } from '@/components/AiAnalysis';
-import { AuthDialog } from '@/components/AuthDialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { getMatch, saveMatch } from '@/lib/matchStorage';
 import { getCloudMatchById, saveCloudMatch } from '@/lib/cloudStorage';
 import { supabase } from '@/integrations/supabase/client';
-import type { User } from '@supabase/supabase-js';
 import type { MatchSummary, Player, RallyAction, Point } from '@/types/sports';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Tab = 'match' | 'stats';
 
@@ -33,8 +32,7 @@ const Index = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [showRatings, setShowRatings] = useState(true);
   
-  const [user, setUser] = useState<User | null>(null);
-  const [showAuthForAi, setShowAuthForAi] = useState(false);
+  const { user, requireAuth } = useAuth();
   const [loading, setLoading] = useState(true);
   const [matchReady, setMatchReady] = useState(false);
 
@@ -66,11 +64,6 @@ const Index = () => {
     ensureMatchLocal();
   }, [matchId]);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
-    return () => subscription.unsubscribe();
-  }, []);
 
   const matchState = useMatchState(matchId ?? '', matchReady);
 
@@ -474,7 +467,7 @@ const Index = () => {
                   <span className="inline-flex items-center gap-0.5"><span className="w-2 h-2 rounded-full bg-green-500" /><span className="w-2 h-2 rounded-full bg-orange-500" /><span className="w-2 h-2 rounded-full bg-destructive" /></span>
                 </Label>
               </div>
-              <AiAnalysis points={allPoints} completedSets={completedSets} currentSetPoints={points} teamNames={teamNames} players={players} sport={sport} isLoggedIn={!!user} onLoginRequired={() => setShowAuthForAi(true)} finished={isFinished} matchId={matchId} />
+              <AiAnalysis points={allPoints} completedSets={completedSets} currentSetPoints={points} teamNames={teamNames} players={players} sport={sport} isLoggedIn={!!user} onLoginRequired={() => requireAuth(t('auth.requiresLogin'))} finished={isFinished} matchId={matchId} />
             </div>
             {metadata?.hasCourt === false ? (
               <HeatmapView points={allPoints} completedSets={completedSets} currentSetPoints={points} currentSetNumber={currentSetNumber} stats={stats} teamNames={teamNames} players={players} sport={sport} matchId={matchId} isLoggedIn={!!user} hasCourt={false} showRatings={showRatings} />
@@ -542,7 +535,6 @@ const Index = () => {
         </div>
       )}
 
-      <AuthDialog open={showAuthForAi} onOpenChange={setShowAuthForAi} message={t('auth.requiresLogin')} />
     </div>
   );
 };

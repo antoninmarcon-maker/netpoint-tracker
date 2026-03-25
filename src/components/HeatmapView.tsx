@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { useTranslation } from 'react-i18next';
 import { getVisibleActionIdentifiers } from '@/lib/actionsConfig';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HeatmapViewProps {
   points: Point[];
@@ -296,6 +297,7 @@ function InlineRatingDots({ r }: { r: ActionRating }) {
 
 export function HeatmapView({ points, completedSets, currentSetPoints, currentSetNumber, stats, teamNames, players = [], sport = 'volleyball', matchId, isLoggedIn, hasCourt = true, onSelectPoint, viewingPointIndex, showRatings = true }: HeatmapViewProps) {
   const { t } = useTranslation();
+  const { requireAuth } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [setFilter_, setSetFilter] = useState<SetFilter>('all');
   const [showHeatmap, setShowHeatmap] = useState(false);
@@ -481,8 +483,9 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
   }, [shareLinkUrl, t]);
 
   const shareMatchLink = useCallback(async () => {
-    if (!matchId || !isLoggedIn) {
-      toast.error(t('heatmap.loginForLink'));
+    if (!matchId) return;
+    if (!isLoggedIn) {
+      requireAuth(t('heatmap.loginForLink'));
       return;
     }
 
@@ -828,7 +831,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
               <Copy size={14} className="mr-2" />
               {t('heatmap.copyScore')}
             </DropdownMenuItem>
-            {matchId && isLoggedIn && (
+            {matchId && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={(e) => { e.preventDefault(); shareMatchLink(); }} disabled={generatingLink} className="cursor-pointer">

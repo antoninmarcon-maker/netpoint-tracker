@@ -10,6 +10,7 @@ import { Analytics } from "@vercel/analytics/react";
 
 import Home from "./pages/Home";
 import { AppShell } from "./components/AppShell";
+import { AuthProvider } from "./contexts/AuthContext";
 
 // Lazy-loaded routes to reduce initial bundle size
 const Index = lazy(() => import("./pages/Index"));
@@ -37,6 +38,7 @@ const AppInner = () => {
     <>
       <Toaster />
       <Sonner />
+      <AuthProvider>
       <BrowserRouter>
         <Suspense fallback={<div className="min-h-screen bg-background" />}>
           <Routes>
@@ -64,6 +66,7 @@ const AppInner = () => {
           </Routes>
         </Suspense>
       </BrowserRouter>
+      </AuthProvider>
     </>
   );
 };

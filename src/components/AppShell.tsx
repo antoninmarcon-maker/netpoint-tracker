@@ -3,20 +3,18 @@ import { Outlet, useLocation, Link } from "react-router-dom";
 import { LogIn, HelpCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
 import { UserMenu } from "./UserMenu";
-import { AuthDialog } from "./AuthDialog";
 import { BottomNav } from "./BottomNav";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function AppShell() {
   const { t } = useTranslation();
   const [showNewMatch, setShowNewMatch] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [showAuth, setShowAuth] = useState(false);
+  const { user, requireAuth } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
-    const ensureProfile = async (u: User) => {
+    const ensureProfile = async (u: import("@supabase/supabase-js").User) => {
       const { data } = await supabase.from('profiles').select('display_name').eq('user_id', u.id).maybeSingle();
       if (!data || !data.display_name) {
         const defaultName = u.user_metadata?.full_name || u.email?.split('@')[0] || 'Joueur';
@@ -28,12 +26,10 @@ export function AppShell() {
     };
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setUser(session?.user ?? null);
         if (session?.user) ensureProfile(session.user);
       },
     );
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
       if (session?.user) ensureProfile(session.user);
     });
     return () => subscription.unsubscribe();
@@ -61,7 +57,7 @@ export function AppShell() {
               <UserMenu user={user} />
             ) : (
               <button
-                onClick={() => setShowAuth(true)}
+                onClick={() => requireAuth()}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-foreground text-xs font-medium hover:bg-secondary transition-all"
               >
                 <LogIn size={14} />
@@ -78,7 +74,6 @@ export function AppShell() {
 
       <BottomNav onNewMatch={() => setShowNewMatch(true)} isGuest={!user} />
 
-      <AuthDialog open={showAuth} onOpenChange={setShowAuth} />
     </div>
   );
 }

@@ -11,12 +11,14 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MODERATOR_EMAILS = ['antonin.marcon@gmail.com', 'myvolley.testbot@gmail.com'];
 
 export default function Spots() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { requireAuth } = useAuth();
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [isAddingMode, setIsAddingMode] = useState(false);
   const [newSpotLocation, setNewSpotLocation] = useState<[number, number] | null>(null);
@@ -165,6 +167,7 @@ export default function Spots() {
                 setIsAddingMode(false);
                 setNewSpotLocation(null);
               } else {
+                if (!requireAuth(t('spots.loginRequired'))) return;
                 setSelectedSpotId(null);
                 setIsAddingMode(true);
               }
@@ -200,7 +203,7 @@ export default function Spots() {
       <SpotDetailModal
         spotId={selectedSpotId}
         onClose={() => setSelectedSpotId(null)}
-        onEdit={(spot) => { setEditSpot(spot); setIsSuggestion(true); }}
+        onEdit={(spot) => { if (!requireAuth(t('spots.loginRequired'))) return; setEditSpot(spot); setIsSuggestion(true); }}
         isModerator={isModerator}
         onModerate={handleModerate}
         onDelete={handleDelete}

@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
 import { MONTHS_FULL } from '@/lib/spotTypes';
 import { uploadSpotPhoto } from '@/lib/uploadSpotPhoto';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SpotFormModalProps {
   open: boolean;
@@ -26,6 +27,7 @@ interface SpotFormModalProps {
 
 export default function SpotFormModal({ open, onClose, onSuccess, location, onLocationChange, spotToEdit, isSuggestion }: SpotFormModalProps) {
   const { t } = useTranslation();
+  const { requireAuth } = useAuth();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -100,7 +102,7 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
     try {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
-      if (!userId) { toast.error(t('spots.loginRequired', 'You must be logged in.')); return; }
+      if (!userId) { requireAuth(t('spots.loginRequired', 'You must be logged in.')); return; }
 
       let spotId = spotToEdit?.id;
 
