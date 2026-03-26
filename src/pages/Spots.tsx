@@ -116,16 +116,13 @@ export default function Spots() {
         className="relative z-10 pointer-events-none"
         style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
       >
-        <div className="flex items-center gap-2 px-3 py-2 pointer-events-auto">
+        <div className="px-3 py-2">
           <button
             onClick={() => navigate('/')}
-            className="w-10 h-10 rounded-2xl glass-btn border border-border/50 shadow-lg flex items-center justify-center text-foreground transition-colors active:scale-95 flex-none"
+            className="w-10 h-10 rounded-2xl glass-btn border border-border/50 shadow-lg flex items-center justify-center text-foreground transition-colors active:scale-95 pointer-events-auto"
           >
             <ArrowLeft size={18} />
           </button>
-
-          {/* Search is rendered inside SpotMap (needs useMap), this is just a visual placeholder label when not searching */}
-          <div className="flex-1" />
         </div>
       </div>
 

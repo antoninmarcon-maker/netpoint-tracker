@@ -611,7 +611,7 @@ export default function Home() {
 
             <div
               ref={scrollContainerRef}
-              className="flex gap-3 overflow-x-auto pb-3 snap-x hide-scrollbar px-1 cursor-grab active:cursor-grabbing md:grid md:grid-cols-3 md:overflow-visible md:cursor-default md:pb-0"
+              className="flex gap-3 overflow-x-auto pb-3 snap-x hide-scrollbar px-1 cursor-grab active:cursor-grabbing"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               onTouchStart={() => setIsHovered(true)}
@@ -651,8 +651,8 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Progress indicators — mobile only */}
-            <div className="mt-4 px-1 flex flex-col items-center gap-4 md:hidden">
+            {/* Progress indicators */}
+            <div className="mt-4 px-1 flex flex-col items-center gap-4">
               <div
                 className="w-full h-1.5 bg-secondary/50 rounded-full overflow-hidden relative cursor-pointer group backdrop-blur-sm"
                 onClick={(e) => {
