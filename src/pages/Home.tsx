@@ -597,11 +597,13 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      <main className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full space-y-6 animate-fade-in">
-        <PwaInstallBanner />
+      <main className="flex-1 overflow-y-auto animate-fade-in">
+        <div className="p-4 pb-0 max-w-xl mx-auto w-full">
+          <PwaInstallBanner />
+        </div>
 
         {visibleWhatsNew.length > 0 && (
-          <section className="space-y-2">
+          <section className="space-y-2 px-4 pt-6 pb-6 md:px-8">
             <div className="flex items-center gap-1.5">
               <span className="text-base">✨</span>
               <h2 className="text-xs font-bold text-foreground uppercase tracking-wider">{t('home.whatsNew')}</h2>
@@ -609,14 +611,14 @@ export default function Home() {
 
             <div
               ref={scrollContainerRef}
-              className="flex gap-3 overflow-x-auto pb-3 snap-x hide-scrollbar px-1 cursor-grab active:cursor-grabbing"
+              className="flex gap-3 overflow-x-auto pb-3 snap-x hide-scrollbar px-1 cursor-grab active:cursor-grabbing md:grid md:grid-cols-3 md:overflow-visible md:cursor-default md:pb-0"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               onTouchStart={() => setIsHovered(true)}
               onTouchEnd={() => setIsHovered(false)}
             >
               {visibleWhatsNew.map((card) => (
-                <div key={card.id} className="min-w-[75%] max-w-[280px] snap-center shrink-0">
+                <div key={card.id} className="min-w-[75%] max-w-[280px] snap-center shrink-0 md:min-w-0 md:max-w-none">
                   <div className="bg-card rounded-xl border border-border/60 overflow-hidden h-full flex flex-col relative w-full card-hover shadow-sm">
                     <button
                       onClick={() => handleDismissWhatsNew(card.id)}
@@ -649,8 +651,8 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Design Progress Bar (Desktop focused) */}
-            <div className="mt-4 px-1 flex flex-col items-center gap-4">
+            {/* Progress indicators — mobile only */}
+            <div className="mt-4 px-1 flex flex-col items-center gap-4 md:hidden">
               <div
                 className="w-full h-1.5 bg-secondary/50 rounded-full overflow-hidden relative cursor-pointer group backdrop-blur-sm"
                 onClick={(e) => {
@@ -693,6 +695,7 @@ export default function Home() {
           </section>
         )}
 
+        <div className="p-4 pt-0 max-w-xl mx-auto w-full space-y-6">
         {/* Modal "En grand" pour une nouveauté */}
         <Dialog open={!!selectedWhatsNew} onOpenChange={(open) => !open && setSelectedWhatsNew(null)}>
           <DialogContent className="max-w-md w-[90vw] p-0 rounded-2xl overflow-hidden bg-background border border-border shadow-xl">
@@ -1039,6 +1042,7 @@ export default function Home() {
               })}
             </div>
           )}
+        </div>
         </div>
       </main>
 

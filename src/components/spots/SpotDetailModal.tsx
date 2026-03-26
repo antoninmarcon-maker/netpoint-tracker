@@ -267,24 +267,26 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                   </div>
                 )}
 
-                {/* Equipment badges */}
-                <div className="flex flex-wrap gap-1.5">
-                  {spot.equip_acces_libre && (
-                    <span className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground rounded-md">🔓 Libre accès</span>
-                  )}
-                  {spot.equip_eclairage && (
-                    <span className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground rounded-md"><Zap size={10} /> Éclairé</span>
-                  )}
-                  {spot.equip_pmr && (
-                    <span className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground rounded-md">♿ PMR</span>
-                  )}
-                  {spot.equip_sol && (
-                    <span className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground rounded-md"><Leaf size={10} /> {spot.equip_sol}</span>
-                  )}
-                </div>
+                {/* Equipment badges — hidden for clubs (indoor, managed facilities) */}
+                {spot.type !== 'club' && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {spot.equip_acces_libre && (
+                      <span className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground rounded-md">🔓 Libre accès</span>
+                    )}
+                    {spot.equip_eclairage && (
+                      <span className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground rounded-md"><Zap size={10} /> Éclairé</span>
+                    )}
+                    {spot.equip_pmr && (
+                      <span className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground rounded-md">♿ PMR</span>
+                    )}
+                    {spot.equip_sol && (
+                      <span className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground rounded-md"><Leaf size={10} /> {spot.equip_sol}</span>
+                    )}
+                  </div>
+                )}
 
-                {/* Seasonality */}
-                {(() => {
+                {/* Seasonality — hidden for clubs (always open during training hours) */}
+                {spot.type !== 'club' && (() => {
                   const season = parseSeasonality(spot.availability_period, spot.equip_saisonnier);
                   if (!season) return null;
                   if (season.type === 'yearly') {
@@ -320,8 +322,8 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                   );
                 })()}
 
-                {/* Social links */}
-                {(spot.social_instagram || spot.social_facebook || spot.social_whatsapp) && (
+                {/* Social links — for non-club spots (clubs show social in their block) */}
+                {spot.type !== 'club' && spot.source !== 'ffvb_club' && (spot.social_instagram || spot.social_facebook || spot.social_whatsapp) && (
                   <div className="flex flex-wrap gap-2">
                     {spot.social_instagram && (
                       <a
@@ -353,29 +355,70 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                   </div>
                 )}
 
-                {/* Club contact */}
-                {spot.source === 'ffvb_club' && (
-                  <div className="space-y-2">
-                    {spot.club_lien_fiche && (
-                      <a href={spot.club_lien_fiche} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-primary hover:underline">
-                        <Info size={14} className="shrink-0" /><span className="font-medium">Fiche club FFVB</span><ExternalLink size={10} />
-                      </a>
+                {/* Club info block — groups contact, social, and FFVB region */}
+                {(spot.type === 'club' || spot.source === 'ffvb_club') && (
+                  <div className="p-3.5 rounded-xl bg-secondary/15 border border-border/30 space-y-3">
+                    <h3 className="font-bold text-xs text-foreground flex items-center gap-1.5">
+                      🏛️ Infos club
+                    </h3>
+
+                    {/* FFVB region — prominent */}
+                    {(spot.ffvb_ligue || spot.ffvb_comite) && (
+                      <p className="text-xs font-medium text-foreground/80">{[spot.ffvb_comite, spot.ffvb_ligue].filter(Boolean).join(' — ')}</p>
                     )}
-                    {spot.club_site_web && (
-                      <a href={spot.club_site_web} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-primary hover:underline">
-                        <Globe size={14} className="shrink-0" /><span className="font-medium">Site du club</span><ExternalLink size={10} />
-                      </a>
-                    )}
-                    {spot.club_telephone && (
-                      <a href={`tel:${spot.club_telephone}`} className="flex items-center gap-2.5 text-sm text-primary hover:underline">
-                        <Phone size={14} className="shrink-0" /><span className="font-medium">{spot.club_telephone}</span>
-                      </a>
+
+                    {/* Contact links */}
+                    <div className="space-y-1.5">
+                      {spot.club_site_web && (
+                        <a href={spot.club_site_web} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-primary hover:underline">
+                          <Globe size={14} className="shrink-0" /><span className="font-medium">Site du club</span><ExternalLink size={10} />
+                        </a>
+                      )}
+                      {spot.club_lien_fiche && (
+                        <a href={spot.club_lien_fiche} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-primary hover:underline">
+                          <Info size={14} className="shrink-0" /><span className="font-medium">Fiche FFVB</span><ExternalLink size={10} />
+                        </a>
+                      )}
+                      {spot.club_telephone && (
+                        <a href={`tel:${spot.club_telephone}`} className="flex items-center gap-2.5 text-sm text-primary hover:underline">
+                          <Phone size={14} className="shrink-0" /><span className="font-medium">{spot.club_telephone}</span>
+                        </a>
+                      )}
+                      {spot.club_email && (
+                        <a href={`mailto:${spot.club_email}`} className="flex items-center gap-2.5 text-sm text-primary hover:underline">
+                          <Globe size={14} className="shrink-0" /><span className="font-medium">{spot.club_email}</span>
+                        </a>
+                      )}
+                    </div>
+
+                    {/* Social links inside club block */}
+                    {(spot.social_instagram || spot.social_facebook) && (
+                      <div className="flex flex-wrap gap-2 pt-1 border-t border-border/30">
+                        {spot.social_instagram && (
+                          <a
+                            href={spot.social_instagram.startsWith('http') ? spot.social_instagram : `https://instagram.com/${spot.social_instagram.replace('@', '')}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/60 text-xs font-medium text-foreground/80 hover:bg-background/80 transition-colors"
+                          >
+                            📸 Instagram
+                          </a>
+                        )}
+                        {spot.social_facebook && (
+                          <a
+                            href={spot.social_facebook.startsWith('http') ? spot.social_facebook : `https://facebook.com/${spot.social_facebook}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/60 text-xs font-medium text-foreground/80 hover:bg-background/80 transition-colors"
+                          >
+                            👤 Facebook
+                          </a>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
 
-                {/* FFVB region */}
-                {(spot.ffvb_ligue || spot.ffvb_comite) && (
+                {/* FFVB region for non-club FFVB spots */}
+                {spot.type !== 'club' && spot.source !== 'ffvb_club' && (spot.ffvb_ligue || spot.ffvb_comite) && (
                   <p className="text-xs text-muted-foreground">{[spot.ffvb_comite, spot.ffvb_ligue].filter(Boolean).join(' — ')}</p>
                 )}
 

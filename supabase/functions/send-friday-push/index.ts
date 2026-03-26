@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
         const vapidKeys = await webpush.importVapidKeys(jwks, { extractable: false });
 
         const appServer = await webpush.ApplicationServer.new({
-            contactInformation: "mailto:antonin.marcon@gmail.com",
+            contactInformation: "mailto:contact@my-volley.com",
             vapidKeys,
         });
 
