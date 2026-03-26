@@ -458,6 +458,70 @@ Dedicated command to enrich the 10 beach + 10 club test spots from A to Z:
 - Writes to production database (approved)
 - Final report with completeness scores and API cost
 
+## V2.1 Optimizations (Post-Test)
+
+Based on analysis of 20 test spots (10 beach + 10 clubs), the following optimizations were validated.
+
+### Tier System
+
+| Tier | Criteria | Pipeline | Tokens/spot |
+|------|----------|----------|-------------|
+| A — Club with website | `type=club` AND `club_site_web` not null | Full: SCOUT + PHOTOS + SOCIAL + DESCRIPTION | ~35K |
+| B — Club no site / Urban beach | `type=club` no site OR beach with Google Places match | Medium: SCOUT + PHOTOS + DESCRIPTION | ~25K |
+| C — Rural beach | beach + scout confidence < 0.3 | Minimal: 1 WebSearch + DESCRIPTION only | ~8K |
+
+Tier determination is automatic: SCOUT runs first, then the orchestrator routes to the appropriate pipeline.
+
+### Hard Caps
+
+- Max 30 tool calls per agent (was unlimited — St-Maurice hit 95)
+- Max 3 web searches for photos per spot
+- Max 2 pages scraped per website (homepage + contact)
+- 5 minute timeout per agent
+- If cap reached with no photo results → write description, move on
+
+### Model Mix
+
+| Agent | Model | Rationale |
+|-------|-------|-----------|
+| Orchestrator | Opus | Routing decisions |
+| SCOUT | Haiku | JSON parsing, API calls |
+| PHOTO COLLECTOR | Haiku | curl + download |
+| PHOTO ANALYST | Sonnet | Visual analysis needs accuracy |
+| SOCIAL FINDER | Haiku | Regex + web search |
+| DESCRIPTION WRITER | Haiku | Template-based factual writing |
+| Tier C agent | Haiku | 1 search + 1 write |
+
+### Early Exit Patterns
+
+- Scout confidence < 0.3 AND type=beach → Tier C (skip photos)
+- Scout finds placeId with 3+ photos → skip web search fallback
+- Only analyze first 5 Google Places photo candidates (not all)
+
+### Batch Strategy (8 lots over 3 weeks)
+
+| Lot | Content | Spots | Est. time | Google API |
+|-----|---------|-------|-----------|------------|
+| 1 | Clubs Tier A (with website) | ~400 | 5h | $80 |
+| 2 | Clubs Tier B batch 1 | ~485 | 5h | $50 |
+| 3 | Clubs Tier B batch 2 | ~485 | 5h | $50 |
+| 4 | Beach urban (Tier B) | ~230 | 2.5h | $25 |
+| 5 | Beach rural (Tier C) batch 1 | ~478 | 1.5h | $15 |
+| 6 | Beach rural (Tier C) batch 2 | ~478 | 1.5h | $15 |
+| 7 | Beach rural (Tier C) batch 3 | ~478 | 1.5h | $15 |
+| 8 | Retry failures + low score | ~150 | 2h | $10 |
+
+Total estimated: ~$153 (with Google $200/month free tier).
+
+### Anti-Ban Strategy for Scraping
+
+- 2-3 second delay between requests to same domain
+- User-Agent: `Mozilla/5.0 (compatible; MyVolleyBot/1.0)`
+- Max 2 pages per website (homepage + contact)
+- NEVER scrape Instagram/Facebook directly — WebSearch to find URLs only
+- If 429/403: stop that domain, log, continue
+- Respect robots.txt
+
 ## Success Criteria
 
 - Photos are visually relevant to the specific spot (not borrowed from distant places)
@@ -472,3 +536,7 @@ Dedicated command to enrich the 10 beach + 10 club test spots from A to Z:
 - Enrichment is incremental (doesn't redo existing work)
 - API costs tracked and reported
 - Each spot processed in isolated context (no cross-contamination)
+- Each spot classified into Tier A/B/C automatically
+- Hard caps prevent runaway token usage
+- Batch system allows incremental enrichment over weeks
+- Total cost < $200 for all 3034 spots (with free tier)

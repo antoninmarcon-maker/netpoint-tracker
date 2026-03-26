@@ -11,7 +11,9 @@
  *   npx tsx scripts/enrich-spot.ts --update-address <spotId> <newAddress>
  *   npx tsx scripts/enrich-spot.ts --update-google-maps <spotId> <placeId> <url>
  *   npx tsx scripts/enrich-spot.ts --cleanup-v1 <spotId>
- *   npx tsx scripts/enrich-spot.ts --completeness <spotId>
+ *   npx tsx scripts/enrich-spot.ts --completeness [spotId]
+ *   npx tsx scripts/enrich-spot.ts --list-tier <A|B|C> [--limit=N]
+ *   npx tsx scripts/enrich-spot.ts --batch <batchName>
  *
  * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GOOGLE_PLACES_API_KEY
  */
@@ -550,6 +552,255 @@ async function completeness(spotId: string) {
   );
 }
 
+// ── Tier & Batch Commands ───────────────────────────────────────────
+
+type TierName = 'A' | 'B' | 'C';
+
+async function listTier(tier: TierName, limit: number) {
+  let query = supabase()
+    .from('spots')
+    .select('id, name, type, address, lat, lng, source, club_site_web, google_place_id')
+    .eq('status', 'validated')
+    .order('created_at', { ascending: true });
+
+  if (tier === 'A') {
+    query = query.eq('type', 'club').not('club_site_web', 'is', null);
+  } else if (tier === 'B') {
+    // Tier B: clubs without website OR beach with google_place_id
+    // Supabase JS doesn't support OR across different type filters easily,
+    // so we fetch both and merge
+    const { data: clubsB, error: e1 } = await supabase()
+      .from('spots')
+      .select('id, name, type, address, lat, lng, source, club_site_web, google_place_id')
+      .eq('status', 'validated')
+      .eq('type', 'club')
+      .is('club_site_web', null)
+      .order('created_at', { ascending: true });
+
+    const { data: beachB, error: e2 } = await supabase()
+      .from('spots')
+      .select('id, name, type, address, lat, lng, source, club_site_web, google_place_id')
+      .eq('status', 'validated')
+      .eq('type', 'beach')
+      .not('google_place_id', 'is', null)
+      .order('created_at', { ascending: true });
+
+    if (e1 || e2) {
+      console.error(JSON.stringify({ error: e1?.message || e2?.message }));
+      process.exit(1);
+    }
+
+    const merged = [...(clubsB || []), ...(beachB || [])];
+    const result = merged.slice(0, limit);
+    console.log(JSON.stringify({ tier, total: merged.length, returned: result.length, spots: result }));
+    return;
+  } else if (tier === 'C') {
+    query = query.eq('type', 'beach').is('google_place_id', null);
+  }
+
+  if (tier !== 'B') {
+    query = query.limit(limit);
+    const { data: spots, error } = await query;
+    if (error) {
+      console.error(JSON.stringify({ error: error.message }));
+      process.exit(1);
+    }
+    console.log(JSON.stringify({ tier, total: (spots || []).length, spots: spots || [] }));
+  }
+}
+
+type BatchName =
+  | 'club-a'
+  | 'club-b-1'
+  | 'club-b-2'
+  | 'beach-urban'
+  | 'beach-rural-1'
+  | 'beach-rural-2'
+  | 'beach-rural-3'
+  | 'retry';
+
+const BATCH_SELECT = 'id, name, type, address, lat, lng, source, club_site_web, google_place_id' as const;
+
+async function listBatch(batch: BatchName) {
+  const formatSpot = (s: Record<string, unknown>) => ({
+    id: s.id,
+    name: s.name,
+    type: s.type,
+    address: s.address,
+    lat: s.lat,
+    lng: s.lng,
+    source: s.source,
+    club_site_web: s.club_site_web,
+    tier:
+      s.type === 'club' && s.club_site_web ? 'A' :
+      s.type === 'club' ? 'B' :
+      s.google_place_id ? 'B' : 'C',
+  });
+
+  if (batch === 'club-a') {
+    const { data, error } = await supabase()
+      .from('spots')
+      .select(BATCH_SELECT)
+      .eq('status', 'validated')
+      .eq('type', 'club')
+      .not('club_site_web', 'is', null)
+      .order('created_at', { ascending: true });
+    if (error) { console.error(JSON.stringify({ error: error.message })); process.exit(1); }
+    console.log(JSON.stringify({ batch, total: (data || []).length, spots: (data || []).map(formatSpot) }));
+    return;
+  }
+
+  if (batch === 'club-b-1' || batch === 'club-b-2') {
+    const offset = batch === 'club-b-1' ? 0 : 485;
+    const limit = 485;
+    const { data, error } = await supabase()
+      .from('spots')
+      .select(BATCH_SELECT)
+      .eq('status', 'validated')
+      .eq('type', 'club')
+      .is('club_site_web', null)
+      .order('created_at', { ascending: true })
+      .range(offset, offset + limit - 1);
+    if (error) { console.error(JSON.stringify({ error: error.message })); process.exit(1); }
+    console.log(JSON.stringify({ batch, offset, total: (data || []).length, spots: (data || []).map(formatSpot) }));
+    return;
+  }
+
+  if (batch === 'beach-urban') {
+    // Beach spots that have google_place_id OR have enrichment data (description not null)
+    const { data: withPlaceId, error: e1 } = await supabase()
+      .from('spots')
+      .select(BATCH_SELECT)
+      .eq('status', 'validated')
+      .eq('type', 'beach')
+      .not('google_place_id', 'is', null)
+      .order('created_at', { ascending: true });
+
+    const { data: withDesc, error: e2 } = await supabase()
+      .from('spots')
+      .select(BATCH_SELECT)
+      .eq('status', 'validated')
+      .eq('type', 'beach')
+      .is('google_place_id', null)
+      .not('description', 'is', null)
+      .order('created_at', { ascending: true });
+
+    if (e1 || e2) { console.error(JSON.stringify({ error: (e1 || e2)?.message })); process.exit(1); }
+
+    const seen = new Set<string>();
+    const merged: Record<string, unknown>[] = [];
+    for (const s of [...(withPlaceId || []), ...(withDesc || [])]) {
+      if (!seen.has(s.id as string)) { seen.add(s.id as string); merged.push(s); }
+    }
+    console.log(JSON.stringify({ batch, total: merged.length, spots: merged.map(formatSpot) }));
+    return;
+  }
+
+  if (batch.startsWith('beach-rural-')) {
+    // All beach spots without google_place_id AND without description (not urban)
+    const { data: allRural, error } = await supabase()
+      .from('spots')
+      .select(BATCH_SELECT)
+      .eq('status', 'validated')
+      .eq('type', 'beach')
+      .is('google_place_id', null)
+      .is('description', null)
+      .order('created_at', { ascending: true });
+
+    if (error) { console.error(JSON.stringify({ error: error.message })); process.exit(1); }
+    const rural = allRural || [];
+    const third = Math.ceil(rural.length / 3);
+    let slice: Record<string, unknown>[];
+    if (batch === 'beach-rural-1') slice = rural.slice(0, third);
+    else if (batch === 'beach-rural-2') slice = rural.slice(third, third * 2);
+    else slice = rural.slice(third * 2);
+    console.log(JSON.stringify({ batch, total_rural: rural.length, returned: slice.length, spots: slice.map(formatSpot) }));
+    return;
+  }
+
+  if (batch === 'retry') {
+    // Spots with no photos AND no description (enrichment failed)
+    const { data: allSpots, error: spotsErr } = await supabase()
+      .from('spots')
+      .select(BATCH_SELECT)
+      .eq('status', 'validated')
+      .is('description', null)
+      .order('created_at', { ascending: true });
+
+    if (spotsErr) { console.error(JSON.stringify({ error: spotsErr.message })); process.exit(1); }
+
+    const spotIds = (allSpots || []).map((s: Record<string, unknown>) => s.id as string);
+    // Find which of these have photos
+    const { data: photosData } = await supabase()
+      .from('spot_photos')
+      .select('spot_id')
+      .in('spot_id', spotIds)
+      .neq('source_type', 'v1_deprecated');
+
+    const withPhotos = new Set((photosData || []).map((p: Record<string, unknown>) => p.spot_id as string));
+    const failed = (allSpots || []).filter((s: Record<string, unknown>) => !withPhotos.has(s.id as string));
+    console.log(JSON.stringify({ batch, total: failed.length, spots: failed.map(formatSpot) }));
+    return;
+  }
+
+  console.error(JSON.stringify({
+    error: `Unknown batch: ${batch}`,
+    valid: ['club-a', 'club-b-1', 'club-b-2', 'beach-urban', 'beach-rural-1', 'beach-rural-2', 'beach-rural-3', 'retry'],
+  }));
+  process.exit(1);
+}
+
+async function completenessReport() {
+  // Count spots per tier
+  const { data: allSpots, error } = await supabase()
+    .from('spots')
+    .select('id, type, club_site_web, google_place_id, description')
+    .eq('status', 'validated');
+
+  if (error) { console.error(JSON.stringify({ error: error.message })); process.exit(1); }
+  const spots = allSpots || [];
+
+  const tierA = spots.filter((s) => s.type === 'club' && s.club_site_web);
+  const tierB = spots.filter(
+    (s) => (s.type === 'club' && !s.club_site_web) || (s.type === 'beach' && s.google_place_id),
+  );
+  const tierC = spots.filter((s) => s.type === 'beach' && !s.google_place_id);
+
+  // Count photos per spot
+  const { data: photoCounts } = await supabase()
+    .from('spot_photos')
+    .select('spot_id')
+    .neq('source_type', 'v1_deprecated');
+
+  const photosBySpot = new Map<string, number>();
+  for (const p of photoCounts || []) {
+    photosBySpot.set(p.spot_id, (photosBySpot.get(p.spot_id) || 0) + 1);
+  }
+
+  const countEnriched = (tierSpots: typeof spots) => {
+    let withDesc = 0;
+    let withPhotos = 0;
+    let fullyEnriched = 0;
+    for (const s of tierSpots) {
+      const hasDesc = !!s.description;
+      const hasPhotos = (photosBySpot.get(s.id) || 0) > 0;
+      if (hasDesc) withDesc++;
+      if (hasPhotos) withPhotos++;
+      if (hasDesc && hasPhotos) fullyEnriched++;
+    }
+    return { total: tierSpots.length, with_description: withDesc, with_photos: withPhotos, fully_enriched: fullyEnriched };
+  };
+
+  console.log(JSON.stringify({
+    total_spots: spots.length,
+    total_photos: (photoCounts || []).length,
+    spots_with_photos: photosBySpot.size,
+    tier_A: countEnriched(tierA),
+    tier_B: countEnriched(tierB),
+    tier_C: countEnriched(tierC),
+  }));
+}
+
 // ── CLI Router ──────────────────────────────────────────────────────
 
 const args = process.argv.slice(2);
@@ -567,7 +818,15 @@ Commands:
   --update-address <spotId> <newAddress>                                Replace address
   --update-google-maps <spotId> <placeId> <url>                         Save google_place_id + url
   --cleanup-v1 <spotId>                                                  Mark V1 photos as deprecated
-  --completeness <spotId>                                                Return completeness score
+  --completeness [spotId]                                                Completeness score (spot) or global report
+  --list-tier <A|B|C> [--limit=N]                                       List spots grouped by tier
+  --batch <batchName>                                                    List spots for a batch
+
+Tiers:
+  A = club + club_site_web | B = club w/o site OR beach w/ place_id | C = beach w/o place_id
+
+Batches:
+  club-a, club-b-1, club-b-2, beach-urban, beach-rural-1, beach-rural-2, beach-rural-3, retry
 
 Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GOOGLE_PLACES_API_KEY`);
   process.exit(1);
@@ -621,11 +880,26 @@ if (cmd === '--list') {
   }
   cleanupV1(args[1]);
 } else if (cmd === '--completeness') {
-  if (!args[1]) {
-    console.error('Usage: --completeness <spotId>');
+  if (args[1]) {
+    completeness(args[1]);
+  } else {
+    completenessReport();
+  }
+} else if (cmd === '--list-tier') {
+  const tier = args[1] as TierName;
+  if (!tier || !['A', 'B', 'C'].includes(tier)) {
+    console.error('Usage: --list-tier <A|B|C> [--limit=N]');
     process.exit(1);
   }
-  completeness(args[1]);
+  const limit = parseInt(args.find((a) => a.startsWith('--limit='))?.split('=')[1] || '1000');
+  listTier(tier, limit);
+} else if (cmd === '--batch') {
+  const batch = args[1] as BatchName;
+  if (!batch) {
+    console.error('Usage: --batch <club-a|club-b-1|club-b-2|beach-urban|beach-rural-1|beach-rural-2|beach-rural-3|retry>');
+    process.exit(1);
+  }
+  listBatch(batch);
 } else if (cmd === '--help' || cmd === '-h') {
   printUsage();
 } else {
