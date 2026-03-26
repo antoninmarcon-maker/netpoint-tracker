@@ -11,6 +11,7 @@ import { uploadSpotPhoto } from '@/lib/uploadSpotPhoto';
 import { useAuth } from '@/contexts/AuthContext';
 import PhotoLightbox from './PhotoLightbox';
 import NavigationPicker from './NavigationPicker';
+import { sortSpotPhotos } from '@/lib/sortSpotPhotos';
 
 interface SpotDetailModalProps {
   spotId: string | null;
@@ -179,14 +180,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
   };
 
   // Sort photos: hero first, then by category order
-  const categoryOrder = ['terrain', 'action', 'groupe', 'vue_exterieure', 'logo'];
-  const sortedPhotos = [...photos].sort((a: any, b: any) => {
-    if (a.is_hero && !b.is_hero) return -1;
-    if (!a.is_hero && b.is_hero) return 1;
-    const aIdx = categoryOrder.indexOf(a.photo_category) ?? 99;
-    const bIdx = categoryOrder.indexOf(b.photo_category) ?? 99;
-    return aIdx - bIdx;
-  });
+  const sortedPhotos = sortSpotPhotos(photos);
 
   const placeholderGradients: Record<string, string> = {
     beach: 'from-yellow-500/10 via-amber-500/10 to-orange-500/5',
