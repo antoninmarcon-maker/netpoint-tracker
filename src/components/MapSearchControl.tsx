@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useMap } from 'react-leaflet';
-import { Loader2, Search, MapPin } from 'lucide-react';
+import L from 'leaflet';
+import { Loader2, Search, MapPin, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
@@ -12,12 +13,21 @@ interface MapSearchControlProps {
 export default function MapSearchControl({ isAddingMode, onLocationSelected }: MapSearchControlProps) {
   const { t } = useTranslation();
   const map = useMap();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  // Prevent Leaflet from capturing events on the search overlay
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    L.DomEvent.disableClickPropagation(el);
+    L.DomEvent.disableScrollPropagation(el);
+  }, []);
+
+  const handleSearch = useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
 
@@ -35,7 +45,7 @@ export default function MapSearchControl({ isAddingMode, onLocationSelected }: M
     } finally {
       setSearching(false);
     }
-  };
+  }, [searchQuery, t]);
 
   const handleSelectResult = (result: any) => {
     const lat = parseFloat(result.lat);
@@ -51,8 +61,14 @@ export default function MapSearchControl({ isAddingMode, onLocationSelected }: M
     setSearchQuery('');
   };
 
+  const handleClear = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
   return (
     <div
+      ref={containerRef}
       className="absolute left-[3.75rem] right-3 z-[400] pointer-events-auto"
       style={{ top: 'max(0.625rem, env(safe-area-inset-top))' }}
     >
@@ -60,19 +76,29 @@ export default function MapSearchControl({ isAddingMode, onLocationSelected }: M
         onSubmit={handleSearch}
         className="flex bg-background/90 backdrop-blur-md border border-border/50 rounded-2xl overflow-hidden shadow-lg transition-all focus-within:shadow-xl focus-within:border-primary/30"
       >
-        <div className="flex items-center pl-3.5">
+        <button
+          type="submit"
+          className="flex items-center pl-3.5 pr-1 shrink-0"
+          aria-label={t('spots.searchMap', 'Rechercher')}
+        >
           <Search size={15} className="text-muted-foreground/60" />
-        </div>
+        </button>
         <input
+          type="search"
+          enterKeyHint="search"
           placeholder={t('spots.searchMap', 'Rechercher un lieu...')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 bg-transparent border-0 outline-none px-2.5 h-10 text-sm text-foreground placeholder:text-muted-foreground/50"
+          className="flex-1 bg-transparent border-0 outline-none px-2 h-10 text-sm text-foreground placeholder:text-muted-foreground/50 [&::-webkit-search-cancel-button]:hidden"
         />
-        {searching && (
+        {searching ? (
           <div className="flex items-center pr-3">
             <Loader2 size={14} className="animate-spin text-muted-foreground" />
           </div>
+        ) : searchQuery && (
+          <button type="button" onClick={handleClear} className="flex items-center pr-3">
+            <X size={14} className="text-muted-foreground/60" />
+          </button>
         )}
       </form>
 
