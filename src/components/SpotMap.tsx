@@ -311,7 +311,7 @@ export default function SpotMap({
         />
 
         {/* Search bar — sits in the top bar area alongside back button */}
-        <MapSearchControl isAddingMode={isAddingMode} onLocationSelected={onNewSpotLocationChange} />
+        <MapSearchControl isAddingMode={isAddingMode} onLocationSelected={onNewSpotLocationChange} onSpotSelected={onSelectSpot} />
 
         {/* Filters — compact row below search */}
         <SpotFilters
