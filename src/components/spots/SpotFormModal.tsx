@@ -43,6 +43,13 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
   const [socialInstagram, setSocialInstagram] = useState('');
   const [socialFacebook, setSocialFacebook] = useState('');
   const [socialWhatsapp, setSocialWhatsapp] = useState('');
+  const [socialTiktok, setSocialTiktok] = useState('');
+  const [socialYoutube, setSocialYoutube] = useState('');
+  const [clubSiteWeb, setClubSiteWeb] = useState('');
+  const [clubTelephone, setClubTelephone] = useState('');
+  const [clubEmail, setClubEmail] = useState('');
+  const [existingPhotos, setExistingPhotos] = useState<{ id: string; photo_url: string }[]>([]);
+  const [photosToDelete, setPhotosToDelete] = useState<string[]>([]);
 
   // Create stable object URLs and revoke on change/unmount
   const photoUrls = useMemo(() => photos.map(f => URL.createObjectURL(f)), [photos]);
@@ -63,6 +70,13 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
     setSocialInstagram(spotToEdit?.social_instagram || '');
     setSocialFacebook(spotToEdit?.social_facebook || '');
     setSocialWhatsapp(spotToEdit?.social_whatsapp || '');
+    setSocialTiktok(spotToEdit?.social_tiktok || '');
+    setSocialYoutube(spotToEdit?.social_youtube || '');
+    setClubSiteWeb(spotToEdit?.club_site_web || '');
+    setClubTelephone(spotToEdit?.club_telephone || '');
+    setClubEmail(spotToEdit?.club_email || '');
+    setExistingPhotos([]);
+    setPhotosToDelete([]);
 
     const period = spotToEdit?.availability_period;
     if (!period || period === "Toute l'année") {
@@ -76,6 +90,16 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
       }
     }
   }, [spotToEdit, open]);
+
+  useEffect(() => {
+    if (!open || !spotToEdit?.id) return;
+    supabase
+      .from('spot_photos')
+      .select('id, photo_url')
+      .eq('spot_id', spotToEdit.id)
+      .order('created_at', { ascending: true })
+      .then(({ data }) => setExistingPhotos(data || []));
+  }, [spotToEdit?.id, open]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -112,6 +136,8 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
           name, description, type, availability_period: finalAvailability,
           equip_acces_libre: accesLibre,
           social_instagram: socialInstagram || null, social_facebook: socialFacebook || null, social_whatsapp: socialWhatsapp || null,
+          social_tiktok: socialTiktok || null, social_youtube: socialYoutube || null,
+          club_site_web: clubSiteWeb || null, club_telephone: clubTelephone || null, club_email: clubEmail || null,
           lat: spotToEdit.lat, lng: spotToEdit.lng, user_id: userId,
           status: 'waiting_for_validation',
         }]).select('id').single();
@@ -122,11 +148,26 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
           name, description, type, availability_period: finalAvailability,
           equip_acces_libre: accesLibre,
           social_instagram: socialInstagram || null, social_facebook: socialFacebook || null, social_whatsapp: socialWhatsapp || null,
+          social_tiktok: socialTiktok || null, social_youtube: socialYoutube || null,
+          club_site_web: clubSiteWeb || null, club_telephone: clubTelephone || null, club_email: clubEmail || null,
           lat: location[0], lng: location[1], user_id: userId,
           status: 'waiting_for_validation',
         }]).select('id').single();
         if (error) throw error;
         spotId = newSpot?.id;
+      }
+
+      // Delete photos marked for removal
+      for (const photoId of photosToDelete) {
+        const photo = existingPhotos.find(p => p.id === photoId);
+        if (photo) {
+          const urlParts = photo.photo_url.split('/spot-photos/');
+          if (urlParts[1]) {
+            await supabase.storage.from('spot-photos').remove([urlParts[1]]);
+          }
+          const { error } = await supabase.from('spot_photos').delete().eq('id', photoId);
+          if (error) console.error('Failed to delete photo:', error.message);
+        }
       }
 
       const urls = await Promise.all(photos.map(f => uploadSpotPhoto(spotId, f, userId)));
@@ -238,33 +279,59 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
             <Input value={socialInstagram} onChange={e => setSocialInstagram(e.target.value)} placeholder="Instagram (ex: @monterrain)" className="bg-secondary/50 text-sm h-9" />
             <Input value={socialFacebook} onChange={e => setSocialFacebook(e.target.value)} placeholder="Facebook (lien ou nom de page)" className="bg-secondary/50 text-sm h-9" />
             <Input value={socialWhatsapp} onChange={e => setSocialWhatsapp(e.target.value)} placeholder="WhatsApp (numéro ou lien groupe)" className="bg-secondary/50 text-sm h-9" />
+            <Input value={socialTiktok} onChange={e => setSocialTiktok(e.target.value)} placeholder="TikTok (@handle ou URL)" className="bg-secondary/50 text-sm h-9" />
+            <Input value={socialYoutube} onChange={e => setSocialYoutube(e.target.value)} placeholder="YouTube (@channel ou URL)" className="bg-secondary/50 text-sm h-9" />
           </div>
 
-          <div className="space-y-2">
-            <Label>Photos ({photos.length}/5)</Label>
-            <div className="grid grid-cols-4 gap-2">
-              {photos.map((photo, i) => (
-                <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-border bg-secondary/30">
-                  <img src={photoUrls[i]} alt="" className="w-full h-full object-cover" />
-                  <button type="button" onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 p-0.5 bg-black/60 text-white rounded-full">
-                    <X size={10} />
-                  </button>
-                </div>
-              ))}
-              {photos.length < 5 && (
-                <label className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors bg-secondary/10 text-muted-foreground hover:text-primary">
-                  <ImagePlus size={18} />
-                  <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
-                    if (e.target.files) {
-                      const sel = Array.from(e.target.files);
-                      if (photos.length + sel.length > 5) { toast.error("Max 5 photos"); return; }
-                      setPhotos([...photos, ...sel]);
-                    }
-                  }} />
-                </label>
-              )}
+          {type === 'club' && (
+            <div className="space-y-2 p-3 bg-secondary/20 border border-border rounded-xl">
+              <Label className="text-xs text-muted-foreground">Contact du club (optionnel)</Label>
+              <Input value={clubSiteWeb} onChange={e => setClubSiteWeb(e.target.value)} placeholder="Site web" className="bg-secondary/50 text-sm h-9" />
+              <Input value={clubTelephone} onChange={e => setClubTelephone(e.target.value)} placeholder="Téléphone" className="bg-secondary/50 text-sm h-9" />
+              <Input value={clubEmail} onChange={e => setClubEmail(e.target.value)} placeholder="Email" className="bg-secondary/50 text-sm h-9" />
             </div>
-          </div>
+          )}
+
+          {(() => {
+            const visibleExisting = existingPhotos.filter(p => !photosToDelete.includes(p.id));
+            const totalPhotos = visibleExisting.length + photos.length;
+            return (
+              <div className="space-y-2">
+                <Label>Photos ({totalPhotos}/5)</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {visibleExisting.map((photo) => (
+                    <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border border-border bg-secondary/30">
+                      <img src={photo.photo_url} alt="" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => setPhotosToDelete([...photosToDelete, photo.id])}
+                        className="absolute top-1 right-1 p-0.5 bg-black/60 text-white rounded-full">
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+                  {photos.map((photo, i) => (
+                    <div key={`new-${i}`} className="relative aspect-square rounded-lg overflow-hidden border border-border bg-secondary/30">
+                      <img src={photoUrls[i]} alt="" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 p-0.5 bg-black/60 text-white rounded-full">
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+                  {totalPhotos < 5 && (
+                    <label className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors bg-secondary/10 text-muted-foreground hover:text-primary">
+                      <ImagePlus size={18} />
+                      <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+                        if (e.target.files) {
+                          const sel = Array.from(e.target.files);
+                          if (totalPhotos + sel.length > 5) { toast.error("Max 5 photos"); return; }
+                          setPhotos([...photos, ...sel]);
+                        }
+                      }} />
+                    </label>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="flex gap-2 pt-2">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1" disabled={loading}>Annuler</Button>

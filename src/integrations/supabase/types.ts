@@ -10,10 +10,156 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
+      marketing_contacts: {
+        Row: {
+          bio: string | null
+          city: string | null
+          club_name: string | null
+          created_at: string | null
+          followers_count: number | null
+          handle_ig: string | null
+          handle_tiktok: string | null
+          id: string
+          name: string
+          notes: string | null
+          segment: string
+          source: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bio?: string | null
+          city?: string | null
+          club_name?: string | null
+          created_at?: string | null
+          followers_count?: number | null
+          handle_ig?: string | null
+          handle_tiktok?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          segment: string
+          source?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bio?: string | null
+          city?: string | null
+          club_name?: string | null
+          created_at?: string | null
+          followers_count?: number | null
+          handle_ig?: string | null
+          handle_tiktok?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          segment?: string
+          source?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      marketing_content: {
+        Row: {
+          body: string
+          caption: string | null
+          content_type: string
+          created_at: string | null
+          engagement_comments: number | null
+          engagement_likes: number | null
+          engagement_shares: number | null
+          id: string
+          media_url: string | null
+          platform: string | null
+          published_at: string | null
+          scheduled_at: string | null
+          segment: string
+          status: string | null
+          title: string
+        }
+        Insert: {
+          body: string
+          caption?: string | null
+          content_type: string
+          created_at?: string | null
+          engagement_comments?: number | null
+          engagement_likes?: number | null
+          engagement_shares?: number | null
+          id?: string
+          media_url?: string | null
+          platform?: string | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          segment: string
+          status?: string | null
+          title: string
+        }
+        Update: {
+          body?: string
+          caption?: string | null
+          content_type?: string
+          created_at?: string | null
+          engagement_comments?: number | null
+          engagement_likes?: number | null
+          engagement_shares?: number | null
+          id?: string
+          media_url?: string | null
+          platform?: string | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          segment?: string
+          status?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      marketing_interactions: {
+        Row: {
+          contact_id: string
+          id: string
+          message_sent: string | null
+          platform: string
+          responded_at: string | null
+          response: string | null
+          sent_at: string | null
+          type: string
+        }
+        Insert: {
+          contact_id: string
+          id?: string
+          message_sent?: string | null
+          platform: string
+          responded_at?: string | null
+          response?: string | null
+          sent_at?: string | null
+          type: string
+        }
+        Update: {
+          contact_id?: string
+          id?: string
+          message_sent?: string | null
+          platform?: string
+          responded_at?: string | null
+          response?: string | null
+          sent_at?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_interactions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matches: {
         Row: {
           chrono_seconds: number
@@ -163,6 +309,9 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          photos: string[] | null
+          rating: number | null
+          report_reason: string | null
           spot_id: string
           user_id: string
         }
@@ -170,6 +319,9 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          photos?: string[] | null
+          rating?: number | null
+          report_reason?: string | null
           spot_id: string
           user_id: string
         }
@@ -177,6 +329,9 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          photos?: string[] | null
+          rating?: number | null
+          report_reason?: string | null
           spot_id?: string
           user_id?: string
         }
@@ -199,23 +354,41 @@ export type Database = {
       }
       spot_photos: {
         Row: {
+          author_name: string | null
+          confidence: number | null
           created_at: string
           id: string
+          is_hero: boolean | null
+          photo_category: string | null
           photo_url: string
+          source_type: string | null
+          source_url: string | null
           spot_id: string
           user_id: string
         }
         Insert: {
+          author_name?: string | null
+          confidence?: number | null
           created_at?: string
           id?: string
+          is_hero?: boolean | null
+          photo_category?: string | null
           photo_url: string
+          source_type?: string | null
+          source_url?: string | null
           spot_id: string
           user_id: string
         }
         Update: {
+          author_name?: string | null
+          confidence?: number | null
           created_at?: string
           id?: string
+          is_hero?: boolean | null
+          photo_category?: string | null
           photo_url?: string
+          source_type?: string | null
+          source_url?: string | null
           spot_id?: string
           user_id?: string
         }
@@ -239,6 +412,7 @@ export type Database = {
       spots: {
         Row: {
           address: string | null
+          availability_months: number[] | null
           availability_period: string | null
           club_email: string | null
           club_lien_fiche: string | null
@@ -260,11 +434,19 @@ export type Database = {
           external_id: string | null
           ffvb_comite: string | null
           ffvb_ligue: string | null
+          google_maps_url: string | null
           google_place_id: string | null
           id: string
+          is_temporary: boolean | null
+          is_verified: boolean | null
           lat: number | null
           lng: number | null
           name: string
+          social_facebook: string | null
+          social_instagram: string | null
+          social_tiktok: string | null
+          social_whatsapp: string | null
+          social_youtube: string | null
           source: string | null
           status: string
           type: string
@@ -273,6 +455,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          availability_months?: number[] | null
           availability_period?: string | null
           club_email?: string | null
           club_lien_fiche?: string | null
@@ -294,11 +477,19 @@ export type Database = {
           external_id?: string | null
           ffvb_comite?: string | null
           ffvb_ligue?: string | null
+          google_maps_url?: string | null
           google_place_id?: string | null
           id?: string
+          is_temporary?: boolean | null
+          is_verified?: boolean | null
           lat?: number | null
           lng?: number | null
           name: string
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_tiktok?: string | null
+          social_whatsapp?: string | null
+          social_youtube?: string | null
           source?: string | null
           status?: string
           type?: string
@@ -307,6 +498,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          availability_months?: number[] | null
           availability_period?: string | null
           club_email?: string | null
           club_lien_fiche?: string | null
@@ -328,11 +520,19 @@ export type Database = {
           external_id?: string | null
           ffvb_comite?: string | null
           ffvb_ligue?: string | null
+          google_maps_url?: string | null
           google_place_id?: string | null
           id?: string
+          is_temporary?: boolean | null
+          is_verified?: boolean | null
           lat?: number | null
           lng?: number | null
           name?: string
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_tiktok?: string | null
+          social_whatsapp?: string | null
+          social_youtube?: string | null
           source?: string | null
           status?: string
           type?: string
@@ -551,6 +751,7 @@ export type Database = {
       spots_with_coords: {
         Row: {
           address: string | null
+          availability_months: number[] | null
           availability_period: string | null
           club_email: string | null
           club_lien_fiche: string | null
@@ -574,16 +775,23 @@ export type Database = {
           ffvb_ligue: string | null
           google_place_id: string | null
           id: string | null
+          is_temporary: boolean | null
+          is_verified: boolean | null
           lat: number | null
           lng: number | null
           name: string | null
+          social_facebook: string | null
+          social_instagram: string | null
+          social_whatsapp: string | null
           source: string | null
           status: string | null
           type: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
           address?: string | null
+          availability_months?: number[] | null
           availability_period?: string | null
           club_email?: string | null
           club_lien_fiche?: string | null
@@ -607,16 +815,23 @@ export type Database = {
           ffvb_ligue?: string | null
           google_place_id?: string | null
           id?: string | null
+          is_temporary?: boolean | null
+          is_verified?: boolean | null
           lat?: number | null
           lng?: number | null
           name?: string | null
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_whatsapp?: string | null
           source?: string | null
           status?: string | null
           type?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           address?: string | null
+          availability_months?: number[] | null
           availability_period?: string | null
           club_email?: string | null
           club_lien_fiche?: string | null
@@ -640,18 +855,29 @@ export type Database = {
           ffvb_ligue?: string | null
           google_place_id?: string | null
           id?: string | null
+          is_temporary?: boolean | null
+          is_verified?: boolean | null
           lat?: number | null
           lng?: number | null
           name?: string | null
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_whatsapp?: string | null
           source?: string | null
           status?: string | null
           type?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: []
       }
     }
     Functions: {
+      check_scores_non_negative: {
+        Args: { scores: number[] }
+        Returns: boolean
+      }
+      is_moderator: { Args: never; Returns: boolean }
       upsert_spot_with_location: {
         Args: {
           p_address: string

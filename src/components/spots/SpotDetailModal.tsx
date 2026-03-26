@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
-import { X, MapPin, Calendar, Info, MessageSquare, Loader2, Star, Upload, Edit3, ExternalLink, Sparkles, Navigation, Zap, Phone, Globe, Leaf, Heart, Flag, Trash2 } from 'lucide-react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { X, MapPin, Calendar, Info, MessageSquare, Loader2, Star, Upload, Edit3, ExternalLink, Sparkles, Navigation, Zap, Phone, Globe, Mail, Leaf, Heart, Flag, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,8 @@ import { checkAndIncrementRateLimit } from '@/lib/rateLimit';
 import { MONTHS_SHORT, MONTHS_FULL, getTypeLabel, calcAverageRating } from '@/lib/spotTypes';
 import { uploadSpotPhoto } from '@/lib/uploadSpotPhoto';
 import { useAuth } from '@/contexts/AuthContext';
+import PhotoLightbox from './PhotoLightbox';
+import NavigationPicker from './NavigationPicker';
 
 interface SpotDetailModalProps {
   spotId: string | null;
@@ -34,8 +36,12 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
   const [generatingSummary, setGeneratingSummary] = useState(false);
   const [reportMode, setReportMode] = useState(false);
   const [reportReason, setReportReason] = useState('');
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [showNavPicker, setShowNavPicker] = useState(false);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef<number | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
 
@@ -172,6 +178,36 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
     return { type: 'seasonal' as const, start: null, end: null };
   };
 
+  // Sort photos: hero first, then by category order
+  const categoryOrder = ['terrain', 'action', 'groupe', 'vue_exterieure', 'logo'];
+  const sortedPhotos = [...photos].sort((a: any, b: any) => {
+    if (a.is_hero && !b.is_hero) return -1;
+    if (!a.is_hero && b.is_hero) return 1;
+    const aIdx = categoryOrder.indexOf(a.photo_category) ?? 99;
+    const bIdx = categoryOrder.indexOf(b.photo_category) ?? 99;
+    return aIdx - bIdx;
+  });
+
+  const placeholderGradients: Record<string, string> = {
+    beach: 'from-yellow-500/10 via-amber-500/10 to-orange-500/5',
+    club: 'from-blue-600/10 via-blue-500/10 to-indigo-500/5',
+    outdoor_hard: 'from-green-500/10 via-emerald-500/10 to-green-400/5',
+    outdoor_grass: 'from-green-400/10 via-lime-500/10 to-green-300/5',
+    green_volley: 'from-green-600/10 via-emerald-600/10 to-green-500/5',
+  };
+  const placeholderGradient = spot ? (placeholderGradients[spot.type] || 'from-primary/10 via-secondary/20 to-primary/5') : 'from-primary/10 via-secondary/20 to-primary/5';
+
+  const handleCarouselScroll = useCallback(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    setActivePhotoIndex(Math.round(el.scrollLeft / el.clientWidth));
+  }, []);
+
+  const scrollToPhoto = useCallback((i: number) => {
+    const el = carouselRef.current;
+    if (el) el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' });
+  }, []);
+
   const averageRating = calcAverageRating(comments);
 
   if (!spotId) return null;
@@ -215,14 +251,34 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
               onTouchEnd={handleTouchEnd}
             >
               {/* Photo carousel */}
-              {photos.length > 0 ? (
-                <div className="flex overflow-x-auto snap-x hide-scrollbar">
-                  {photos.map((p: any, i: number) => (
-                    <img key={i} src={p.photo_url} alt="Spot" className="w-full h-52 object-cover shrink-0 snap-center" />
-                  ))}
-                </div>
+              {sortedPhotos.length > 0 ? (
+                <>
+                  <div ref={carouselRef} onScroll={handleCarouselScroll} className="flex overflow-x-auto snap-x hide-scrollbar">
+                    {sortedPhotos.map((p: any, i: number) => (
+                      <img
+                        key={i}
+                        src={p.photo_url}
+                        alt="Spot"
+                        className="w-full h-52 object-cover shrink-0 snap-center cursor-pointer"
+                        onClick={() => setLightboxIndex(i)}
+                        loading="lazy"
+                      />
+                    ))}
+                  </div>
+                  {sortedPhotos.length > 1 && (
+                    <div className="flex justify-center gap-1.5 py-2">
+                      {sortedPhotos.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => scrollToPhoto(i)}
+                          className={`w-1.5 h-1.5 rounded-full transition-colors ${i === activePhotoIndex ? 'bg-accent' : 'bg-border'}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               ) : (
-                <div className="h-28 bg-gradient-to-br from-primary/10 via-secondary/20 to-primary/5 flex items-center justify-center">
+                <div className={`h-28 bg-gradient-to-br ${placeholderGradient} flex items-center justify-center`}>
                   <MapPin size={28} className="text-muted-foreground/30" />
                 </div>
               )}
@@ -323,7 +379,7 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                 })()}
 
                 {/* Social links — for non-club spots (clubs show social in their block) */}
-                {spot.type !== 'club' && spot.source !== 'ffvb_club' && (spot.social_instagram || spot.social_facebook || spot.social_whatsapp) && (
+                {spot.type !== 'club' && spot.source !== 'ffvb_club' && (spot.social_instagram || spot.social_facebook || spot.social_whatsapp || spot.social_tiktok || spot.social_youtube) && (
                   <div className="flex flex-wrap gap-2">
                     {spot.social_instagram && (
                       <a
@@ -350,6 +406,24 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-xs font-medium text-foreground/80 hover:bg-secondary/80 transition-colors"
                       >
                         💬 WhatsApp
+                      </a>
+                    )}
+                    {spot.social_tiktok && (
+                      <a
+                        href={spot.social_tiktok.startsWith('http') ? spot.social_tiktok : `https://tiktok.com/@${spot.social_tiktok}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-xs font-medium text-foreground/80 hover:bg-secondary/80 transition-colors"
+                      >
+                        🎵 TikTok
+                      </a>
+                    )}
+                    {spot.social_youtube && (
+                      <a
+                        href={spot.social_youtube.startsWith('http') ? spot.social_youtube : `https://youtube.com/@${spot.social_youtube}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-xs font-medium text-foreground/80 hover:bg-secondary/80 transition-colors"
+                      >
+                        ▶️ YouTube
                       </a>
                     )}
                   </div>
@@ -386,13 +460,13 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                       )}
                       {spot.club_email && (
                         <a href={`mailto:${spot.club_email}`} className="flex items-center gap-2.5 text-sm text-primary hover:underline">
-                          <Globe size={14} className="shrink-0" /><span className="font-medium">{spot.club_email}</span>
+                          <Mail size={14} className="shrink-0" /><span className="font-medium">{spot.club_email}</span>
                         </a>
                       )}
                     </div>
 
                     {/* Social links inside club block */}
-                    {(spot.social_instagram || spot.social_facebook) && (
+                    {(spot.social_instagram || spot.social_facebook || spot.social_tiktok || spot.social_youtube) && (
                       <div className="flex flex-wrap gap-2 pt-1 border-t border-border/30">
                         {spot.social_instagram && (
                           <a
@@ -410,6 +484,24 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/60 text-xs font-medium text-foreground/80 hover:bg-background/80 transition-colors"
                           >
                             👤 Facebook
+                          </a>
+                        )}
+                        {spot.social_tiktok && (
+                          <a
+                            href={spot.social_tiktok.startsWith('http') ? spot.social_tiktok : `https://tiktok.com/@${spot.social_tiktok}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/60 text-xs font-medium text-foreground/80 hover:bg-background/80 transition-colors"
+                          >
+                            🎵 TikTok
+                          </a>
+                        )}
+                        {spot.social_youtube && (
+                          <a
+                            href={spot.social_youtube.startsWith('http') ? spot.social_youtube : `https://youtube.com/@${spot.social_youtube}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/60 text-xs font-medium text-foreground/80 hover:bg-background/80 transition-colors"
+                          >
+                            ▶️ YouTube
                           </a>
                         )}
                       </div>
@@ -430,21 +522,22 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
                 {spot.lat && spot.lng && (
                   <div className="flex gap-2">
                     <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lng}`}
+                      href={spot.google_maps_url
+                        || (spot.google_place_id
+                          ? `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${spot.google_place_id}`
+                          : `https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lng}`)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1 flex items-center justify-center gap-2 text-xs font-semibold text-primary bg-primary/8 hover:bg-primary/15 rounded-xl py-3 transition-colors active:scale-[0.98]"
                     >
                       <MapPin size={14} /> Google Maps
                     </a>
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => setShowNavPicker(true)}
                       className="flex-1 flex items-center justify-center gap-2 text-xs font-semibold text-primary bg-primary/8 hover:bg-primary/15 rounded-xl py-3 transition-colors active:scale-[0.98]"
                     >
                       <Navigation size={14} /> Itinéraire
-                    </a>
+                    </button>
                   </div>
                 )}
 
@@ -614,6 +707,25 @@ export default function SpotDetailModal({ spotId, onClose, onEdit, isModerator, 
           )}
         </div>
       </div>
+
+      {/* Photo lightbox */}
+      {lightboxIndex !== null && (
+        <PhotoLightbox
+          photos={sortedPhotos}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
+
+      {/* Navigation app picker */}
+      {showNavPicker && spot?.lat && spot?.lng && (
+        <NavigationPicker
+          lat={spot.lat}
+          lng={spot.lng}
+          address={spot.address}
+          onClose={() => setShowNavPicker(false)}
+        />
+      )}
     </>
   );
 }
