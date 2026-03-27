@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import "./i18n";
 
 // Purge any remaining service workers and caches from previous PWA builds
 if ("serviceWorker" in navigator) {
