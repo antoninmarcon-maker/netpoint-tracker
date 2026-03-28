@@ -2,7 +2,7 @@ import { Undo2, RotateCcw, Flag, ArrowLeftRight, Play, Pause, Timer, Pencil, Plu
 import { Team, PointType, ActionType, SportType, Point, MatchMetadata, getScoredActionsForSport, getFaultActionsForSport, getNeutralActionsForSport, getPeriodLabel } from '@/types/sports';
 import { getVisibleActions } from '@/lib/actionsConfig';
 import { Input } from '@/components/ui/input';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { userStorage } from '@/lib/userStorage';
 
@@ -109,7 +109,7 @@ export function ScoreBoard({
     setEditingNames(false);
   };
 
-  const handleActionSelect = (action: ActionType, customLabel?: string, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean, hasDirection?: boolean, hasRating?: boolean) => {
+  const handleActionSelect = useCallback((action: ActionType, customLabel?: string, sigil?: string, showOnCourt?: boolean, assignToPlayer?: boolean, hasDirection?: boolean, hasRating?: boolean) => {
     if (!menuTeam) return;
     const type: PointType = menuTab;
 
@@ -125,7 +125,7 @@ export function ScoreBoard({
       hasRating: hasRating ?? (metadata?.enableRatings !== false),
     });
     setMenuTeam(null);
-  };
+  }, [menuTeam, menuTab, onSelectAction, metadata?.enableRatings]);
 
   const openMenu = (team: Team) => { setMenuTeam(team); setMenuTab('scored'); };
   const closeMenu = () => { setMenuTeam(null); };
@@ -133,7 +133,7 @@ export function ScoreBoard({
   const SERVICE_SCORED_ACTIONS: ActionType[] = ['ace'];
   const SERVICE_FAULT_ACTIONS: ActionType[] = ['service_miss'];
 
-  const getScoredActions = () => {
+  const scoredActions = useMemo(() => {
     const defaults = getScoredActionsForSport(sport);
     const visible = getVisibleActions(sport, 'scored', defaults);
     if (!servingTeam || !menuTeam) return visible;
@@ -141,21 +141,35 @@ export function ScoreBoard({
       if (SERVICE_SCORED_ACTIONS.includes(a.key as ActionType) && servingTeam !== menuTeam) return false;
       return true;
     });
-  };
+  }, [sport, servingTeam, menuTeam]);
 
-  const getFilteredFaultActions = () => {
+  const filteredFaultActions = useMemo(() => {
     const defaults = getFaultActionsForSport(sport);
     const visible = getVisibleActions(sport, 'fault', defaults);
     if (!servingTeam || !menuTeam) return visible;
-    const opponent = menuTeam === 'blue' ? 'red' : 'blue';
-    const faultingTeam = opponent;
+    const faultingTeam = menuTeam === 'blue' ? 'red' : 'blue';
     return visible.filter(a => {
       if (SERVICE_FAULT_ACTIONS.includes(a.key as ActionType) && faultingTeam !== servingTeam) return false;
       return true;
     });
-  };
+  }, [sport, servingTeam, menuTeam]);
 
-  const allActions = [...getScoredActionsForSport(sport), ...getFaultActionsForSport(sport), ...getNeutralActionsForSport(sport)];
+  const neutralActions = useMemo(
+    () => getVisibleActions(sport, 'neutral', getNeutralActionsForSport(sport)),
+    [sport]
+  );
+
+  const menuActions = useMemo(() => {
+    if (!menuTeam) return [];
+    if (menuTab === 'scored') return scoredActions;
+    if (menuTab === 'fault') return filteredFaultActions;
+    return neutralActions;
+  }, [menuTeam, menuTab, scoredActions, filteredFaultActions, neutralActions]);
+
+  const allActions = useMemo(
+    () => [...getScoredActionsForSport(sport), ...getFaultActionsForSport(sport), ...getNeutralActionsForSport(sport)],
+    [sport]
+  );
 
   const hasNeutralActions = useMemo(() => {
     const neutralDefaults = getNeutralActionsForSport(sport);
@@ -174,6 +188,7 @@ export function ScoreBoard({
             <span className="text-sm font-mono font-bold text-foreground tabular-nums">{formatTime(chronoSeconds)}</span>
             <button
               onClick={chronoRunning ? onPauseChrono : onStartChrono}
+              aria-label={t('common.chronoPlayPause')}
               className={`p-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all ${!chronoRunning ? 'animate-pulse ring-2 ring-primary/40' : ''}`}
             >
               {chronoRunning ? <Pause size={12} /> : <Play size={12} />}
@@ -243,6 +258,7 @@ export function ScoreBoard({
             <button
               onClick={() => openMenu(left)}
               disabled={!!selectedTeam || waitingForNewSet}
+              aria-label={t('common.addActionFor', { team: teamNames[left] })}
               className={`mt-2 w-full py-3 rounded-xl font-bold text-lg transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${left === 'blue' ? 'bg-team-blue/20 text-team-blue border-2 border-team-blue/30 hover:bg-team-blue/30' : 'bg-team-red/20 text-team-red border-2 border-team-red/30 hover:bg-team-red/30'
                 }`}
             >
@@ -266,6 +282,7 @@ export function ScoreBoard({
             <button
               onClick={() => openMenu(right)}
               disabled={!!selectedTeam || waitingForNewSet}
+              aria-label={t('common.addActionFor', { team: teamNames[right] })}
               className={`mt-2 w-full py-3 rounded-xl font-bold text-lg transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${right === 'blue' ? 'bg-team-blue/20 text-team-blue border-2 border-team-blue/30 hover:bg-team-blue/30' : 'bg-team-red/20 text-team-red border-2 border-team-red/30 hover:bg-team-red/30'
                 }`}
             >
@@ -295,7 +312,7 @@ export function ScoreBoard({
             <button onClick={closeMenu} className="p-1 rounded-md text-muted-foreground hover:text-foreground"><X size={16} /></button>
           </div>
           <div className="grid grid-cols-3 gap-1.5">
-            {(menuTab === 'scored' ? getScoredActions() : menuTab === 'fault' ? getFilteredFaultActions() : getVisibleActions(sport, 'neutral', getNeutralActionsForSport(sport))).map(a => (
+            {menuActions.map(a => (
               <button
                 key={a.customId ?? a.key}
                 onClick={() => handleActionSelect(a.key as ActionType, a.customId ? a.label : undefined, a.sigil, a.showOnCourt, (a as any).assignToPlayer, (a as any).hasDirection, (a as any).hasRating)}

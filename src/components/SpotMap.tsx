@@ -1,6 +1,6 @@
 // @ts-nocheck — react-leaflet types mismatch with current version
 import { useEffect, useState, useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { supabase } from '@/integrations/supabase/client';
 import 'leaflet/dist/leaflet.css';
@@ -43,6 +43,7 @@ interface SpotMapProps {
   onUserPositionChange?: (pos: [number, number]) => void;
   recenterTrigger?: number;
   refreshTrigger?: number;
+  onLongPressAdd?: (latlng: [number, number]) => void;
 }
 
 const defaultCenter: [number, number] = [46.603354, 1.888334];
@@ -149,6 +150,19 @@ function RecenterController({ trigger }: { trigger: number }) {
   return null;
 }
 
+function LongPressHandler({ isAddingMode, onLongPressAdd }: {
+  isAddingMode?: boolean; onLongPressAdd?: (latlng: [number, number]) => void;
+}) {
+  useMapEvents({
+    contextmenu(e) {
+      if (isAddingMode || !onLongPressAdd) return;
+      e.originalEvent.preventDefault();
+      onLongPressAdd([e.latlng.lat, e.latlng.lng]);
+    },
+  });
+  return null;
+}
+
 function AddMarkerController({ isActive, location, onChange }: {
   isActive?: boolean; location?: [number, number]; onChange?: (loc: [number, number]) => void;
 }) {
@@ -192,7 +206,7 @@ function BoundsWatcher({ onChange }: { onChange: (b: MapBounds) => void }) {
 export default function SpotMap({
   selectedSpotId, onSelectSpot, isAddingMode, newSpotLocation, onNewSpotLocationChange,
   filters, onFiltersChange, isModerator, onUserPositionChange, recenterTrigger = 0,
-  refreshTrigger = 0,
+  refreshTrigger = 0, onLongPressAdd,
 }: SpotMapProps) {
   const { t } = useTranslation();
   const isDark = useIsDark();
@@ -322,6 +336,7 @@ export default function SpotMap({
         />
 
         <BoundsWatcher onChange={handleBoundsChange} />
+        <LongPressHandler isAddingMode={isAddingMode} onLongPressAdd={onLongPressAdd} />
         <UserLocationMarker onPosition={handleUserPosition} />
         <RecenterController trigger={recenterTrigger} />
         <AddMarkerController isActive={isAddingMode} location={newSpotLocation} onChange={onNewSpotLocationChange} />

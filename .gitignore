@@ -41,3 +41,8 @@ dist-ssr
 supabase/.temp/
 .vercel
 .env.local
+
+# Screenshots and media
+Screens My Volley/
+spots-new-layout.png
+scbuissard-medias.jpeg

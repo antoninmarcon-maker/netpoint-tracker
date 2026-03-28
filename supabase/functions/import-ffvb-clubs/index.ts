@@ -1,8 +1,22 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.47.0"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = [
+  "https://www.my-volley.com",
+  "https://my-volley.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:8080",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.some((o) => origin === o || origin.endsWith(".vercel.app"))
+    ? origin
+    : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
 }
 
 // Google My Maps KML export — clubs affiliés FFVB
@@ -187,9 +201,19 @@ async function runImport(startOffset: number, batchLimit: number, autoChain: boo
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
+
+  const authHeader = req.headers.get('Authorization');
+  if (authHeader !== `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     let startOffset = 0
     let batchLimit = 200

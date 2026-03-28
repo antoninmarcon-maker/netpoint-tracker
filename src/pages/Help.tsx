@@ -1,5 +1,6 @@
 import { Mail, MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 
 const helpSections: { titleKey: string; descKeys: string[] }[] = [
   { titleKey: 'help.scoringTitle', descKeys: ['help.scoringP1', 'help.scoringP2'] },
@@ -17,6 +18,7 @@ const helpSections: { titleKey: string; descKeys: string[] }[] = [
 
 export default function Help() {
   const { t } = useTranslation();
+  useDocumentMeta({ titleKey: 'meta.helpTitle', descriptionKey: 'meta.helpDesc', path: '/help' });
 
   return (
     <div className="p-4 max-w-2xl mx-auto w-full space-y-8 pb-8">

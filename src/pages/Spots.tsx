@@ -11,12 +11,14 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { useAuth } from '@/contexts/AuthContext';
 
 const MODERATOR_EMAILS = ['antonin.marcon@gmail.com', 'myvolley.testbot@gmail.com'];
 
 export default function Spots() {
   const { t } = useTranslation();
+  useDocumentMeta({ titleKey: 'meta.spotsTitle', descriptionKey: 'meta.spotsDesc', path: '/spots' });
   const navigate = useNavigate();
   const { requireAuth } = useAuth();
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
@@ -108,6 +110,12 @@ export default function Spots() {
           onUserPositionChange={setUserPosition}
           recenterTrigger={recenterTrigger}
           refreshTrigger={refreshKey}
+          onLongPressAdd={(latlng) => {
+            if (!requireAuth(t('spots.loginRequired'))) return;
+            setSelectedSpotId(null);
+            setNewSpotLocation(latlng);
+            setIsAddingMode(true);
+          }}
         />
       </div>
 
@@ -119,6 +127,7 @@ export default function Spots() {
         <div className="px-3 py-2">
           <button
             onClick={() => navigate('/')}
+            aria-label={t('common.back')}
             className="w-10 h-10 rounded-2xl glass-btn border border-border/50 shadow-lg flex items-center justify-center text-foreground transition-colors active:scale-95 pointer-events-auto"
           >
             <ArrowLeft size={18} />
@@ -140,7 +149,8 @@ export default function Spots() {
           <button
             onClick={() => setRecenterTrigger(t => t + 1)}
             className="w-12 h-12 rounded-2xl glass-btn border border-border/50 shadow-lg flex items-center justify-center text-foreground transition-all active:scale-95"
-            title="Ma position"
+            aria-label={t('common.myPosition')}
+            title={t('common.myPosition')}
           >
             <Locate size={18} />
           </button>
@@ -174,7 +184,8 @@ export default function Spots() {
                 ? 'bg-destructive text-destructive-foreground border-destructive'
                 : 'bg-accent/15 border-accent/25 text-accent hover:bg-accent/25'
             }`}
-            title="Ajouter un terrain"
+            aria-label={isAddingMode ? t('common.cancel') : t('common.addCourt')}
+            title={isAddingMode ? t('common.cancel') : t('common.addCourt')}
           >
             {isAddingMode ? <X size={18} /> : <Plus size={18} />}
           </button>

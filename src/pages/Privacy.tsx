@@ -1,6 +1,9 @@
 import { Shield } from 'lucide-react';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 
 export default function Privacy() {
+  useDocumentMeta({ titleKey: 'meta.privacyTitle', descriptionKey: 'meta.privacyDesc', path: '/privacy' });
+
   return (
     <div className="overflow-auto p-5 max-w-lg mx-auto w-full space-y-8">
       <section className="flex items-center gap-3">

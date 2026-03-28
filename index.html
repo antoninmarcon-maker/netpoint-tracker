@@ -2,7 +2,7 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="My Volley" />
@@ -16,7 +16,7 @@
     <link rel="canonical" href="https://www.my-volley.com/" />
 
     <title>My Volley — Scouting & Statistiques Volleyball en Direct</title>
-    <meta name="description" content="My Volley : l'application gratuite de scouting volleyball pour coachs et joueurs. Scoring en temps réel, heatmaps de précision, analyse tactique par IA, gestion de tournois, carte communautaire des terrains, export Excel et partage instantané. Disponible hors-ligne.">
+    <meta name="description" content="My Volley : scouting et statistiques volleyball en direct. Heatmaps, scores live, analyse IA, tournois et carte des terrains. Gratuit et open source.">
     <meta name="keywords" content="volleyball, scouting, statistiques, stats volleyball, heatmap volleyball, score en direct, live score volley, tournoi volleyball, terrain de volley, court finder, analyse tactique IA, export excel volleyball, application volleyball gratuite, PWA volleyball, club amateur volleyball, joueur volleyball, coach volleyball, match volley, performance volleyball, play-by-play volleyball">
     <meta name="author" content="My Volley — Antonin Marcon" />
 
@@ -63,7 +63,6 @@
       },
       "description": "My Volley est l'application de référence pour le scouting et les statistiques volleyball. Conçue pour les coachs et joueurs de tous niveaux, elle propose le scoring en temps réel, des heatmaps de précision, l'analyse tactique par intelligence artificielle, la gestion de tournois avec inscriptions en ligne, une carte communautaire des terrains et l'export complet des données en Excel. Disponible gratuitement, fonctionne hors-ligne.",
       "inLanguage": ["fr", "en"],
-      "screenshot": "https://www.my-volley.com/pwa-512x512.png",
       "featureList": [
         "Scoring en temps réel avec terrain interactif et coordonnées de précision",
         "Heatmaps détaillées des zones d'impact, d'attaque et de fautes",
@@ -80,13 +79,7 @@
         "Historique des points et mode Replay pour revoir chaque échange",
         "Joueurs enregistrés réutilisables d'un match à l'autre",
         "Bilingue français / anglais"
-      ],
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "ratingCount": "50",
-        "bestRating": "5"
-      }
+      ]
     }
     </script>
     <!-- Prevent theme flash: apply dark class before first paint -->
@@ -101,6 +94,7 @@
 
   <body>
     <div id="root"></div>
+    <script>(function(){try{if(!('serviceWorker' in navigator))return;var had=false;navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(reg){had=true;reg.unregister()});if(window.caches)return caches.keys().then(function(k){return Promise.all(k.map(function(n){return caches.delete(n)}))});}).then(function(){if(had)location.reload()}).catch(function(){})}catch(e){}})();</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

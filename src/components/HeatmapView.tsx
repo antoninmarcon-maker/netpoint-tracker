@@ -1,11 +1,9 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { Download, ChevronDown, Copy, Image, FileSpreadsheet, Map, Share2, Link as LinkIcon } from 'lucide-react';
-import html2canvas from 'html2canvas';
 import { Point, SetData, Player, isOffensiveAction, SportType, OFFENSIVE_ACTIONS, FAULT_ACTIONS, getSportIcon } from '@/types/sports';
 import { PointTimeline } from './PointTimeline';
 import { CourtDisplay } from './CourtDisplay';
 import { PlayerStats } from './PlayerStats';
-import { exportMatchToExcel } from '@/lib/excelExport';
 import { generateShareToken } from '@/lib/cloudStorage';
 import { toast } from 'sonner';
 import {
@@ -324,6 +322,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
       const ds = computeStats(filteredPoints, visibleKeys, visibleLabels);
       const container = buildExportContainer(teamNames, label, ds, visibleKeys);
       document.body.appendChild(container);
+      const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(container, { backgroundColor: '#1a1a2e', scale: 2 });
       document.body.removeChild(container);
       const link = document.createElement('a');
@@ -419,6 +418,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     container.appendChild(svg);
     document.body.appendChild(container);
     try {
+      const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(container, { backgroundColor: '#1a1a2e', scale: 2 });
       const link = document.createElement('a');
       link.download = `terrain-${teamNames.blue}-vs-${teamNames.red}-${label.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
@@ -793,7 +793,7 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => exportMatchToExcel(completedSets, currentSetPoints, currentSetNumber, teamNames, players, sport)} className="cursor-pointer">
+            <DropdownMenuItem onClick={async () => { const { exportMatchToExcel } = await import('@/lib/excelExport'); exportMatchToExcel(completedSets, currentSetPoints, currentSetNumber, teamNames, players, sport); }} className="cursor-pointer">
               <FileSpreadsheet size={14} className="mr-2" />
               {t('heatmap.excelXlsx')}
             </DropdownMenuItem>

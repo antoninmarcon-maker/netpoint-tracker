@@ -20,4 +20,43 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes("node_modules")) return;
+
+          if (id.includes("react-dom")) return "vendor-react";
+          if (id.includes("react-router-dom")) return "vendor-react";
+          if (
+            id.includes("/react/") ||
+            id.includes("/react-jsx-runtime/") ||
+            id.includes("/scheduler/")
+          )
+            return "vendor-react";
+
+          if (id.includes("@supabase")) return "vendor-supabase";
+
+          if (id.includes("@radix-ui")) return "vendor-radix";
+
+          if (id.includes("recharts") || id.includes("d3-"))
+            return "vendor-recharts";
+
+          if (id.includes("leaflet")) return "vendor-leaflet";
+
+          if (id.includes("i18next") || id.includes("i18next-browser"))
+            return "vendor-i18n";
+
+          if (
+            id.includes("lucide-react") ||
+            id.includes("class-variance-authority") ||
+            id.includes("/clsx/") ||
+            id.includes("tailwind-merge") ||
+            id.includes("sonner")
+          )
+            return "vendor-ui";
+        },
+      },
+    },
+  },
 });

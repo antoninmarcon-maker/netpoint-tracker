@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trophy, Plus, ChevronRight, Loader2, Trash2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { getMyTournaments, createTournament, deleteTournament } from '@/lib/tournamentStorage';
 import type { Tournament, TournamentFormat } from '@/types/tournament';
 import { useTranslation } from 'react-i18next';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
@@ -19,7 +19,8 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function Tournaments() {
     const { t, i18n } = useTranslation();
-    const { user: authUser, requireAuth } = useAuth();
+    useDocumentMeta({ titleKey: 'meta.tournamentsTitle', descriptionKey: 'meta.tournamentsDesc', path: '/tournaments' });
+    const { user, authLoaded, requireAuth } = useAuth();
 
     const getFormatLabel = (format: TournamentFormat) => {
         switch (format) {
@@ -40,7 +41,6 @@ export default function Tournaments() {
         }
     };
     const navigate = useNavigate();
-    const [user, setUser] = useState<any>(null);
     const [tournaments, setTournaments] = useState<Tournament[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
@@ -58,18 +58,16 @@ export default function Tournaments() {
     const [formStrictValidation, setFormStrictValidation] = useState(false);
 
     useEffect(() => {
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            setUser(user);
-            if (user) {
-                getMyTournaments().then(data => {
-                    setTournaments(data);
-                    setLoading(false);
-                });
-            } else {
+        if (!authLoaded) return;
+        if (user) {
+            getMyTournaments().then(data => {
+                setTournaments(data);
                 setLoading(false);
-            }
-        });
-    }, []);
+            });
+        } else {
+            setLoading(false);
+        }
+    }, [authLoaded, user]);
 
     const handleCreate = async () => {
         if (!formName.trim()) return;

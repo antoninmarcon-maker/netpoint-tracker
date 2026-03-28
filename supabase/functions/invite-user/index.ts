@@ -1,12 +1,33 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const ALLOWED_ORIGINS = [
+  "https://www.my-volley.com",
+  "https://my-volley.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:8080",
+];
+
+const MODERATOR_EMAILS = [
+  "antonin.marcon@gmail.com",
+  "myvolley.testbot@gmail.com",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.some((o) => origin === o || origin.endsWith(".vercel.app"))
+    ? origin
+    : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  };
+}
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -35,6 +56,14 @@ Deno.serve(async (req) => {
       });
     }
 
+    const userEmail = claimsData.claims.email as string | undefined;
+    if (!userEmail || !MODERATOR_EMAILS.includes(userEmail)) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { email } = await req.json();
     if (!email || typeof email !== "string" || !email.includes("@")) {
       return new Response(JSON.stringify({ error: "Invalid email" }), {
@@ -51,7 +80,7 @@ Deno.serve(async (req) => {
     const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email);
 
     if (error) {
-      // User already registered — treat as success from UX perspective
+      // User already registered -- treat as success from UX perspective
       if (error.message?.includes("already been registered")) {
         return new Response(JSON.stringify({ already_registered: true }), {
           status: 200,

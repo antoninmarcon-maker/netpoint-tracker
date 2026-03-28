@@ -17,10 +17,10 @@ import { AuthDialog } from '@/components/AuthDialog';
 import { SavedPlayersManager } from '@/components/SavedPlayersManager';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 
-import { exportMatchToExcel } from '@/lib/excelExport';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useTranslation } from 'react-i18next';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { userStorage } from '@/lib/userStorage';
 
 function formatDate(ts: number) {
@@ -60,6 +60,7 @@ function Instructions({ onClose }: { onClose?: () => void }) {
 
 export default function Home() {
   const { t } = useTranslation();
+  useDocumentMeta({ titleKey: 'meta.homeTitle', descriptionKey: 'meta.homeDesc', path: '/' });
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
@@ -386,16 +387,15 @@ export default function Home() {
     if (user) {
       try {
         await deleteCloudMatch(id);
-        deleteMatch(id);
       } catch (err) {
         if (import.meta.env.DEV) console.error('Cloud delete failed:', err);
         toast.error(t('home.errorDeleting'));
         setDeletingId(null);
         return;
       }
-    } else {
-      deleteMatch(id);
     }
+    // Always clean local storage (no-op if the match only lived in the cloud)
+    deleteMatch(id);
     setDeletingId(null);
     await loadMatches(user);
   };
@@ -1001,7 +1001,7 @@ export default function Home() {
                               <BarChart2 className="mr-2 h-4 w-4 text-muted-foreground" />
                               <span className="font-medium text-xs">{t('home.viewStats', 'Statistiques détaillées')}</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => exportMatchToExcel(match.completedSets, match.points, match.currentSetNumber, match.teamNames, match.players || [])} className="cursor-pointer py-2.5">
+                            <DropdownMenuItem onClick={async () => { const { exportMatchToExcel } = await import('@/lib/excelExport'); exportMatchToExcel(match.completedSets, match.points, match.currentSetNumber, match.teamNames, match.players || []); }} className="cursor-pointer py-2.5">
                               <FileSpreadsheet className="mr-2 h-4 w-4 text-muted-foreground" />
                               <span className="font-medium text-xs">{t('heatmap.excelXlsx', 'Excel (.xlsx)')}</span>
                             </DropdownMenuItem>
@@ -1131,7 +1131,7 @@ export default function Home() {
               <button onClick={() => handleCopyScore(sharingMatch)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-medium transition-all">
                 <Copy size={16} className="text-muted-foreground" /> {t('heatmap.copyScore', 'Copier le score')}
               </button>
-              <button onClick={() => exportMatchToExcel(sharingMatch.completedSets, sharingMatch.points, sharingMatch.currentSetNumber, sharingMatch.teamNames, sharingMatch.players || [])} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-medium transition-all">
+              <button onClick={async () => { const { exportMatchToExcel } = await import('@/lib/excelExport'); exportMatchToExcel(sharingMatch.completedSets, sharingMatch.points, sharingMatch.currentSetNumber, sharingMatch.teamNames, sharingMatch.players || []); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-medium transition-all">
                 <FileSpreadsheet size={16} className="text-muted-foreground" /> {t('heatmap.excelXlsx', 'Excel (.xlsx)')}
               </button>
               {user && (

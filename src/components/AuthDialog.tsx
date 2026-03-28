@@ -127,6 +127,7 @@ export function AuthDialog({ open, onOpenChange, onGuest, message }: AuthDialogP
               <Input
                 type="email"
                 placeholder={t('auth.emailPlaceholder')}
+                aria-label={t('auth.emailLabel')}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 className="h-10"
@@ -137,6 +138,7 @@ export function AuthDialog({ open, onOpenChange, onGuest, message }: AuthDialogP
                   <Input
                     type={showPassword ? 'text' : 'password'}
                     placeholder={mode === 'signup' ? t('auth.passwordMinHint') : t('auth.passwordPlaceholder')}
+                    aria-label={t('auth.passwordLabel')}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     className="h-10 pr-10"

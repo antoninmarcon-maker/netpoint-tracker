@@ -17,7 +17,7 @@ import {
 } from '@/lib/savedPlayers';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import type { User } from '@supabase/supabase-js';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PlayerWithStats extends SavedPlayer {
   totalPoints: number;
@@ -29,7 +29,7 @@ interface PlayerWithStats extends SavedPlayer {
 export default function Players() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
   const sport: SportType = 'volleyball';
   const [players, setPlayers] = useState<PlayerWithStats[]>([]);
   const [loading, setLoading] = useState(false);
@@ -43,12 +43,6 @@ export default function Players() {
   const [editNumber, setEditNumber] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-  }, []);
 
   const loadPlayers = useCallback(async () => {
     setLoading(true);

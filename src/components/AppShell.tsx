@@ -37,6 +37,9 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-background focus:text-foreground">
+        {t('common.skipToContent')}
+      </a>
       <div className="sticky top-0 z-40 bg-background pt-[env(safe-area-inset-top)]">
         <header className="flex h-14 items-center justify-between border-b border-border px-4">
           <div className="flex items-center gap-2.5">
@@ -68,7 +71,7 @@ export function AppShell() {
         </header>
       </div>
 
-      <main key={location.pathname} className="flex-1 pb-16 page-enter">
+      <main id="main-content" key={location.pathname} className="flex-1 pb-16 page-enter">
         <Outlet context={{ showNewMatch, setShowNewMatch }} />
       </main>
 

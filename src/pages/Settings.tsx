@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { useTheme } from '@/hooks/useTheme';
 import { isPushSupported, isIOSSafari, getNotificationPermission, subscribeToPush } from '@/lib/pushNotifications';
 import type { User } from '@supabase/supabase-js';
@@ -14,10 +15,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
+  useDocumentMeta({ titleKey: 'meta.settingsTitle', descriptionKey: 'meta.settingsDesc', path: '/settings' });
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
-  const { requireAuth } = useAuth();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, authLoaded, requireAuth } = useAuth();
   const [loading, setLoading] = useState(true);
 
   // Profile

@@ -6,6 +6,8 @@ import { AuthDialog } from '@/components/AuthDialog';
 
 interface AuthContextValue {
   user: User | null;
+  /** True once the initial session check has resolved. */
+  authLoaded: boolean;
   /** Opens the auth dialog. Returns true if already logged in. */
   requireAuth: (message?: string) => boolean;
 }
@@ -14,6 +16,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | undefined>();
 
@@ -26,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      setAuthLoaded(true);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -38,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, requireAuth }}>
+    <AuthContext.Provider value={{ user, authLoaded, requireAuth }}>
       {children}
       <AuthDialog open={showAuth} onOpenChange={setShowAuth} message={authMessage} />
     </AuthContext.Provider>

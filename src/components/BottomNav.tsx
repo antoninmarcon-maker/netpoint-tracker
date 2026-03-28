@@ -84,6 +84,7 @@ export function BottomNav({ onNewMatch, isGuest }: BottomNavProps) {
               key={tab.labelKey}
               ref={(el) => { tabRefs.current[i] = el; }}
               onClick={() => handleClick(tab, i)}
+              aria-label={t(tab.labelKey)}
               className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 transition-all duration-200 ${
                 isActive ? "text-foreground" : "text-muted-foreground"
               }`}

@@ -18,12 +18,14 @@ import { getCloudMatchById, saveCloudMatch } from '@/lib/cloudStorage';
 import { supabase } from '@/integrations/supabase/client';
 import type { MatchSummary, Player, RallyAction, Point } from '@/types/sports';
 import { useTranslation } from 'react-i18next';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { useAuth } from '@/contexts/AuthContext';
 
 type Tab = 'match' | 'stats';
 
 const Index = () => {
   const { t } = useTranslation();
+  useDocumentMeta({ titleKey: 'meta.matchTitle', descriptionKey: 'meta.matchDesc', path: '/match' });
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(window.location.search);

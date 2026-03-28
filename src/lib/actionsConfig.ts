@@ -202,7 +202,6 @@ export function deleteCustomAction(id: string): ActionsConfig {
 // Advantage rule not needed for volleyball-only, but keep stubs for compatibility
 export function getAdvantageRule(_sport: SportType): boolean { return true; }
 export function setAdvantageRule(_sport: SportType, _value: boolean): void { }
-export function hydrateAdvantageRule(_cloud: any) { }
 
 export function getCustomActionRealKey(customAction: CustomAction): ActionType {
   const otherKeys = OTHER_ACTION_KEYS[customAction.sport];

@@ -30,7 +30,16 @@
     "yes": "Oui",
     "no": "Non",
     "madeWith": "Made with ❤️ by",
-    "volleyballCapbreton": "Volleyball Capbreton"
+    "volleyballCapbreton": "Volleyball Capbreton",
+    "skipToContent": "Aller au contenu principal",
+    "somethingWentWrong": "Une erreur est survenue",
+    "errorDescription": "L'application a rencontre un probleme inattendu.",
+    "reload": "Recharger",
+    "closeInstructions": "Fermer les instructions",
+    "chronoPlayPause": "Chronomètre lecture/pause",
+    "addActionFor": "Ajouter une action pour {{team}}",
+    "myPosition": "Ma position",
+    "addCourt": "Ajouter un terrain"
   },
   "home": {
     "title": "🏆 My Volley",
@@ -737,5 +746,23 @@
     "october": "Octobre",
     "november": "Novembre",
     "december": "Décembre"
+  },
+  "meta": {
+    "homeTitle": "My Volley -- Scouting & Stats Volleyball",
+    "homeDesc": "Application gratuite de scouting volleyball : scoring en direct, heatmaps, analyse IA, tournois, carte des terrains et export Excel.",
+    "helpTitle": "Aide -- My Volley",
+    "helpDesc": "Guide d'utilisation de My Volley : scoring, heatmaps, export, joueurs et tournois.",
+    "settingsTitle": "Parametres -- My Volley",
+    "settingsDesc": "Configurez votre profil, langue, theme et notifications dans My Volley.",
+    "spotsTitle": "Terrains -- My Volley",
+    "spotsDesc": "Carte communautaire des terrains de volleyball : trouvez et partagez des terrains pres de chez vous.",
+    "privacyTitle": "Confidentialite -- My Volley",
+    "privacyDesc": "Politique de confidentialite de My Volley.",
+    "creditsTitle": "Credits -- My Volley",
+    "creditsDesc": "L'equipe et les technologies derriere My Volley.",
+    "tournamentsTitle": "Tournois -- My Volley",
+    "tournamentsDesc": "Creez et gerez vos tournois de volleyball avec My Volley.",
+    "matchTitle": "Match en Direct -- My Volley",
+    "matchDesc": "Scoring en temps reel, heatmaps et statistiques de votre match de volleyball."
   }
 }

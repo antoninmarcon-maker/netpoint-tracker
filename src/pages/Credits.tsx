@@ -1,12 +1,14 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Heart, ExternalLink, Dribbble, Circle, Activity, MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 export default function Credits() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  useDocumentMeta({ titleKey: 'meta.creditsTitle', descriptionKey: 'meta.creditsDesc', path: '/credits' });
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

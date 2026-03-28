@@ -1,18 +1,19 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Toaster } from "@/components/ui/toaster";
 import { useCloudSettingsHydration } from "@/hooks/useCloudSettingsHydration";
 import { useTheme } from "@/hooks/useTheme";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 
-import Home from "./pages/Home";
 import { AppShell } from "./components/AppShell";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // Lazy-loaded routes to reduce initial bundle size
+const Home = lazy(() => import("./pages/Home"));
 const Index = lazy(() => import("./pages/Index"));
 const SharedMatch = lazy(() => import("./pages/SharedMatch"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -29,18 +30,26 @@ const TournamentSpectator = lazy(() => import("./pages/TournamentSpectator"));
 const Spots = lazy(() => import("./pages/Spots"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 
-const queryClient = new QueryClient();
-
 const AppInner = () => {
   useCloudSettingsHydration();
   useTheme(); // Apply theme at root level so it reacts to system changes and PWA updates
+  const { i18n } = useTranslation();
+  useEffect(() => {
+    document.documentElement.lang = i18n.resolvedLanguage || i18n.language || 'fr';
+  }, [i18n.resolvedLanguage, i18n.language]);
   return (
     <>
       <Toaster />
       <Sonner />
       <AuthProvider>
       <BrowserRouter>
-        <Suspense fallback={<div className="min-h-screen bg-background" />}>
+        <ErrorBoundary>
+        <Suspense fallback={
+          <div className="min-h-screen bg-background flex items-center justify-center" role="status" aria-live="polite">
+            <span className="sr-only">Loading...</span>
+            <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+          </div>
+        }>
           <Routes>
             {/* Routes WITH AppShell (header + bottom nav) */}
             <Route element={<AppShell />}>
@@ -65,6 +74,7 @@ const AppInner = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        </ErrorBoundary>
       </BrowserRouter>
       </AuthProvider>
     </>
@@ -72,12 +82,10 @@ const AppInner = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AppInner />
-      <Analytics />
-    </TooltipProvider>
-  </QueryClientProvider>
+  <TooltipProvider>
+    <AppInner />
+    <Analytics />
+  </TooltipProvider>
 );
 
 export default App;
