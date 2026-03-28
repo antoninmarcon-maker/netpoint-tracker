@@ -121,7 +121,8 @@ export default function SpotForm({ location, onLocationChange, onSuccess, onCanc
     setLoading(true);
     try {
       const { data: userData } = await supabase.auth.getUser();
-      const userId = userData?.user?.id || null;
+      const userId = userData?.user?.id;
+      if (!userId) { toast.error(t('auth.requiresLogin', 'Login required')); setLoading(false); return; }
 
       let spotId = spotToEdit?.id;
 

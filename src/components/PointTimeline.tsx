@@ -6,6 +6,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Eye } from 'lucide-react';
 import { RatingDot } from '@/components/RatingDot';
+import { formatTime } from '@/lib/formatters';
 
 const ACTION_LABELS: Partial<Record<ActionType, { abbr: string; full: string }>> = {
   attack: { abbr: 'ATK', full: 'Attaque' },
@@ -25,12 +26,6 @@ interface PointTimelineProps {
   teamNames: { blue: string; red: string };
   onSelectPoint?: (index: number) => void;
   viewingPointIndex?: number | null;
-}
-
-function formatTime(seconds: number) {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 interface DataPoint {

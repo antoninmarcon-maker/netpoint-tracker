@@ -5,6 +5,9 @@ import {
   getTypeLabel, calcAverageRating,
 } from '@/lib/spotTypes';
 import { DEFAULT_FILTERS, DEFAULT_SUB_FILTERS, EXTERIOR_TYPES, type SpotFiltersState } from '@/components/spots/SpotFilters';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Spot = Tables<'spots_with_coords'>;
 
 // ── Shared fixtures ─────────────────────────────────────────────────────────
 
@@ -39,10 +42,10 @@ const leValdier = {
   created_at: '2025-06-01T10:00:00Z',
   updated_at: '2025-06-01T10:00:00Z',
   user_id: 'user-creator',
-};
+} as Spot;
 
 /** Convenience: create spot variants */
-const spot = (overrides: Partial<typeof leValdier> = {}) => ({ ...leValdier, ...overrides });
+const spot = (overrides: Record<string, unknown> = {}): Spot => ({ ...leValdier, ...overrides } as Spot);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 1. FULL SPOT CREATION FLOW
@@ -592,7 +595,7 @@ describe('Favorite system — edge cases', () => {
 
 describe('Suggestion flow — modifying Le Valdier', () => {
   function buildSuggestionPayload(
-    original: { lat: number; lng: number },
+    original: { lat: number | null; lng: number | null },
     form: { name: string; description: string; type: string; availability_period: string },
     userId: string,
   ) {

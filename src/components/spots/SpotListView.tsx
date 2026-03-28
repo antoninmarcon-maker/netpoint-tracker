@@ -102,13 +102,13 @@ export default function SpotListView({ spots, selectedSpotId, onSelectSpot, user
         )}
 
         {sorted.map((spot, i) => {
-          const typeInfo = SPOT_TYPE_CONFIG[spot.type] || { emoji: '📍', label: 'Terrain', bg: 'bg-gray-500', hex: '#6b7280' };
+          const typeInfo = (spot.type ? SPOT_TYPE_CONFIG[spot.type] : null) || { emoji: '📍', label: 'Terrain', bg: 'bg-gray-500', hex: '#6b7280' };
           const isSelected = spot.id === selectedSpotId;
 
           return (
             <button
               key={spot.id}
-              onClick={() => onSelectSpot(spot.id)}
+              onClick={() => spot.id && onSelectSpot(spot.id)}
               className={`w-full text-left px-4 py-3 border-b border-border/20 transition-all hover:bg-secondary/40 active:bg-secondary/60 group ${
                 isSelected ? 'bg-primary/5 border-l-[3px] border-l-primary' : ''
               }`}

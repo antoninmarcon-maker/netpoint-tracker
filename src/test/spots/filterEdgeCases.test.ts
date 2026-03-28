@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { filterSpots } from '@/lib/filterSpots';
 import { DEFAULT_FILTERS, type SpotFiltersState } from '@/components/spots/SpotFilters';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Spot = Tables<'spots_with_coords'>;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -17,7 +20,7 @@ const baseSpot = {
   equip_pmr: false,
   equip_saisonnier: false,
   equip_sol: null,
-};
+} as Spot;
 
 const filters = (): SpotFiltersState => JSON.parse(JSON.stringify(DEFAULT_FILTERS));
 

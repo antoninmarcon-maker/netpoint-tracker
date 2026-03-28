@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, Pencil, Check, Trash2, Users, ChevronDown, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { SportType, getScoredActionsForSport, getFaultActionsForSport } from '@/types/sports';
 import { getSavedPlayers, removeSavedPlayer, updateSavedPlayerName, updateSavedPlayerNumber } from '@/lib/savedPlayers';
 import { supabase } from '@/integrations/supabase/client';
@@ -293,17 +294,20 @@ export function SavedPlayersManager({ open, onOpenChange, userId }: SavedPlayers
         )}
 
         {/* Delete confirm */}
-        {deletingId && (
-          <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4" onClick={() => setDeletingId(null)}>
-            <div className="bg-card rounded-2xl p-5 max-w-xs w-full border border-border space-y-3" onClick={e => e.stopPropagation()}>
-              <p className="text-sm font-bold text-foreground text-center">{t('savedPlayers.deletePlayer')}</p>
-              <div className="flex gap-2">
-                <button onClick={() => setDeletingId(null)} className="flex-1 py-2 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm">{t('common.cancel')}</button>
-                <button onClick={() => handleDelete(deletingId)} className="flex-1 py-2 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm">{t('common.delete')}</button>
-              </div>
-            </div>
-          </div>
-        )}
+        <AlertDialog open={!!deletingId} onOpenChange={(open) => { if (!open) setDeletingId(null); }}>
+          <AlertDialogContent className="max-w-xs rounded-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-center">{t('savedPlayers.deletePlayer')}</AlertDialogTitle>
+              <AlertDialogDescription className="sr-only">{t('savedPlayers.deletePlayer')}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex gap-2 sm:justify-center">
+              <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={() => { if (deletingId) handleDelete(deletingId); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {t('common.delete')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   );

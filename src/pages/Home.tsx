@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { getDemoMatch, DEMO_MATCH_ID } from '@/lib/demoMatch';
-import { useNavigate, Link } from 'react-router-dom';
-import { Plus, History, Trash2, Eye, Play, Info, CheckCircle2, Loader2, X, MessageSquare, Share2, Copy, Mail, MoreVertical, FileSpreadsheet, BarChart2, Users, Settings2, Activity, Trophy, MapPin, Download, LinkIcon, Sparkles, SlidersHorizontal, ChevronRight, ShieldCheck } from 'lucide-react';
+import { useNavigate, Link, useOutletContext } from 'react-router-dom';
+import { Plus, Trash2, Eye, Play, Info, CheckCircle2, Loader2, X, Mail, MoreVertical, FileSpreadsheet, BarChart2, Share2, Copy, Users, Settings2, Activity, Trophy, MapPin, Sparkles, SlidersHorizontal, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { getAllMatches, createNewMatch, saveMatch, setActiveMatchId, deleteMatch, getMatch } from '@/lib/matchStorage';
-import { syncLocalMatchesToCloud, getCloudMatches, saveCloudMatch, deleteCloudMatch, getCloudMatchById, generateShareToken } from '@/lib/cloudStorage';
+import { syncLocalMatchesToCloud, getCloudMatches, saveCloudMatch, deleteCloudMatch, getCloudMatchById } from '@/lib/cloudStorage';
 import { updateTutorialStep, getNotificationPermission, subscribeToPush } from '@/lib/pushNotifications';
 import { MatchSummary, SetData, Team, SportType } from '@/types/sports';
 import { toast } from 'sonner';
@@ -19,13 +20,12 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { userStorage } from '@/lib/userStorage';
-
-function formatDate(ts: number) {
-  return new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
+import { ShareMatchDialog } from '@/components/home/ShareMatchDialog';
+import { formatDate } from '@/lib/formatters';
 
 function matchScore(match: MatchSummary) {
   const blue = match.completedSets.filter(s => s.winner === 'blue').length;
@@ -62,13 +62,21 @@ export default function Home() {
   const { t } = useTranslation();
   useDocumentMeta({ titleKey: 'meta.homeTitle', descriptionKey: 'meta.homeDesc', path: '/' });
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-  const [authLoaded, setAuthLoaded] = useState(false);
+  const { user, authLoaded } = useAuth();
+  const { showNewMatch, setShowNewMatch } = useOutletContext<{ showNewMatch: boolean; setShowNewMatch: (v: boolean) => void }>();
   const [showAuth, setShowAuth] = useState(false);
   const [guestDismissed, setGuestDismissed] = useState(() => sessionStorage.getItem('guestDismissed') === 'true');
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [showNew, setShowNew] = useState(false);
+
+  // Sync BottomNav "new match" trigger from AppShell into local dialog state
+  useEffect(() => {
+    if (showNewMatch) {
+      setShowNew(true);
+      setShowNewMatch(false);
+    }
+  }, [showNewMatch, setShowNewMatch]);
   const [names, setNames] = useState({ blue: '', red: '' });
   const [hasCourt, setHasCourt] = useState(true);
   const [isPerformanceMode, setIsPerformanceMode] = useState(false);
@@ -83,9 +91,6 @@ export default function Home() {
   const [inviteSending, setInviteSending] = useState(false);
   const [selectedWhatsNew, setSelectedWhatsNew] = useState<any | null>(null);
   const [sharingMatch, setSharingMatch] = useState<MatchSummary | null>(null);
-  const [generatingShareLink, setGeneratingShareLink] = useState(false);
-  const [shareLinkUrl, setShareLinkUrl] = useState('');
-  const [shareLinkDialogOpen, setShareLinkDialogOpen] = useState(false);
 
   const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -290,46 +295,23 @@ export default function Home() {
     };
   }, [user, loadMatches]);
 
+  // React to auth state changes from AuthContext
   useEffect(() => {
-    let isMounted = true;
+    if (!authLoaded) return;
+    let cancelled = false;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!isMounted) return;
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) {
-        setTimeout(async () => {
-          if (!isMounted) return;
-          await syncLocalMatchesToCloud(u.id);
-          await loadMatches(u);
-        }, 0);
-      } else if (authLoaded) {
-        loadMatches(null);
+    const run = async () => {
+      if (user) {
+        await syncLocalMatchesToCloud(user.id);
       }
-    });
-
-    const initializeAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!isMounted) return;
-        const u = session?.user ?? null;
-        setUser(u);
-        if (u) {
-          await syncLocalMatchesToCloud(u.id);
-        }
-        await loadMatches(u);
-      } finally {
-        if (isMounted) setAuthLoaded(true);
+      if (!cancelled) {
+        await loadMatches(user);
       }
     };
 
-    initializeAuth();
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, [loadMatches]);
+    run();
+    return () => { cancelled = true; };
+  }, [user, authLoaded, loadMatches]);
 
   useEffect(() => {
     if (!authLoaded) return;
@@ -400,104 +382,6 @@ export default function Home() {
     await loadMatches(user);
   };
 
-  const getMatchScoreText = (match: MatchSummary) => {
-    const setsWon = { blue: 0, red: 0 };
-    const setDetails: string[] = [];
-    for (const s of match.completedSets) {
-      if (s.winner === 'blue') setsWon.blue++;
-      else if (s.winner === 'red') setsWon.red++;
-      setDetails.push(`${s.score.blue}-${s.score.red}`);
-    }
-    // Current set in progress
-    const pts = match.points || [];
-    const curBlue = pts.filter(p => p.team === 'blue').length;
-    const curRed = pts.filter(p => p.team === 'red').length;
-    if (!match.finished && (curBlue > 0 || curRed > 0)) {
-      setDetails.push(`${curBlue}-${curRed}*`);
-    }
-
-    let text = `🏐 ${match.teamNames.blue} vs ${match.teamNames.red}\n`;
-    text += `${t('common.sets', 'Sets')}: ${setsWon.blue} - ${setsWon.red}`;
-    if (setDetails.length > 0) {
-      text += ` (${setDetails.join(', ')})`;
-    }
-    if (match.finished) text += ` ✅`;
-    return text;
-  };
-
-  // Resolve or generate the share link URL for a match (returns null if not logged in)
-  const resolveShareUrl = async (match: MatchSummary): Promise<string | null> => {
-    if (!user) return null;
-    try {
-      const token = await generateShareToken(match.id);
-      if (!token) return null;
-      return `https://www.my-volley.com/shared/${token}`;
-    } catch {
-      return null;
-    }
-  };
-
-  const getShareText = async (match: MatchSummary): Promise<string> => {
-    const score = getMatchScoreText(match);
-    const url = await resolveShareUrl(match);
-    return url ? `${score}\n${url}` : score;
-  };
-
-  const handleShareNative = async (match: MatchSummary) => {
-    const text = await getShareText(match);
-    const url = await resolveShareUrl(match);
-    if (navigator.share) {
-      try { await navigator.share({ title: `${match.teamNames.blue} vs ${match.teamNames.red}`, text, ...(url ? { url } : {}) }); } catch {}
-    } else {
-      navigator.clipboard.writeText(text).then(() => toast.success(t('heatmap.linkCopied'))).catch(() => {});
-    }
-  };
-
-  const handleCopyScore = (match: MatchSummary) => {
-    navigator.clipboard.writeText(getMatchScoreText(match))
-      .then(() => toast.success(t('heatmap.linkCopied')))
-      .catch(() => toast.error(t('heatmap.linkCopyError')));
-  };
-
-  const handleShareWhatsApp = async (match: MatchSummary) => {
-    const text = await getShareText(match);
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-  };
-
-  const handleShareTelegram = async (match: MatchSummary) => {
-    const text = await getShareText(match);
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(text)}`, '_blank');
-  };
-
-  const handleShareX = async (match: MatchSummary) => {
-    const text = await getShareText(match);
-    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
-  };
-
-  const handleGenerateShareLink = async (match: MatchSummary) => {
-    if (!user) { toast.error(t('heatmap.loginForLink')); return; }
-    setGeneratingShareLink(true);
-    try {
-      const url = await resolveShareUrl(match);
-      if (!url) throw new Error('No token');
-      setShareLinkUrl(url);
-      setSharingMatch(null);
-      setShareLinkDialogOpen(true);
-    } catch {
-      toast.error(t('heatmap.linkError'));
-    } finally {
-      setGeneratingShareLink(false);
-    }
-  };
-
-  const handleCopyShareLink = async () => {
-    try {
-      await navigator.clipboard.writeText(shareLinkUrl);
-      toast.success(t('heatmap.linkCopied'));
-    } catch {
-      toast.error(t('heatmap.linkCopyError'));
-    }
-  };
 
   const handleFinishMatch = async (id: string) => {
     try {
@@ -514,7 +398,10 @@ export default function Home() {
       if (match.points.length > 0) {
         const blueScore = match.points.filter(p => p.team === 'blue').length;
         const redScore = match.points.filter(p => p.team === 'red').length;
-        const winner: Team = blueScore >= redScore ? 'blue' : 'red';
+        // Only assign a winner when scores differ; tied sets get null
+        const winner: Team | null = blueScore !== redScore
+          ? (blueScore > redScore ? 'blue' : 'red')
+          : null;
         const setData: SetData = {
           id: crypto.randomUUID(),
           number: match.currentSetNumber,
@@ -1046,51 +933,35 @@ export default function Home() {
         </div>
       </main>
 
-      {finishingId && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setFinishingId(null)}>
-          <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-foreground text-center">{t('home.finishMatch')}</h2>
-            <p className="text-sm text-muted-foreground text-center">{t('home.finishMatchDesc')}</p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setFinishingId(null)}
-                className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={() => handleFinishMatch(finishingId)}
-                className="flex-1 py-2.5 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm flex items-center justify-center gap-1.5"
-              >
-                <CheckCircle2 size={16} /> {t('home.finish')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlertDialog open={!!finishingId} onOpenChange={(open) => { if (!open) setFinishingId(null); }}>
+        <AlertDialogContent className="max-w-sm rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center">{t('home.finishMatch')}</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">{t('home.finishMatchDesc')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-3 sm:justify-center">
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (finishingId) handleFinishMatch(finishingId); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5">
+              <CheckCircle2 size={16} /> {t('home.finish')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      {deletingId && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setDeletingId(null)}>
-          <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-foreground text-center">{t('home.deleteMatch')}</h2>
-            <p className="text-sm text-muted-foreground text-center">{t('home.deleteMatchDesc')}</p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setDeletingId(null)}
-                className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={() => handleDelete(deletingId)}
-                className="flex-1 py-2.5 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm flex items-center justify-center gap-1.5"
-              >
-                <Trash2 size={16} /> {t('common.delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlertDialog open={!!deletingId} onOpenChange={(open) => { if (!open) setDeletingId(null); }}>
+        <AlertDialogContent className="max-w-sm rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center">{t('home.deleteMatch')}</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">{t('home.deleteMatchDesc')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-3 sm:justify-center">
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (deletingId) handleDelete(deletingId); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5">
+              <Trash2 size={16} /> {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {user && (
         <SavedPlayersManager
@@ -1100,70 +971,11 @@ export default function Home() {
         />
       )}
 
-      {/* Share Match Dialog */}
-      <Dialog open={!!sharingMatch} onOpenChange={(open) => !open && setSharingMatch(null)}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Share2 size={18} /> {t('home.shareMatch', 'Partager le match')}
-            </DialogTitle>
-            {sharingMatch && (
-              <DialogDescription>
-                {sharingMatch.teamNames.blue} vs {sharingMatch.teamNames.red}
-              </DialogDescription>
-            )}
-          </DialogHeader>
-          {sharingMatch && (
-            <div className="space-y-2">
-              <button onClick={() => { handleShareNative(sharingMatch); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-medium transition-all">
-                <Share2 size={16} className="text-muted-foreground" /> {t('heatmap.shareDots', 'Partager…')}
-              </button>
-              <button onClick={() => handleShareWhatsApp(sharingMatch)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-medium transition-all">
-                <span className="text-base">💬</span> WhatsApp
-              </button>
-              <button onClick={() => handleShareTelegram(sharingMatch)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-medium transition-all">
-                <span className="text-base">✈️</span> Telegram
-              </button>
-              <button onClick={() => handleShareX(sharingMatch)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-medium transition-all">
-                <span className="text-base">𝕏</span> X (Twitter)
-              </button>
-              <div className="h-px bg-border my-1" />
-              <button onClick={() => handleCopyScore(sharingMatch)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-medium transition-all">
-                <Copy size={16} className="text-muted-foreground" /> {t('heatmap.copyScore', 'Copier le score')}
-              </button>
-              <button onClick={async () => { const { exportMatchToExcel } = await import('@/lib/excelExport'); exportMatchToExcel(sharingMatch.completedSets, sharingMatch.points, sharingMatch.currentSetNumber, sharingMatch.teamNames, sharingMatch.players || []); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-medium transition-all">
-                <FileSpreadsheet size={16} className="text-muted-foreground" /> {t('heatmap.excelXlsx', 'Excel (.xlsx)')}
-              </button>
-              {user && (
-                <button onClick={() => handleGenerateShareLink(sharingMatch)} disabled={generatingShareLink} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-sm font-semibold transition-all">
-                  <LinkIcon size={16} /> {generatingShareLink ? t('heatmap.generatingLink', 'Génération...') : t('heatmap.shareLink', '🔗 Lien de partage')}
-                </button>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Share Link Ready Dialog */}
-      <Dialog open={shareLinkDialogOpen} onOpenChange={setShareLinkDialogOpen}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>{t('heatmap.linkReadyTitle')}</DialogTitle>
-            <DialogDescription>{t('heatmap.linkReadyDescription')}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <input readOnly value={shareLinkUrl} className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground" />
-            <div className="flex gap-2">
-              <button onClick={handleCopyShareLink} className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-all">
-                {t('heatmap.copyLink')}
-              </button>
-              <button onClick={() => window.open(shareLinkUrl, '_blank', 'noopener,noreferrer')} className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/80 transition-all">
-                {t('heatmap.openSharedPage')}
-              </button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ShareMatchDialog
+        match={sharingMatch}
+        onClose={() => setSharingMatch(null)}
+        isLoggedIn={!!user}
+      />
 
     </>
   );

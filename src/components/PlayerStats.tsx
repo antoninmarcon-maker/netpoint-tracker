@@ -64,9 +64,9 @@ export function PlayerStats({ points, players, teamName, matchId, showRatings = 
       const playerNeutrals: (RallyAction & { rating?: string })[] = [];
 
       points.forEach(p => {
-        const actions = (p.rallyActions && p.rallyActions.length > 0)
+        const actions: (RallyAction & { rating?: string })[] = (p.rallyActions && p.rallyActions.length > 0)
           ? p.rallyActions
-          : [{ team: p.team, type: p.type, action: p.action, playerId: p.playerId, customActionLabel: p.customActionLabel, rating: (p as any).rating }];
+          : [{ team: p.team, type: p.type, action: p.action, playerId: p.playerId, customActionLabel: p.customActionLabel, rating: (p as unknown as Record<string, unknown>).rating as string | undefined } as RallyAction & { rating?: string }];
 
         actions.forEach(a => {
           if (a.playerId !== player.id) return;

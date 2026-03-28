@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Player } from '@/types/sports';
 import { X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTranslation } from 'react-i18next';
 import { getPlayerNumber, getJerseyConfig } from '@/lib/savedPlayers';
 import type { SportType, Team } from '@/types/sports';
@@ -28,17 +29,14 @@ export function PlayerSelector({ players, prompt, onSelect, onSkip, sport = 'vol
   const colorClass = team === 'red' ? 'team-red' : 'team-blue';
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/60 flex items-end justify-center sm:items-center p-4" onClick={() => interactive && onSkip()}>
-      <div className={`bg-card rounded-2xl p-4 max-w-sm w-full border-2 ${team === 'red' ? 'border-team-red/30' : 'border-team-blue/30'} space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-200`} onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-bold text-foreground">
+    <Dialog open onOpenChange={(open) => { if (!open && interactive) onSkip(); }}>
+      <DialogContent className={`max-w-sm rounded-2xl border-2 ${team === 'red' ? 'border-team-red/30' : 'border-team-blue/30'}`}>
+        <DialogHeader>
+          <DialogTitle className="text-sm font-bold">
             {teamName && <span className={`mr-1 ${team === 'red' ? 'text-team-red' : 'text-team-blue'}`}>[{teamName}]</span>}
             {prompt}
-          </p>
-          <button onClick={onSkip} className="p-1 rounded-md text-muted-foreground hover:text-foreground">
-            <X size={16} />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {players.map(p => {
             const num = jerseyEnabled ? (getPlayerNumber(p.id) || p.number) : undefined;
@@ -55,7 +53,7 @@ export function PlayerSelector({ players, prompt, onSelect, onSkip, sport = 'vol
         <button onClick={onSkip} className="w-full py-2 text-xs font-medium text-muted-foreground rounded-lg bg-secondary hover:bg-secondary/80 transition-all">
           {t('playerSelector.skip')}
         </button>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -146,7 +146,9 @@
     "forgotPassword": "Mot de passe oublié",
     "forgotPasswordLink": "Mot de passe oublié ?",
     "emailPlaceholder": "Adresse email",
+    "emailLabel": "Adresse email",
     "passwordPlaceholder": "Mot de passe",
+    "passwordLabel": "Mot de passe",
     "sendLink": "Envoyer le lien",
     "createAccount": "Créer le compte",
     "signIn": "Se connecter",
@@ -763,6 +765,10 @@
     "tournamentsTitle": "Tournois -- My Volley",
     "tournamentsDesc": "Creez et gerez vos tournois de volleyball avec My Volley.",
     "matchTitle": "Match en Direct -- My Volley",
-    "matchDesc": "Scoring en temps reel, heatmaps et statistiques de votre match de volleyball."
+    "matchDesc": "Scoring en temps reel, heatmaps et statistiques de votre match de volleyball.",
+    "playersTitle": "Joueurs -- My Volley",
+    "playersDesc": "Gerez votre liste de joueurs, numeros de maillot et consultez leurs statistiques.",
+    "actionsTitle": "Actions personnalisees -- My Volley",
+    "actionsDesc": "Personnalisez les actions de scoring : ajoutez, masquez ou modifiez les actions de votre match."
   }
 }

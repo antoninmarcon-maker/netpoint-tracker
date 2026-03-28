@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { filterSpots, getDistance } from '@/lib/filterSpots';
 import { DEFAULT_FILTERS, DEFAULT_SUB_FILTERS, EXTERIOR_TYPES, type SpotFiltersState } from '@/components/spots/SpotFilters';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Spot = Tables<'spots_with_coords'>;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -18,7 +21,7 @@ const baseSpot = {
   equip_saisonnier: false,
   equip_sol: null,
   source: null,
-};
+} as Spot;
 
 const filters = (): SpotFiltersState => JSON.parse(JSON.stringify(DEFAULT_FILTERS));
 
@@ -405,7 +408,8 @@ describe('Seasonality parsing — edge cases', () => {
 
   it('contradictory data: saisonnier=true + period="Toute l\'année" → yearly wins', () => {
     const result = parseSeason("Toute l'année", true);
-    expect(result.type).toBe('yearly');
+    expect(result).not.toBeNull();
+    expect(result!.type).toBe('yearly');
   });
 
   it('saisonnier=true + null period → seasonal with null months', () => {

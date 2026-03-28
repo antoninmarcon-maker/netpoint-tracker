@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { Activity, BarChart3, HelpCircle, X, ArrowLeft, Check } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useMatchState } from '@/hooks/useMatchState';
 import { getActionRequirements } from '@/lib/matchRules';
 import { ScoreBoard } from '@/components/ScoreBoard';
@@ -229,8 +230,8 @@ const Index = () => {
       selectedTeam,
       selectedPointType!,
       selectedAction,
-      pendingActionMeta,
-      metadata,
+      pendingActionMeta ?? undefined,
+      metadata ?? null,
       isPerformanceMode
     );
 
@@ -520,22 +521,21 @@ const Index = () => {
         })()}
       </main>
 
-      {showHelp && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setShowHelp(false)}>
-          <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-3 relative" onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowHelp(false)} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"><X size={18} /></button>
-            <h2 className="text-lg font-bold text-foreground">{t('matchPage.helpTitle')}</h2>
-            <div className="text-sm text-muted-foreground space-y-2">
-              <p><strong className="text-foreground">{t('matchPage.helpVolleyP1')}</strong></p>
-              <p><strong className="text-foreground">{t('matchPage.helpVolleyP2')}</strong></p>
-              <p><strong className="text-foreground">{t('matchPage.helpVolleyP3')}</strong></p>
-              <p><strong className="text-foreground">{t('matchPage.helpVolleyP4')}</strong></p>
-              <p><strong className="text-foreground">{t('matchPage.helpVolleyP5')}</strong></p>
-              <p><strong className="text-foreground">{t('matchPage.helpVolleyP6')}</strong></p>
-            </div>
+      <Dialog open={showHelp} onOpenChange={setShowHelp}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>{t('matchPage.helpTitle')}</DialogTitle>
+          </DialogHeader>
+          <div className="text-sm text-muted-foreground space-y-2">
+            <p><strong className="text-foreground">{t('matchPage.helpVolleyP1')}</strong></p>
+            <p><strong className="text-foreground">{t('matchPage.helpVolleyP2')}</strong></p>
+            <p><strong className="text-foreground">{t('matchPage.helpVolleyP3')}</strong></p>
+            <p><strong className="text-foreground">{t('matchPage.helpVolleyP4')}</strong></p>
+            <p><strong className="text-foreground">{t('matchPage.helpVolleyP5')}</strong></p>
+            <p><strong className="text-foreground">{t('matchPage.helpVolleyP6')}</strong></p>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

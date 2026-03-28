@@ -171,7 +171,8 @@ export default function SpotFormModal({ open, onClose, onSuccess, location, onLo
       }
 
       const urls = await Promise.all(photos.map(f => uploadSpotPhoto(spotId, f, userId)));
-      for (const url of urls.filter(Boolean)) {
+      for (const url of urls) {
+        if (!url) continue;
         await supabase.from('spot_photos').insert([{ spot_id: spotId, photo_url: url, user_id: userId }]);
       }
 

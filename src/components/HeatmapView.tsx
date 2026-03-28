@@ -7,6 +7,14 @@ import { PlayerStats } from './PlayerStats';
 import { generateShareToken } from '@/lib/cloudStorage';
 import { toast } from 'sonner';
 import {
+  handleShareWhatsApp,
+  handleShareTelegram,
+  handleShareX,
+  handleShareNative,
+  handleCopyScore,
+} from '@/lib/shareUtils';
+import type { MatchSummary } from '@/types/sports';
+import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   DropdownMenuSeparator, DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
@@ -429,42 +437,20 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
     }
   }, [teamNames]);
 
-  const getScoreText = useCallback(() => {
-    const allSets = [...completedSets];
-    const setsBlue = allSets.filter(s => s.winner === 'blue').length;
-    const setsRed = allSets.filter(s => s.winner === 'red').length;
-    const details = allSets.map(s => `${s.score.blue}-${s.score.red}`).join(', ');
-    let text = `🏐 Match : ${teamNames.blue} vs ${teamNames.red}\n📊 Score Sets : ${setsBlue}-${setsRed}`;
-    if (details) text += `\n📋 Détails : ${details}`;
-    if (currentSetPoints.length > 0) {
-      const blueNow = currentSetPoints.filter(p => p.team === 'blue' && p.type !== 'neutral').length;
-      const redNow = currentSetPoints.filter(p => p.team === 'red' && p.type !== 'neutral').length;
-      text += `\n⏳ Set ${currentSetNumber} en cours : ${blueNow}-${redNow}`;
-    }
-    return text;
-  }, [completedSets, currentSetPoints, currentSetNumber, teamNames]);
-
-  const copyScoreText = useCallback(() => {
-    navigator.clipboard.writeText(getScoreText());
-  }, [getScoreText]);
-
-  const shareToWhatsApp = useCallback(() => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(getScoreText())}`, '_blank');
-  }, [getScoreText]);
-
-  const shareToTelegram = useCallback(() => {
-    window.open(`https://t.me/share/url?text=${encodeURIComponent(getScoreText())}`, '_blank');
-  }, [getScoreText]);
-
-  const shareToX = useCallback(() => {
-    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(getScoreText())}`, '_blank');
-  }, [getScoreText]);
-
-  const shareNative = useCallback(async () => {
-    if (navigator.share) {
-      try { await navigator.share({ text: getScoreText() }); } catch { }
-    } else { copyScoreText(); }
-  }, [getScoreText, copyScoreText]);
+  const matchSummaryForShare = useMemo((): MatchSummary => ({
+    id: matchId || '',
+    teamNames,
+    completedSets,
+    currentSetNumber,
+    points: currentSetPoints,
+    sidesSwapped: false,
+    chronoSeconds: 0,
+    createdAt: 0,
+    updatedAt: 0,
+    finished: currentSetPoints.length === 0 && completedSets.length > 0,
+    players,
+    sport,
+  }), [matchId, teamNames, completedSets, currentSetNumber, currentSetPoints, players, sport]);
 
   const [generatingLink, setGeneratingLink] = useState(false);
   const [shareLinkUrl, setShareLinkUrl] = useState('');
@@ -809,25 +795,25 @@ export function HeatmapView({ points, completedSets, currentSetPoints, currentSe
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56 bg-popover border border-border shadow-lg z-50">
-            <DropdownMenuItem onClick={shareNative} className="cursor-pointer">
+            <DropdownMenuItem onClick={() => handleShareNative(matchSummaryForShare, t, isLoggedIn ?? false)} className="cursor-pointer">
               <Share2 size={14} className="mr-2" />
               {t('heatmap.shareDots')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={shareToWhatsApp} className="cursor-pointer">
+            <DropdownMenuItem onClick={() => handleShareWhatsApp(matchSummaryForShare, t, isLoggedIn ?? false)} className="cursor-pointer">
               <span className="mr-2 text-sm">💬</span>
               WhatsApp
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={shareToTelegram} className="cursor-pointer">
+            <DropdownMenuItem onClick={() => handleShareTelegram(matchSummaryForShare, t, isLoggedIn ?? false)} className="cursor-pointer">
               <span className="mr-2 text-sm">✈️</span>
               Telegram
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={shareToX} className="cursor-pointer">
+            <DropdownMenuItem onClick={() => handleShareX(matchSummaryForShare, t, isLoggedIn ?? false)} className="cursor-pointer">
               <span className="mr-2 text-sm">𝕏</span>
               X (Twitter)
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={copyScoreText} className="cursor-pointer">
+            <DropdownMenuItem onClick={() => handleCopyScore(matchSummaryForShare, t)} className="cursor-pointer">
               <Copy size={14} className="mr-2" />
               {t('heatmap.copyScore')}
             </DropdownMenuItem>

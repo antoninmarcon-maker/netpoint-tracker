@@ -541,7 +541,10 @@ export function useMatchState(matchId: string, ready: boolean = true) {
     // Build final sets list: existing completed sets + current set if it has points
     const finalSets = [...completedSets];
     if (points.length > 0) {
-      const winner: Team = score.blue >= score.red ? 'blue' : 'red';
+      // Only assign a winner when scores differ; tied sets get null
+      const winner: Team | null = score.blue !== score.red
+        ? (score.blue > score.red ? 'blue' : 'red')
+        : null;
       finalSets.push({
         id: crypto.randomUUID(),
         number: currentSetNumber,

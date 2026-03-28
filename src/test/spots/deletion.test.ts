@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { filterSpots } from '@/lib/filterSpots';
 import { DEFAULT_FILTERS, type SpotFiltersState } from '@/components/spots/SpotFilters';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Spot = Tables<'spots_with_coords'>;
 
 // ── Shared fixtures ─────────────────────────────────────────────────────────
 
@@ -36,9 +39,9 @@ const baseSpot = {
   created_at: '2025-06-01T10:00:00Z',
   updated_at: '2025-06-01T10:00:00Z',
   user_id: 'user-other',
-};
+} as Spot;
 
-const spot = (overrides: Partial<typeof baseSpot> = {}) => ({ ...baseSpot, ...overrides });
+const spot = (overrides: Record<string, unknown> = {}): Spot => ({ ...baseSpot, ...overrides } as Spot);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 1. MODERATOR DELETE PERMISSION LOGIC
@@ -137,8 +140,8 @@ describe('Cascade delete logic', () => {
     // Simulates: moderator tries to delete comments from another user
     // spot_comments_delete_owner policy: auth.uid() = user_id
     // Since the comments belong to other users, delete returns count=0
-    const currentUserId = 'moderator-id';
-    const commentOwnerId = 'reporter-id';
+    const currentUserId: string = 'moderator-id';
+    const commentOwnerId: string = 'reporter-id';
     const ownerPolicyAllows = currentUserId === commentOwnerId;
     expect(ownerPolicyAllows).toBe(false);
     // This is why the old manual cascade failed — RLS blocked comment deletion
@@ -363,8 +366,8 @@ describe('E2E — Bug reproduction: spot reappears after delete', () => {
     // So the comments were never deleted, making the report disappear on UI refresh
     // because the spot reload re-fetched comments which were still there
 
-    const reportCommentOwnerId = 'user-reporter';
-    const moderatorId = 'moderator-id';
+    const reportCommentOwnerId: string = 'user-reporter';
+    const moderatorId: string = 'moderator-id';
     const deleteOwnerPolicyAllows = moderatorId === reportCommentOwnerId;
     expect(deleteOwnerPolicyAllows).toBe(false);
     // This means manual comment deletion silently failed

@@ -10,7 +10,7 @@ const ALLOWED_ORIGINS = [
 
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get("Origin") || "";
-  const allowedOrigin = ALLOWED_ORIGINS.some((o) => origin === o || origin.endsWith(".vercel.app"))
+  const allowedOrigin = ALLOWED_ORIGINS.some((o) => origin === o || !!origin.match(/^https:\/\/my-volley(-[a-z0-9]+)?\.vercel\.app$/))
     ? origin
     : ALLOWED_ORIGINS[0];
   return {

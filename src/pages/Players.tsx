@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { SportType, getScoredActionsForSport, getFaultActionsForSport } from '@/types/sports';
 import {
@@ -18,6 +19,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 
 interface PlayerWithStats extends SavedPlayer {
   totalPoints: number;
@@ -28,6 +30,7 @@ interface PlayerWithStats extends SavedPlayer {
 
 export default function Players() {
   const { t } = useTranslation();
+  useDocumentMeta({ titleKey: 'meta.playersTitle', descriptionKey: 'meta.playersDesc', path: '/players' });
   const navigate = useNavigate();
   const { user } = useAuth();
   const sport: SportType = 'volleyball';
@@ -330,17 +333,20 @@ export default function Players() {
         )}
       </main>
 
-      {deletingId && (
-        <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4" onClick={() => setDeletingId(null)}>
-          <div className="bg-card rounded-2xl p-5 max-w-xs w-full border border-border space-y-3" onClick={e => e.stopPropagation()}>
-            <p className="text-sm font-bold text-foreground text-center">{t('savedPlayers.deletePlayer')}</p>
-            <div className="flex gap-2">
-              <button onClick={() => setDeletingId(null)} className="flex-1 py-2 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm">{t('common.cancel')}</button>
-              <button onClick={() => handleDelete(deletingId)} className="flex-1 py-2 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm">{t('common.delete')}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlertDialog open={!!deletingId} onOpenChange={(open) => { if (!open) setDeletingId(null); }}>
+        <AlertDialogContent className="max-w-xs rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center">{t('savedPlayers.deletePlayer')}</AlertDialogTitle>
+            <AlertDialogDescription className="sr-only">{t('savedPlayers.deletePlayer')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2 sm:justify-center">
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (deletingId) handleDelete(deletingId); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

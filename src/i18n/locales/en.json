@@ -146,7 +146,9 @@
     "forgotPassword": "Forgot password",
     "forgotPasswordLink": "Forgot password?",
     "emailPlaceholder": "Email address",
+    "emailLabel": "Email address",
     "passwordPlaceholder": "Password",
+    "passwordLabel": "Password",
     "sendLink": "Send link",
     "createAccount": "Create account",
     "signIn": "Sign in",
@@ -763,6 +765,10 @@
     "tournamentsTitle": "Tournaments -- My Volley",
     "tournamentsDesc": "Create and manage your volleyball tournaments with My Volley.",
     "matchTitle": "Live Match -- My Volley",
-    "matchDesc": "Real-time scoring, heatmaps and statistics for your volleyball match."
+    "matchDesc": "Real-time scoring, heatmaps and statistics for your volleyball match.",
+    "playersTitle": "Players -- My Volley",
+    "playersDesc": "Manage your player roster, jersey numbers and view their statistics.",
+    "actionsTitle": "Custom Actions -- My Volley",
+    "actionsDesc": "Customize scoring actions: add, hide or modify the actions for your match."
   }
 }

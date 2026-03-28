@@ -52,7 +52,6 @@ export default function Settings() {
         return;
       }
       const u = session.user;
-      setUser(u);
       setDisplayName(u.user_metadata?.full_name || '');
 
       const { data: profile } = await supabase

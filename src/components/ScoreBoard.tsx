@@ -2,9 +2,12 @@ import { Undo2, RotateCcw, Flag, ArrowLeftRight, Play, Pause, Timer, Pencil, Plu
 import { Team, PointType, ActionType, SportType, Point, MatchMetadata, getScoredActionsForSport, getFaultActionsForSport, getNeutralActionsForSport, getPeriodLabel } from '@/types/sports';
 import { getVisibleActions } from '@/lib/actionsConfig';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { userStorage } from '@/lib/userStorage';
+import { formatTimePadded } from '@/lib/formatters';
 
 interface ScoreBoardProps {
   onCustomActionLabel?: (label: string) => void;
@@ -54,12 +57,6 @@ interface ScoreBoardProps {
     hasDirection: boolean;
     hasRating: boolean;
   } | null;
-}
-
-function formatTime(seconds: number) {
-  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-  const s = (seconds % 60).toString().padStart(2, '0');
-  return `${m}:${s}`;
 }
 
 type MenuTab = 'scored' | 'fault' | 'neutral';
@@ -185,7 +182,7 @@ export function ScoreBoard({
         {!isFinished && (
           <div className="flex items-center gap-2">
             <Timer size={14} className="text-muted-foreground" />
-            <span className="text-sm font-mono font-bold text-foreground tabular-nums">{formatTime(chronoSeconds)}</span>
+            <span className="text-sm font-mono font-bold text-foreground tabular-nums">{formatTimePadded(chronoSeconds)}</span>
             <button
               onClick={chronoRunning ? onPauseChrono : onStartChrono}
               aria-label={t('common.chronoPlayPause')}
@@ -345,18 +342,15 @@ export function ScoreBoard({
       )}
 
       {/* Rating UI */}
-      {awaitingRating && onSelectRating && (
-        <div className="fixed inset-0 z-[60] bg-black/60 flex items-end justify-center sm:items-center p-4">
-          <div className={`bg-card rounded-2xl p-4 max-w-sm w-full border-2 ${selectedTeam === 'red' ? 'border-team-red/30' : 'border-team-blue/30'} space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-200`} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-bold text-foreground">
+      {onSelectRating && (
+        <Dialog open={awaitingRating} onOpenChange={(open) => { if (!open) onCancelSelection(); }}>
+          <DialogContent className={`max-w-sm rounded-2xl border-2 ${selectedTeam === 'red' ? 'border-team-red/30' : 'border-team-blue/30'}`}>
+            <DialogHeader>
+              <DialogTitle className="text-sm font-bold">
                 <span className={`mr-1 ${selectedTeam === 'red' ? 'text-team-red' : 'text-team-blue'}`}>[{selectedTeam ? teamNames[selectedTeam] : ''}]</span>
                 {t('scoreboard.rateAction')}
-              </p>
-              <button onClick={onCancelSelection} className="p-1 rounded-md text-muted-foreground hover:text-foreground">
-                <X size={16} />
-              </button>
-            </div>
+              </DialogTitle>
+            </DialogHeader>
             <div className="grid grid-cols-3 gap-2">
               <button onClick={() => onSelectRating('negative')} className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 border-2 border-transparent hover:border-destructive/30 transition-all active:scale-95">
                 <span className="w-8 h-8 rounded-full bg-destructive" />
@@ -374,8 +368,8 @@ export function ScoreBoard({
             <button onClick={() => onSelectRating('none')} className="w-full py-2 text-xs font-medium text-muted-foreground rounded-lg bg-secondary hover:bg-secondary/80 transition-all">
               {t('rating.skip')}
             </button>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Status indicators */}
@@ -390,7 +384,7 @@ export function ScoreBoard({
             {lastEndedSetScore && (
               <p className="text-xs text-muted-foreground">
                 <Trophy size={12} className="inline mr-1" />
-                {t('scoreboard.setWinner', { team: lastEndedSetScore.blue >= lastEndedSetScore.red ? teamNames.blue : teamNames.red })} — <span className="font-bold text-team-blue">{lastEndedSetScore.blue}</span> – <span className="font-bold text-team-red">{lastEndedSetScore.red}</span>
+                {t('scoreboard.setWinner', { team: lastEndedSetScore.blue > lastEndedSetScore.red ? teamNames.blue : teamNames.red })} — <span className="font-bold text-team-blue">{lastEndedSetScore.blue}</span> – <span className="font-bold text-team-red">{lastEndedSetScore.red}</span>
               </p>
             )}
           </div>
@@ -406,57 +400,56 @@ export function ScoreBoard({
       ) : null}
 
       {/* AlertDialog: Confirm end match */}
-      {confirmEndMatch && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setConfirmEndMatch(false)}>
-          <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4 animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-foreground text-center">{t('scoreboard.confirmEndMatchTitle')}</h2>
-            <p className="text-sm text-muted-foreground text-center">{t('scoreboard.confirmEndMatchDesc')}</p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmEndMatch(false)} className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm">{t('common.cancel')}</button>
-              <button onClick={() => { setConfirmEndMatch(false); onFinishMatch(); }} className="flex-1 py-2.5 rounded-lg bg-destructive text-destructive-foreground font-semibold text-sm flex items-center justify-center">
-                {t('scoreboard.confirmEndMatchAction')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlertDialog open={confirmEndMatch} onOpenChange={setConfirmEndMatch}>
+        <AlertDialogContent className="max-w-sm rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center">{t('scoreboard.confirmEndMatchTitle')}</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">{t('scoreboard.confirmEndMatchDesc')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-3 sm:justify-center">
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { onFinishMatch(); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('scoreboard.confirmEndMatchAction')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      {confirmEndSet && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setConfirmEndSet(false)}>
-          <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4 animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-foreground text-center">{t('scoreboard.confirmEndPeriod', { period: periodLabel.toLowerCase() })}</h2>
-            <p className="text-sm text-muted-foreground text-center">
+      <AlertDialog open={confirmEndSet} onOpenChange={setConfirmEndSet}>
+        <AlertDialogContent className="max-w-sm rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center">{t('scoreboard.confirmEndPeriod', { period: periodLabel.toLowerCase() })}</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
               {t('scoreboard.currentScore')} <span className="font-bold text-team-blue">{score.blue}</span> – <span className="font-bold text-team-red">{score.red}</span>. {t('scoreboard.sidesSwapped')}
-            </p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmEndSet(false)} className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm">{t('common.cancel')}</button>
-              <button onClick={() => { setConfirmEndSet(false); onEndSet(); }} className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-1.5">
-                <Flag size={16} /> {t('common.confirm')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-3 sm:justify-center">
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { onEndSet(); }} className="gap-1.5">
+              <Flag size={16} /> {t('common.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      {/* Performance Mode Onboarding */}
-      {showPerfOnboarding && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={handleClosePerfOnboarding}>
-          <div className="bg-card rounded-2xl p-6 max-w-sm w-full border border-border space-y-4 animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-foreground text-center flex items-center justify-center gap-2">
+      {/* Performance Mode Onboarding -- dangerouslySetInnerHTML uses static developer-controlled translation strings, not user input */}
+      <Dialog open={showPerfOnboarding} onOpenChange={(open) => { if (!open) handleClosePerfOnboarding(); }}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-center flex items-center justify-center gap-2">
               <span className="text-2xl">⚡</span> {t('scoreboard.perfOnboardingTitle')}
-            </h2>
-            <div className="text-sm text-muted-foreground space-y-3">
-              <p>{t('scoreboard.perfOnboardingP1')}</p>
-              {/* Content is from static translation files (developer-controlled), safe to render */}
-              <p dangerouslySetInnerHTML={{ __html: t('scoreboard.perfOnboardingP2') }} />
-              <p dangerouslySetInnerHTML={{ __html: t('scoreboard.perfOnboardingP3') }} />
-            </div>
-            <button onClick={handleClosePerfOnboarding} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] hover:opacity-90 mt-2">
-              {t('scoreboard.perfOnboardingDismiss')}
-            </button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-sm text-muted-foreground space-y-3">
+            <p>{t('scoreboard.perfOnboardingP1')}</p>
+            <p dangerouslySetInnerHTML={{ __html: t('scoreboard.perfOnboardingP2') }} />
+            <p dangerouslySetInnerHTML={{ __html: t('scoreboard.perfOnboardingP3') }} />
           </div>
-        </div>
-      )}
+          <button onClick={handleClosePerfOnboarding} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] hover:opacity-90 mt-2">
+            {t('scoreboard.perfOnboardingDismiss')}
+          </button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

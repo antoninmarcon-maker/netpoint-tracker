@@ -11,9 +11,11 @@ import {
   updateCustomAction, deleteCustomAction, updateDefaultActionConfig
 } from '@/lib/actionsConfig';
 import type { ActionsConfig as ActionsConfigType } from '@/lib/actionsConfig';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 
 export default function ActionsConfig() {
   const { t } = useTranslation();
+  useDocumentMeta({ titleKey: 'meta.actionsTitle', descriptionKey: 'meta.actionsDesc', path: '/actions' });
   const navigate = useNavigate();
   const [config, setConfig] = useState<ActionsConfigType>(getActionsConfig);
   const [addingCategory, setAddingCategory] = useState<PointType | null>(null);
